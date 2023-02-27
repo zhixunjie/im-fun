@@ -39,5 +39,3 @@ func TestKratosEtcd(t *testing.T) {
 	)
 	app.Run()
 }
-
-
