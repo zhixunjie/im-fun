@@ -26,16 +26,19 @@ func TestPoolHash(t *testing.T) {
 	byteArr := buf.Bytes()
 	// fmt.Printf("%s\n", byteArr)
 
-	// Bufio
-	bufioReader := bufio.Reader{}
+	// use Bufio to read connection
 	// connReader := bytes.NewReader([]byte("abc\ndef\n")) // suppose this is a connection fd
 	connReader := bytes.NewReader([]byte("abc\ndef")) // suppose this is a connection fd
+	bufioReader := bufio.Reader{}
 	bufioReader.ResetBuffer(connReader, byteArr)
 
 	// Read
-	// TODO 当connReader中的字符串最后没有换行，下面的输出会有bug，这个应该属于bufio的bug
-	line1, _, _ := bufioReader.ReadLine()
-	line2, _, _ := bufioReader.ReadLine()
+	//  当connReader中的字符串最后没有换行，下面的输出会有bug，这个属于bufio原有的问题
+	line1, isPrefix, err := bufioReader.ReadLine()
+	fmt.Println(line1, isPrefix, err)
+	line2, isPrefix, err := bufioReader.ReadLine()
+	fmt.Println(line1, isPrefix, err)
+	// print line
 	fmt.Printf("%s\n", line1)
 	fmt.Printf("%s\n", line2)
 }

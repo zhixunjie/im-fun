@@ -19,6 +19,16 @@ Pool Hash：
 
 - 使用多个池子，基于取余进行池子分配。减少池子的互斥情况。
 
+---
+
+**相互调用关系：**
+
+- Pool 管理 Buffer。
+- Bufio的缓冲区，相当于用户缓冲区。TCP Reader(conn)的缓冲区，相当于内核缓冲区。
+- Bufio相当于让TCP Reader(conn)的读写带上了缓冲区，从而减少conn的Read/Write调用次数。
+  - 由于Bufio的缓冲区会每个TCP连接都带上，如果频繁进行创建和销毁，申请内存和GC都要消耗性能的。
+  - 所以，缓冲区的内存交由Buffer Pool去管理。
+
 # 优点说明
 
 - Bufio ：
