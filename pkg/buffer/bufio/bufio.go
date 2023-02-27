@@ -814,6 +814,15 @@ func NewReadWriter(r *Reader, w *Writer) *ReadWriter {
 
 // change by jason
 
+// ResetBuffer reset reader & underlying byte array
 func (b *Reader) ResetBuffer(r io.Reader, buf []byte) {
 	b.reset(buf, r)
+}
+
+// ResetBuffer reset writer & underlying byte array
+func (b *Writer) ResetBuffer(w io.Writer, buf []byte) {
+	b.buf = buf
+	b.err = nil
+	b.n = 0
+	b.wr = w
 }

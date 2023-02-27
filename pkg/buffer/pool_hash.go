@@ -17,11 +17,12 @@ type PoolHash struct {
 	options Options
 }
 
-func NewPoolHash() *PoolHash {
+func NewPoolHash(config Options) *PoolHash {
 	hash := new(PoolHash)
-	var option PoolOptions
+	hash.options = config
 
 	// new reader pool
+	var option PoolOptions
 	option = hash.options.r
 	hash.readers = make([]Pool, option.PoolNum)
 	for i := 0; i < option.PoolNum; i++ {

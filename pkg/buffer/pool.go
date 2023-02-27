@@ -20,7 +20,7 @@ func (pool *Pool) Init(bufSize, batchNum int) {
 	pool.BatchNew()
 }
 
-// BatchNew Batch New Buffer
+// BatchNew Buffer
 // free LinkList:  free buffer 1 ->  free buffer 2 -> free buffer 3
 func (pool *Pool) BatchNew() {
 	bufSize := pool.bufSize
@@ -40,7 +40,7 @@ func (pool *Pool) BatchNew() {
 	p.next = nil
 }
 
-// Get get a Buffer from Pool（free LinkList）
+// Get a Buffer from Pool（free LinkList）
 func (pool *Pool) Get() (b *Buffer) {
 	pool.lock.Lock()
 	if b = pool.free; b == nil {
@@ -52,7 +52,7 @@ func (pool *Pool) Get() (b *Buffer) {
 	return
 }
 
-// Put put back a Buffer to the Pool
+// Put back a Buffer to the Pool
 func (pool *Pool) Put(b *Buffer) {
 	pool.lock.Lock()
 	b.next = pool.free

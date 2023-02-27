@@ -431,6 +431,11 @@ func GetSessionId(uid1 uint64, uid2 uint64) string {
 - https://en.wikipedia.org/wiki/WebSocket
 - https://datatracker.ietf.org/doc/html/rfc6455
 
+第三方库：可以用于参考
+
+- https://github.com/nhooyr/websocket
+- https://github.com/gorilla/websocket 已经archived，不再维护！！！
+
 # overview
 
 The handshake from the client looks as follows:
