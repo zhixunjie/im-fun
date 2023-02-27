@@ -819,6 +819,12 @@ func (b *Reader) ResetBuffer(r io.Reader, buf []byte) {
 	b.reset(buf, r)
 }
 
+func (b *Reader) ReadBytesN(buf []byte) error {
+	_, err := io.ReadFull(b, buf)
+
+	return err
+}
+
 // ResetBuffer reset writer & underlying byte array
 func (b *Writer) ResetBuffer(w io.Writer, buf []byte) {
 	b.buf = buf

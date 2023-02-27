@@ -3,63 +3,50 @@ package websocket
 import (
 	"bytes"
 	"fmt"
+	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
 	"net/http"
 	"strings"
-
-	"github.com/Terry-Mao/goim/pkg/bufio"
 )
+
+// get this from Go net.http：request.go
 
 // Request request.
 type Request struct {
 	Method     string
 	RequestURI string
 	Proto      string
-	Host       string
 	Header     http.Header
 
 	reader *bufio.Reader
 }
 
-// ReadRequest reads and parses an incoming request from b.
+// ReadRequest reads and parses an incoming request from reader
 func ReadRequest(r *bufio.Reader) (req *Request, err error) {
 	var (
 		b  []byte
 		ok bool
 	)
+	// 1. read a line
 	req = &Request{reader: r}
 	if b, err = req.readLine(); err != nil {
 		return
 	}
+	// 2. parse first line
+	// GET /foo HTTP/1.1
 	if req.Method, req.RequestURI, req.Proto, ok = parseRequestLine(string(b)); !ok {
 		return nil, fmt.Errorf("malformed HTTP request %s", b)
 	}
-	if req.Header, err = req.readMIMEHeader(); err != nil {
+
+	// 3. get header
+	// Host: server.example.com
+	if req.Header, err = req.ReadMIMEHeader(); err != nil {
 		return
 	}
-	req.Host = req.Header.Get("Host")
 	return req, nil
 }
 
-func (r *Request) readLine() ([]byte, error) {
-	var line []byte
-	for {
-		l, more, err := r.reader.ReadLine()
-		if err != nil {
-			return nil, err
-		}
-		// Avoid the copy if the first call produced a full line.
-		if line == nil && !more {
-			return l, nil
-		}
-		line = append(line, l...)
-		if !more {
-			break
-		}
-	}
-	return line, nil
-}
-
-func (r *Request) readMIMEHeader() (header http.Header, err error) {
+// ReadMIMEHeader read MIME header
+func (r *Request) ReadMIMEHeader() (header http.Header, err error) {
 	var (
 		line []byte
 		i    int
@@ -89,7 +76,26 @@ func (r *Request) readMIMEHeader() (header http.Header, err error) {
 	}
 }
 
-// parseRequestLine parses "GET /foo HTTP/1.1" into its three parts.
+func (r *Request) readLine() ([]byte, error) {
+	var line []byte
+	for {
+		l, more, err := r.reader.ReadLine()
+		if err != nil {
+			return nil, err
+		}
+		// Avoid the copy if the first call produced a full line.
+		if line == nil && !more {
+			return l, nil
+		}
+		line = append(line, l...)
+		if !more {
+			break
+		}
+	}
+	return line, nil
+}
+
+// parseRequestLine 解析第一行请求行：parses "GET /foo HTTP/1.1" into its three parts.
 func parseRequestLine(line string) (method, requestURI, proto string, ok bool) {
 	s1 := strings.Index(line, " ")
 	s2 := strings.Index(line[s1+1:], " ")

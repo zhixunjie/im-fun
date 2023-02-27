@@ -3,18 +3,19 @@ package websocket
 import "errors"
 
 const (
-	// Frame header byte 0 bits from Section 5.2 of RFC 6455
+	// Frame Protocol, Section 5.2 of RFC 6455
 	// https://datatracker.ietf.org/doc/html/rfc6455#section-5.2
-	finBit  = 1 << 7
-	rsv1Bit = 1 << 6
-	rsv2Bit = 1 << 5
-	rsv3Bit = 1 << 4
-	opBit   = 0x0f
 
-	// Frame header byte 1 bit from Section 5.2 of RFC 6455
-	// https://datatracker.ietf.org/doc/html/rfc6455#section-5.2
-	maskBit = 1 << 7
-	lenBit  = 0x7f
+	// first byte
+	fin    = 1 << 7
+	rsv1   = 1 << 6
+	rsv2   = 1 << 5
+	rsv3   = 1 << 4
+	opcode = 0x0f
+
+	// second bit
+	mark          = 1 << 7
+	payloadLength = 0x7f
 
 	continuationFrame        = 0
 	continuationFrameMaxRead = 100
