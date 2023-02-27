@@ -1,0 +1,5 @@
+.idea
+tmp
+examples
+*.log
+docs/referrence

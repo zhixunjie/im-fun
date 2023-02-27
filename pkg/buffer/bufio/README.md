@@ -1,0 +1,1 @@
+a little bit change for bufio struct in Go1.18

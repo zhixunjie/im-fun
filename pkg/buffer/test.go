@@ -1,0 +1,4 @@
+package buffer
+
+func a() {
+}
