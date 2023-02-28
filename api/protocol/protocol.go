@@ -46,7 +46,7 @@ var (
 	ProtoFinish = &Proto{Op: int32(OpProtoFinish)}
 )
 
-type Package struct {
+type ProtocPack struct {
 	PackLen   int // 整个数据包的长度
 	HeaderLen int // 头部的长度
 	BodyLen   int // 请求体的长度
@@ -63,8 +63,8 @@ func codeHeader(proto *Proto, buf []byte) []byte {
 	return buf
 }
 
-func unCodeHeader(proto *Proto, buf []byte) (Package, error) {
-	var header Package
+func unCodeHeader(proto *Proto, buf []byte) (ProtocPack, error) {
+	var header ProtocPack
 	if len(buf) < _rawHeaderSize {
 		return header, ErrProtoHeaderLen
 	}
