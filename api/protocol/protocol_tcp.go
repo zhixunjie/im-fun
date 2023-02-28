@@ -53,28 +53,21 @@ func (proto *Proto) ReadTCP(reader *bufio.Reader) (err error) {
 
 // WriteTCP write a proto to TCP writer.
 func (proto *Proto) WriteTCP(writer *bufio.Writer) (err error) {
+	// write raw message
 	if proto.Op == int32(OpRaw) {
 		_, err = writer.Write(proto.Body)
 		return
 	}
 	// write header
-	packLen := _rawHeaderSize + int32(len(proto.Body))
 	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
-	binary.BigEndian.PutInt32(buf[_packOffset:], packLen)
-	binary.BigEndian.PutInt16(buf[_headerOffset:], int16(_rawHeaderSize))
-	binary.BigEndian.PutInt16(buf[_verOffset:], int16(proto.Ver))
-	binary.BigEndian.PutInt32(buf[_opOffset:], proto.Op)
-	binary.BigEndian.PutInt32(buf[_seqOffset:], proto.Seq)
-	_, err = writer.Write(buf)
+	_, err = writer.Write(code(proto, buf))
 	if err != nil {
-		logrus.Errorf("err=%v,", err)
 		return err
 	}
 	// write body
 	if proto.Body != nil {
 		_, err = writer.Write(proto.Body)
 		if err != nil {
-			logrus.Errorf("err=%v,", err)
 			return err
 		}
 	}

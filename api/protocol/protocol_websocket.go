@@ -1,7 +1,6 @@
 package protocol
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/pkg/encoding/binary"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 )
@@ -11,14 +10,12 @@ func (proto *Proto) ReadWebsocket(conn *websocket.Conn) (err error) {
 	// read the whole message
 	buf, err := conn.ReadMessage()
 	if err != nil {
-		logrus.Errorf("err=%v,", err)
-		return
+		return err
 	}
 
 	// parse header
 	pack, err := unCode(proto, buf)
 	if err != nil {
-		logrus.Errorf("err=%v,", err)
 		return err
 	}
 
@@ -33,24 +30,30 @@ func (proto *Proto) ReadWebsocket(conn *websocket.Conn) (err error) {
 
 // WriteWebsocket write a proto to websocket connection.
 func (proto *Proto) WriteWebsocket(conn *websocket.Conn) (err error) {
+	// format:
+	// pack = [ [websocket header] + [websocket payload]]
+	// websocket payload = [ [header] + [body] ]
 
-	// write header
+	// websocket header
 	packLen := _rawHeaderSize + len(proto.Body)
 	if err = conn.WriteHeader(websocket.BinaryMessage, packLen); err != nil {
-		return
+		return err
 	}
-	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
-	binary.BigEndian.PutInt32(buf[_packOffset:], int32(packLen))
-	binary.BigEndian.PutInt16(buf[_headerOffset:], int16(_rawHeaderSize))
-	binary.BigEndian.PutInt16(buf[_verOffset:], int16(proto.Ver))
-	binary.BigEndian.PutInt32(buf[_opOffset:], proto.Op)
-	binary.BigEndian.PutInt32(buf[_seqOffset:], proto.Seq)
 
+	// websocket payload
+	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
+	err = conn.WriteBody(code(proto, buf))
+	if err != nil {
+		return err
+	}
 	// write body
 	if proto.Body != nil {
 		err = conn.WriteBody(proto.Body)
+		if err != nil {
+			return err
+		}
 	}
-	return
+	return nil
 }
 
 // WriteWebsocketHeart write websocket heartbeat with room online.
