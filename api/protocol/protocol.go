@@ -54,7 +54,6 @@ type Package struct {
 
 func code(proto *Proto, buf []byte) {
 	packLen := _rawHeaderSize + int32(len(proto.Body))
-
 	binary.BigEndian.PutInt32(buf[_packOffset:], packLen)
 	binary.BigEndian.PutInt16(buf[_headerOffset:], int16(_rawHeaderSize))
 	binary.BigEndian.PutInt16(buf[_verOffset:], int16(proto.Ver))
