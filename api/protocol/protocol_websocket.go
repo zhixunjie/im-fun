@@ -7,14 +7,13 @@ import (
 
 // ReadWebsocket read a proto from websocket connection.
 func (proto *Proto) ReadWebsocket(conn *websocket.Conn) (err error) {
-	// read the whole message
 	buf, err := conn.ReadMessage()
 	if err != nil {
 		return err
 	}
 
-	// parse header
-	pack, err := unCode(proto, buf)
+	// read header
+	pack, err := unCodeHeader(proto, buf)
 	if err != nil {
 		return err
 	}
@@ -42,13 +41,12 @@ func (proto *Proto) WriteWebsocket(conn *websocket.Conn) (err error) {
 
 	// websocket payload
 	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
-	err = conn.WriteBody(code(proto, buf))
+	err = conn.WritePayload(codeHeader(proto, buf))
 	if err != nil {
 		return err
 	}
-	// write body
 	if proto.Body != nil {
-		err = conn.WriteBody(proto.Body)
+		err = conn.WritePayload(proto.Body)
 		if err != nil {
 			return err
 		}

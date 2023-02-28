@@ -15,8 +15,8 @@ func (c *Conn) WriteMessage(msgType int, msg []byte) (err error) {
 	if err != nil {
 		return
 	}
-	// 2. write body
-	err = c.WriteBody(msg)
+	// 2. write payload
+	err = c.WritePayload(msg)
 	return
 }
 
@@ -80,8 +80,8 @@ func (c *Conn) WriteHeader(opcode int, length int) error {
 	return nil
 }
 
-// WriteBody write a message body.
-func (c *Conn) WriteBody(b []byte) (err error) {
+// WritePayload write payload.
+func (c *Conn) WritePayload(b []byte) (err error) {
 	if len(b) > 0 {
 		_, err = c.writer.Write(b)
 		if err != nil {

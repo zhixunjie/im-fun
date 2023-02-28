@@ -10,13 +10,8 @@ import (
 // WriteTo write a proto to bytes writer.
 func (proto *Proto) WriteTo(writer *buffer.Writer) {
 	// writer header
-	packLen := _rawHeaderSize + int32(len(proto.Body))
 	buf := writer.Peek(_rawHeaderSize)
-	binary.BigEndian.PutInt32(buf[_packOffset:], packLen)
-	binary.BigEndian.PutInt16(buf[_headerOffset:], int16(_rawHeaderSize))
-	binary.BigEndian.PutInt16(buf[_verOffset:], int16(proto.Ver))
-	binary.BigEndian.PutInt32(buf[_opOffset:], proto.Op)
-	binary.BigEndian.PutInt32(buf[_seqOffset:], proto.Seq)
+	codeHeader(proto, buf)
 	// writer body
 	if proto.Body != nil {
 		writer.Write(proto.Body)
@@ -25,16 +20,14 @@ func (proto *Proto) WriteTo(writer *buffer.Writer) {
 
 // ReadTCP read a proto from TCP reader.
 func (proto *Proto) ReadTCP(reader *bufio.Reader) (err error) {
-	// read header
 	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
 	err = reader.ReadBytesN(buf)
 	if err != nil {
 		return err
 	}
-	// parse header
-	pack, err := unCode(proto, buf)
+	// read header
+	pack, err := unCodeHeader(proto, buf)
 	if err != nil {
-		logrus.Errorf("err=%v,", err)
 		return err
 	}
 	// read body
@@ -42,7 +35,6 @@ func (proto *Proto) ReadTCP(reader *bufio.Reader) (err error) {
 		proto.Body = make([]byte, pack.BodyLen) // TODO try to reduce GC
 		err = reader.ReadBytesN(proto.Body)
 		if err != nil {
-			logrus.Errorf("err=%v,", err)
 			return err
 		}
 	} else {
@@ -60,7 +52,7 @@ func (proto *Proto) WriteTCP(writer *bufio.Writer) (err error) {
 	}
 	// write header
 	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
-	_, err = writer.Write(code(proto, buf))
+	_, err = writer.Write(codeHeader(proto, buf))
 	if err != nil {
 		return err
 	}
