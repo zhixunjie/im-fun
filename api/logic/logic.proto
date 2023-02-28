@@ -65,7 +65,7 @@ message OnlineReply {
 
 message ReceiveReq {
   int64 mid = 1;
-  goim.protocol.Proto proto = 2;
+  imfun.protocol.Proto proto = 2;
 }
 
 message ReceiveReply {
