@@ -1,4 +1,4 @@
-package model
+package channel
 
 type UserInfo struct {
 	UserId  int64  // 用户ID

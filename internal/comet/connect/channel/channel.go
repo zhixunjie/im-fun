@@ -4,7 +4,6 @@ import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/connect"
 	"github.com/zhixunjie/im-fun/internal/comet/errors"
-	"github.com/zhixunjie/im-fun/internal/comet/model"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
 )
 
@@ -21,7 +20,7 @@ type Channel struct {
 	Reader bufio.Reader
 
 	// User Info
-	UserInfo *model.UserInfo
+	UserInfo *UserInfo
 
 	// use to get proto，reduce GC
 	ProtoAllocator Ring
