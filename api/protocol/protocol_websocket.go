@@ -11,13 +11,11 @@ func (proto *Proto) ReadWs(conn *websocket.Conn) (err error) {
 	if err != nil {
 		return err
 	}
-
 	// read header
 	pack, err := unCodeHeader(proto, buf)
 	if err != nil {
 		return err
 	}
-
 	// read body
 	if pack.BodyLen > 0 {
 		proto.Body = buf[pack.HeaderLen:pack.BodyLen]
@@ -31,7 +29,7 @@ func (proto *Proto) ReadWs(conn *websocket.Conn) (err error) {
 func (proto *Proto) WriteWs(conn *websocket.Conn) (err error) {
 	// format:
 	// pack = [ [websocket header] + [websocket payload]]
-	// websocket payload = [ [header] + [body] ]
+	// websocket payload = [ [proto header] + [proto body] ]
 
 	// websocket header
 	payloadLen := _rawHeaderSize + len(proto.Body)
@@ -59,7 +57,7 @@ func (proto *Proto) WriteWs(conn *websocket.Conn) (err error) {
 func (proto *Proto) WriteWsHeart(conn *websocket.Conn, online int32) (err error) {
 	// format:
 	// pack = [ [websocket header] + [websocket payload]]
-	// websocket payload = [ [header] + [body] ]
+	// websocket payload = [ [proto header] + [proto body] ]
 
 	// websocket header
 	payloadLen := _rawHeaderSize + _heartSize
@@ -70,7 +68,9 @@ func (proto *Proto) WriteWsHeart(conn *websocket.Conn, online int32) (err error)
 
 	// websocket payload
 	buf := make([]byte, payloadLen) // TODO try to reduce GC
+	// proto header
 	buf = codeHeader(proto, buf)
+	// proto body
 	binary.BigEndian.PutInt32(buf[_heartOffset:], online)
 	err = conn.WritePayload(codeHeader(proto, buf))
 	if err != nil {

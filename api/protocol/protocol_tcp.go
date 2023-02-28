@@ -1,7 +1,6 @@
 package protocol
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/pkg/buffer"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
 	"github.com/zhixunjie/im-fun/pkg/encoding/binary"
@@ -50,13 +49,13 @@ func (proto *Proto) WriteTCP(writer *bufio.Writer) (err error) {
 		_, err = writer.Write(proto.Body)
 		return
 	}
-	// write header
+	// proto header
 	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
 	_, err = writer.Write(codeHeader(proto, buf))
 	if err != nil {
 		return err
 	}
-	// write body
+	// proto body
 	if proto.Body != nil {
 		_, err = writer.Write(proto.Body)
 		if err != nil {
@@ -68,7 +67,7 @@ func (proto *Proto) WriteTCP(writer *bufio.Writer) (err error) {
 
 // WriteTCPHeart write TCP heartbeat with room online.
 func (proto *Proto) WriteTCPHeart(wr *bufio.Writer, online int32) (err error) {
-	// write header
+	// proto header
 	packLen := _rawHeaderSize + _heartSize
 	buf := make([]byte, packLen) // TODO try to reduce GC
 	binary.BigEndian.PutInt32(buf[_packOffset:], int32(packLen))
@@ -76,11 +75,11 @@ func (proto *Proto) WriteTCPHeart(wr *bufio.Writer, online int32) (err error) {
 	binary.BigEndian.PutInt16(buf[_verOffset:], int16(proto.Ver))
 	binary.BigEndian.PutInt32(buf[_opOffset:], proto.Op)
 	binary.BigEndian.PutInt32(buf[_seqOffset:], proto.Seq)
-	// write body
+	// proto body
 	binary.BigEndian.PutInt32(buf[_heartOffset:], online)
 	_, err = wr.Write(buf)
 	if err != nil {
-		logrus.Errorf("err=%v,", err)
+		return err
 	}
-	return
+	return nil
 }
