@@ -4,48 +4,47 @@ type Operation int32
 
 const (
 	// OpHandshake handshake
-	OpHandshake = Operation(0)
+	OpHandshake = Operation(iota)
 	// OpHandshakeReply handshake reply
-	OpHandshakeReply = Operation(1)
+	OpHandshakeReply
 
 	// OpHeartbeat heartbeat
-	OpHeartbeat = Operation(2)
+	OpHeartbeat
 	// OpHeartbeatReply heartbeat reply
-	OpHeartbeatReply = Operation(3)
+	OpHeartbeatReply
 
 	// OpSendMsg send message.
-	OpSendMsg = Operation(4)
+	OpSendMsg
 	// OpSendMsgReply  send message reply
-	OpSendMsgReply = Operation(5)
+	OpSendMsgReply
 
 	// OpDisconnectReply disconnect reply
-	OpDisconnectReply = Operation(6)
+	OpDisconnectReply
 
-	// OpAuth auth connnect
-	OpAuth = Operation(7)
+	OpAuth // OpAuth auth connect
 	// OpAuthReply auth connect reply
-	OpAuthReply = Operation(8)
+	OpAuthReply
 
 	// OpRaw raw message
-	OpRaw = Operation(9)
+	OpRaw
 
 	// OpProtoReady proto ready
-	OpProtoReady = Operation(10)
+	OpProtoReady
 	// OpProtoFinish proto finish
-	OpProtoFinish = Operation(11)
+	OpProtoFinish
 
 	// OpChangeRoom change room
-	OpChangeRoom = Operation(12)
+	OpChangeRoom
 	// OpChangeRoomReply change room reply
-	OpChangeRoomReply = Operation(13)
+	OpChangeRoomReply
 
 	// OpSub subscribe operation
-	OpSub = Operation(14)
+	OpSub
 	// OpSubReply subscribe operation
-	OpSubReply = Operation(15)
+	OpSubReply
 
 	// OpUnsub unsubscribe operation
-	OpUnsub = Operation(16)
+	OpUnsub
 	// OpUnsubReply unsubscribe operation reply
-	OpUnsubReply = Operation(17)
+	OpUnsubReply
 )
