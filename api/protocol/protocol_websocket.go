@@ -5,6 +5,8 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 )
 
+// 针对WebSocket连接的消息发送和接收
+
 // ReadWs read a proto from websocket connection.
 func (proto *Proto) ReadWs(conn *websocket.Conn) (err error) {
 	buf, err := conn.ReadMessage()

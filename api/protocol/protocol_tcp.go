@@ -6,6 +6,8 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/encoding/binary"
 )
 
+// 针对TCP连接的消息发送和接收
+
 // WriteTo write a proto to bytes writer.
 func (proto *Proto) WriteTo(writer *buffer.Writer) {
 	// proto header
