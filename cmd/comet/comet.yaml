@@ -1,0 +1,45 @@
+---
+debug: false
+discovery:
+  addr: "127.0.0.1:12379"
+rpc:
+  server:
+    addr: ":12570"
+    timeout: "1s"
+  client:
+    dial: "1s"
+    timeout: "1s"
+connect:
+  tcp:
+    bind: [ ":12571" ]
+    sndBuf: 4096
+    rcvBuf: 4096
+    keepalive: false
+  websocket:
+    bind: [ ":12572" ]
+    tlsOpen: false
+    tlsBind: [ ":3103" ]
+    certFile: "../../cert.pem"
+    privateFile: "../../private.pem"
+  bufferOptions:
+    readPoolOption:
+      poolNum: 32
+      batchNum: 1024
+      bufSize: 8192
+    writePoolOption:
+      poolNum: 32
+      batchNum: 1024
+      bufSize: 8192
+protocol:
+  timer: 32
+  timerSize: 2048
+  svrProto: 10
+  cliProto: 5
+  handshakeTimeout: "8s"
+
+bucket:
+  size: 32
+  channel: 1024
+  room: 1024
+  routineAmount: 32
+  routineSize: 1024

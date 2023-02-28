@@ -1,39 +1,39 @@
 package buffer
 
 type Options struct {
-	r PoolOptions
-	w PoolOptions
+	ReadPoolOption  PoolOptions
+	WritePoolOption PoolOptions
 }
 
 type PoolOptions struct {
-	PoolNum  int
-	BatchNum int
-	BufSize  int
+	PoolNum  int // 池子的个数
+	BatchNum int // 池子创建Buffer时批量创建的个数
+	BufSize  int // 每个Buffer的字节数
 }
 
 type PoolHash struct {
-	readers []Pool
-	writers []Pool
-	options Options
+	Readers []Pool
+	Writers []Pool
+	options *Options
 }
 
-func NewPoolHash(config Options) *PoolHash {
-	hash := new(PoolHash)
+func NewPoolHash(config *Options) PoolHash {
+	var hash PoolHash
 	hash.options = config
 
 	// new reader pool
 	var option PoolOptions
-	option = hash.options.r
-	hash.readers = make([]Pool, option.PoolNum)
+	option = hash.options.ReadPoolOption
+	hash.Readers = make([]Pool, option.PoolNum)
 	for i := 0; i < option.PoolNum; i++ {
-		hash.readers[i].Init(option.BufSize, option.BatchNum)
+		hash.Readers[i].Init(option.BufSize, option.BatchNum)
 	}
 
 	// new writer pool
-	option = hash.options.w
-	hash.writers = make([]Pool, option.PoolNum)
+	option = hash.options.WritePoolOption
+	hash.Writers = make([]Pool, option.PoolNum)
 	for i := 0; i < option.PoolNum; i++ {
-		hash.writers[i].Init(option.BufSize, option.BatchNum)
+		hash.Writers[i].Init(option.BufSize, option.BatchNum)
 	}
 
 	return hash
@@ -41,10 +41,10 @@ func NewPoolHash(config Options) *PoolHash {
 
 // Reader get a reader memory buffer.
 func (pool *PoolHash) Reader(rn int) *Pool {
-	return &(pool.readers[rn%pool.options.r.PoolNum])
+	return &(pool.Readers[rn%pool.options.ReadPoolOption.PoolNum])
 }
 
 // Writer get a writer memory buffer pool.
 func (pool *PoolHash) Writer(rn int) *Pool {
-	return &(pool.writers[rn%pool.options.w.PoolNum])
+	return &(pool.Writers[rn%pool.options.WritePoolOption.PoolNum])
 }

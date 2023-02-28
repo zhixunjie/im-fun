@@ -7,7 +7,7 @@ option go_package = "github.com/zhixunjie/im-fun/api/comet;comet";
 import "protocol/protocol.proto";
 
 message PushMsgReq {
-  repeated string keys = 1;
+  repeated string userKeys = 1;
   int32 protoOp = 3;
   imfun.protocol.Proto proto = 2;
 }
@@ -23,7 +23,7 @@ message BroadcastReq{
 message BroadcastReply{}
 
 message BroadcastRoomReq {
-  string roomID = 1;
+  string roomId = 1;
   imfun.protocol.Proto proto = 2;
 }
 
@@ -38,7 +38,7 @@ message RoomsReply {
 service Comet {
   // PushMsg push by key or mid
   rpc PushMsg(PushMsgReq) returns (PushMsgReply);
-  // Broadcast send to every enrity
+  // Broadcast send to every entry
   rpc Broadcast(BroadcastReq) returns (BroadcastReply);
   // BroadcastRoom broadcast to one room
   rpc BroadcastRoom(BroadcastRoomReq) returns (BroadcastRoomReply);

@@ -401,7 +401,7 @@ func (b *Reader) ReadLine() (line []byte, isPrefix bool, err error) {
 	if err == ErrBufferFull {
 		// Handle the case where "\r\n" straddles the buffer.
 		if len(line) > 0 && line[len(line)-1] == '\r' {
-			// Put the '\r' back on buf and drop it from line.
+			// PutChannel the '\r' back on buf and drop it from line.
 			// Let the next call to ReadLine check for "\r\n".
 			if b.r == 0 {
 				// should be unreachable

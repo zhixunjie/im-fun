@@ -8,13 +8,13 @@ import (
 )
 
 func TestPoolHash(t *testing.T) {
-	poolHash := NewPoolHash(Options{
-		r: PoolOptions{
+	poolHash := NewPoolHash(&Options{
+		ReadPoolOption: PoolOptions{
 			PoolNum:  1,
 			BatchNum: 2,
 			BufSize:  20,
 		},
-		w: PoolOptions{
+		WritePoolOption: PoolOptions{
 			PoolNum:  1,
 			BatchNum: 2,
 			BufSize:  20,

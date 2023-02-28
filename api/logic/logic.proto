@@ -17,7 +17,7 @@ message PushMsg {
   int32 speed = 3;
   string server = 4;
   string room = 5;
-  repeated string keys = 6;
+  repeated string userKeys = 6;
   bytes msg = 7;
 }
 
@@ -29,15 +29,15 @@ message ConnectReq {
 
 message ConnectReply {
   int64 mid = 1;
-  string key = 2;
-  string roomID = 3;
+  string userKey = 2;
+  string roomId = 3;
   repeated int32 accepts = 4;
   int64 heartbeat = 5;
 }
 
 message DisconnectReq {
   int64 mid = 1;
-  string key = 2;
+  string userKey = 2;
   string server = 3;
 }
 
@@ -47,7 +47,7 @@ message DisconnectReply {
 
 message HeartbeatReq {
   int64 mid = 1;
-  string key = 2;
+  string userKey = 2;
   string server = 3;
 }
 
