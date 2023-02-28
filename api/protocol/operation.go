@@ -1,6 +1,6 @@
 package protocol
 
-// 各类的操作：握手、
+// 各类的操作：握手、授权认证、消息发送、消息接收
 
 type Operation int32
 
