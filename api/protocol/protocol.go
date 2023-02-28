@@ -52,7 +52,7 @@ type ProtocPack struct {
 	BodyLen   int // 请求体的长度
 }
 
-func codeHeader(proto *Proto, buf []byte) []byte {
+func codeProtocHeader(proto *Proto, buf []byte) []byte {
 	packLen := _rawHeaderSize + int32(len(proto.Body))
 	binary.BigEndian.PutInt32(buf[_packOffset:], packLen)
 	binary.BigEndian.PutInt16(buf[_headerOffset:], int16(_rawHeaderSize))
@@ -63,7 +63,7 @@ func codeHeader(proto *Proto, buf []byte) []byte {
 	return buf
 }
 
-func unCodeHeader(proto *Proto, buf []byte) (ProtocPack, error) {
+func unCodeProtocHeader(proto *Proto, buf []byte) (ProtocPack, error) {
 	var header ProtocPack
 	if len(buf) < _rawHeaderSize {
 		return header, ErrProtoHeaderLen
