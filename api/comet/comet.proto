@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package imfun.comet;
+
+option go_package = "github.com/zhixunjie/im-fun/api/comet;comet";
+
+import "github.com/zhixunjie/im-fun/api/protocol/protocol.proto";
+
+message PushMsgReq {
+  repeated string keys = 1;
+  int32 protoOp = 3;
+  imfun.protocol.Proto proto = 2;
+}
+
+message PushMsgReply {}
+
+message BroadcastReq{
+  int32 protoOp = 1;
+  imfun.protocol.Proto proto = 2;
+  int32 speed = 3;
+}
+
+message BroadcastReply{}
+
+message BroadcastRoomReq {
+  string roomID = 1;
+  imfun.protocol.Proto proto = 2;
+}
+
+message BroadcastRoomReply{}
+
+message RoomsReq{}
+
+message RoomsReply {
+  map<string, bool> rooms = 1;
+}
+
+service Comet {
+  // PushMsg push by key or mid
+  rpc PushMsg(PushMsgReq) returns (PushMsgReply);
+  // Broadcast send to every enrity
+  rpc Broadcast(BroadcastReq) returns (BroadcastReply);
+  // BroadcastRoom broadcast to one room
+  rpc BroadcastRoom(BroadcastRoomReq) returns (BroadcastRoomReply);
+  // Rooms get all rooms
+  rpc Rooms(RoomsReq) returns (RoomsReply);
+}
