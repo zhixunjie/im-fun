@@ -32,21 +32,14 @@ func (proto *Proto) ReadTCP(reader *bufio.Reader) (err error) {
 		return err
 	}
 	// parse header
-	packLen := binary.BigEndian.Int32(buf[_packOffset:_headerOffset])
-	headerLen := binary.BigEndian.Int16(buf[_headerOffset:_verOffset])
-	proto.Ver = int32(binary.BigEndian.Int16(buf[_verOffset:_opOffset]))
-	proto.Op = binary.BigEndian.Int32(buf[_opOffset:_seqOffset])
-	proto.Seq = binary.BigEndian.Int32(buf[_seqOffset:])
-	if packLen > _maxPackSize {
-		return ErrProtoPackLen
-	}
-	if headerLen != _rawHeaderSize {
-		return ErrProtoHeaderLen
+	pack, err := parseHeader(proto, buf)
+	if err != nil {
+		logrus.Errorf("err=%v,", err)
+		return err
 	}
 	// read body
-	bodyLen := int(packLen - int32(headerLen))
-	if bodyLen > 0 {
-		proto.Body = make([]byte, bodyLen) // TODO try to reduce GC
+	if pack.BodyLen > 0 {
+		proto.Body = make([]byte, pack.BodyLen) // TODO try to reduce GC
 		err = reader.ReadBytesN(proto.Body)
 		if err != nil {
 			logrus.Errorf("err=%v,", err)

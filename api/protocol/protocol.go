@@ -46,19 +46,28 @@ var (
 	ProtoFinish = &Proto{Op: int32(OpProtoFinish)}
 )
 
-func parseHeader(proto *Proto, buf []byte) error {
+type Package struct {
+	BodyLen int
+}
+
+func parseHeader(proto *Proto, buf []byte) (Package, error) {
+	var header Package
 	if len(buf) < _rawHeaderSize {
-		return ErrProtoHeaderLen
+		return header, ErrProtoHeaderLen
 	}
+	// parse header
 	packLen := binary.BigEndian.Int32(buf[_packOffset:_headerOffset])
 	headerLen := binary.BigEndian.Int16(buf[_headerOffset:_verOffset])
 	proto.Ver = int32(binary.BigEndian.Int16(buf[_verOffset:_opOffset]))
 	proto.Op = binary.BigEndian.Int32(buf[_opOffset:_seqOffset])
 	proto.Seq = binary.BigEndian.Int32(buf[_seqOffset:])
-	if packLen < 0 || packLen > _maxPackSize {
-		return ErrProtoPackLen
+	if packLen > _maxPackSize {
+		return header, ErrProtoPackLen
 	}
 	if headerLen != _rawHeaderSize {
-		return ErrProtoHeaderLen
+		return header, ErrProtoHeaderLen
 	}
+	header.BodyLen = int(packLen - int32(headerLen))
+
+	return header, nil
 }
