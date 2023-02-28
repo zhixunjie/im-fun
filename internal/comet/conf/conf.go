@@ -14,7 +14,7 @@ var Conf *Config
 
 func InitConfig() (err error) {
 	Conf = defaultConfig()
-	bytes, err := ioutil.ReadFile("file/example.yaml")
+	bytes, err := ioutil.ReadFile("cmd/comet/comet.yaml")
 	if err != nil {
 		logrus.Errorf("err=%v", err)
 		return err
@@ -42,8 +42,8 @@ func defaultConfig() *Config {
 		Protocol: &Protocol{
 			Timer:            32,
 			TimerSize:        2048,
-			CliProto:         5,
-			SvrProto:         10,
+			ClientProtoNum:   64,
+			ServerProtoNum:   64,
 			HandshakeTimeout: newtime.Duration(time.Second * 5),
 		},
 		Bucket: &Bucket{
@@ -117,8 +117,8 @@ type Websocket struct {
 type Protocol struct {
 	Timer            int
 	TimerSize        int
-	SvrProto         int
-	CliProto         int
+	ServerProtoNum   int
+	ClientProtoNum   int
 	HandshakeTimeout newtime.Duration
 }
 

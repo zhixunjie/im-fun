@@ -22,13 +22,13 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CometClient interface {
-	// PushMsg push by key or mid
+	// push by key or mid
 	PushMsg(ctx context.Context, in *PushMsgReq, opts ...grpc.CallOption) (*PushMsgReply, error)
-	// Broadcast send to every enrity
+	// send to every entry
 	Broadcast(ctx context.Context, in *BroadcastReq, opts ...grpc.CallOption) (*BroadcastReply, error)
-	// BroadcastRoom broadcast to one room
+	// broadcast to one room
 	BroadcastRoom(ctx context.Context, in *BroadcastRoomReq, opts ...grpc.CallOption) (*BroadcastRoomReply, error)
-	// Rooms get all rooms
+	// get all rooms
 	Rooms(ctx context.Context, in *RoomsReq, opts ...grpc.CallOption) (*RoomsReply, error)
 }
 
@@ -80,13 +80,13 @@ func (c *cometClient) Rooms(ctx context.Context, in *RoomsReq, opts ...grpc.Call
 // All implementations must embed UnimplementedCometServer
 // for forward compatibility
 type CometServer interface {
-	// PushMsg push by key or mid
+	// push by key or mid
 	PushMsg(context.Context, *PushMsgReq) (*PushMsgReply, error)
-	// Broadcast send to every enrity
+	// send to every entry
 	Broadcast(context.Context, *BroadcastReq) (*BroadcastReply, error)
-	// BroadcastRoom broadcast to one room
+	// broadcast to one room
 	BroadcastRoom(context.Context, *BroadcastRoomReq) (*BroadcastRoomReply, error)
-	// Rooms get all rooms
+	// get all rooms
 	Rooms(context.Context, *RoomsReq) (*RoomsReply, error)
 	mustEmbedUnimplementedCometServer()
 }

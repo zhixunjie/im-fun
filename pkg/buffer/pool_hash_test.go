@@ -21,7 +21,7 @@ func TestPoolHash(t *testing.T) {
 		},
 	})
 
-	pool := poolHash.Reader(101)
+	pool := poolHash.ReaderPool(101)
 	buf := pool.Get()
 	byteArr := buf.Bytes()
 	// fmt.Printf("%s\n", byteArr)

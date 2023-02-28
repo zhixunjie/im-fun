@@ -2,6 +2,7 @@ package channel
 
 import (
 	"github.com/zhixunjie/im-fun/api/protocol"
+	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/internal/comet/errors"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
 )
@@ -15,8 +16,8 @@ type Channel struct {
 	Prev   *Channel
 
 	// use bufio to reuse buffer
-	Writer bufio.Writer
-	Reader bufio.Reader
+	Writer *bufio.Writer
+	Reader *bufio.Reader
 
 	// User Info
 	UserInfo *UserInfo
@@ -26,10 +27,13 @@ type Channel struct {
 }
 
 // NewChannel new a channel.
-func NewChannel(cli, svr int) *Channel {
-	c := new(Channel)
-	c.signal = make(chan *protocol.Proto, svr)
-	return c
+func NewChannel(conf *conf.Config) *Channel {
+	ch := new(Channel)
+	ch.ProtoAllocator.Init(uint64(conf.Protocol.ClientProtoNum))
+	ch.signal = make(chan *protocol.Proto, conf.Protocol.ServerProtoNum)
+	ch.Reader = new(bufio.Reader)
+	ch.Writer = new(bufio.Writer)
+	return ch
 }
 
 func (c *Channel) Push(p *protocol.Proto) (err error) {
@@ -41,7 +45,7 @@ func (c *Channel) Push(p *protocol.Proto) (err error) {
 	return
 }
 
-func (c *Channel) Ready() *protocol.Proto {
+func (c *Channel) Waiting() *protocol.Proto {
 	return <-c.signal
 }
 

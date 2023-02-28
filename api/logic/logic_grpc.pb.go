@@ -32,7 +32,7 @@ type LogicClient interface {
 	RenewOnline(ctx context.Context, in *OnlineReq, opts ...grpc.CallOption) (*OnlineReply, error)
 	// Receive
 	Receive(ctx context.Context, in *ReceiveReq, opts ...grpc.CallOption) (*ReceiveReply, error)
-	//ServerList
+	// ServerList
 	Nodes(ctx context.Context, in *NodesReq, opts ...grpc.CallOption) (*NodesReply, error)
 }
 
@@ -112,7 +112,7 @@ type LogicServer interface {
 	RenewOnline(context.Context, *OnlineReq) (*OnlineReply, error)
 	// Receive
 	Receive(context.Context, *ReceiveReq) (*ReceiveReply, error)
-	//ServerList
+	// ServerList
 	Nodes(context.Context, *NodesReq) (*NodesReply, error)
 	mustEmbedUnimplementedLogicServer()
 }

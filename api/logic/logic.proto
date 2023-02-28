@@ -28,17 +28,15 @@ message ConnectReq {
 }
 
 message ConnectReply {
-  int64 mid = 1;
+  int64 userId = 1;
   string userKey = 2;
   string roomId = 3;
-  repeated int32 accepts = 4;
-  int64 heartbeat = 5;
+  int64 heartbeat = 4;
 }
 
 message DisconnectReq {
-  int64 mid = 1;
+  int64 userId = 1;
   string userKey = 2;
-  string server = 3;
 }
 
 message DisconnectReply {
@@ -46,9 +44,8 @@ message DisconnectReply {
 }
 
 message HeartbeatReq {
-  int64 mid = 1;
+  int64 userId = 1;
   string userKey = 2;
-  string server = 3;
 }
 
 message HeartbeatReply {
@@ -64,7 +61,7 @@ message OnlineReply {
 }
 
 message ReceiveReq {
-  int64 mid = 1;
+  int64 userId = 1;
   imfun.protocol.Proto proto = 2;
 }
 
@@ -105,6 +102,6 @@ service Logic {
   rpc RenewOnline(OnlineReq) returns (OnlineReply);
   // Receive
   rpc Receive(ReceiveReq) returns (ReceiveReply);
-  //ServerList
+  // ServerList
   rpc Nodes(NodesReq) returns (NodesReply);
 }

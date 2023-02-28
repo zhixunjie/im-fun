@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func Ping() {
+func (svc *Service) Ping() {
 
 }
 

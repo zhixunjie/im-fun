@@ -37,7 +37,8 @@ func (r *Ring) Init(num uint64) {
 	r.mask = r.num - 1
 }
 
-func (r *Ring) GetProto() (proto *protocol.Proto, err error) {
+// GetProtoCanRead 获取一个Proto（用于读取的Proto）
+func (r *Ring) GetProtoCanRead() (proto *protocol.Proto, err error) {
 	if r.rp == r.wp {
 		return nil, ErrRingEmpty
 	}
@@ -45,7 +46,8 @@ func (r *Ring) GetProto() (proto *protocol.Proto, err error) {
 	return
 }
 
-func (r *Ring) GetEmptyProto() (proto *protocol.Proto, err error) {
+// GetProtoCanWrite 获取一个Proto（用于写入的Proto）
+func (r *Ring) GetProtoCanWrite() (proto *protocol.Proto, err error) {
 	// 超出一定范围就不能再写入了，前端的消息就发不过来了。
 	if r.wp-r.rp >= r.num {
 		return nil, ErrRingFull
@@ -54,14 +56,17 @@ func (r *Ring) GetEmptyProto() (proto *protocol.Proto, err error) {
 	return
 }
 
+// AdvReadPointer 向前推进读指针
 func (r *Ring) AdvReadPointer() {
 	r.rp++
 }
 
+// AdvWritePointer 向前推进写指针
 func (r *Ring) AdvWritePointer() {
 	r.wp++
 }
 
+// ResetPointer 重置指针
 func (r *Ring) ResetPointer() {
 	r.rp = 0
 	r.wp = 0

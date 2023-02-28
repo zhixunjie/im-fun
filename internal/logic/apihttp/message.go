@@ -1,14 +1,13 @@
-package http
+package apihttp
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zhixunjie/im-fun/internal/logic/model/request"
 	"github.com/zhixunjie/im-fun/internal/logic/model/response"
-	service2 "github.com/zhixunjie/im-fun/internal/logic/service"
 	"net/http"
 )
 
-func sendHandler(ctx *gin.Context) {
+func (s *Server) sendHandler(ctx *gin.Context) {
 	// request
 	var req request.SendMsgReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -22,7 +21,7 @@ func sendHandler(ctx *gin.Context) {
 	}
 
 	// service
-	resp, err := service2.SendMessage(ctx, &req)
+	resp, err := s.svc.SendMessage(ctx, &req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + err.Error()})
 	}
@@ -32,7 +31,7 @@ func sendHandler(ctx *gin.Context) {
 	return
 }
 
-func fetchHandler(ctx *gin.Context) {
+func (s *Server) fetchHandler(ctx *gin.Context) {
 	// request
 	var req request.PingReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -41,7 +40,7 @@ func fetchHandler(ctx *gin.Context) {
 	}
 
 	// service
-	service2.Ping()
+	s.svc.Ping()
 
 	// resp
 	var resp response.PingResp

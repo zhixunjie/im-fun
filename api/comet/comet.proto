@@ -36,12 +36,12 @@ message RoomsReply {
 }
 
 service Comet {
-  // PushMsg push by key or mid
+  // push by key or mid
   rpc PushMsg(PushMsgReq) returns (PushMsgReply);
-  // Broadcast send to every entry
+  // send to every entry
   rpc Broadcast(BroadcastReq) returns (BroadcastReply);
-  // BroadcastRoom broadcast to one room
+  // broadcast to one room
   rpc BroadcastRoom(BroadcastRoomReq) returns (BroadcastRoomReply);
-  // Rooms get all rooms
+  // get all rooms
   rpc Rooms(RoomsReq) returns (RoomsReply);
 }

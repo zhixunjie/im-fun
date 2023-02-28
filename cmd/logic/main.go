@@ -1,21 +1,42 @@
 package main
 
 import (
-	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/zhixunjie/im-fun/internal/logic/api/http"
-	"github.com/zhixunjie/im-fun/internal/logic/dao"
+	log "github.com/golang/glog"
+	"github.com/zhixunjie/im-fun/internal/logic/apigrpc"
+	"github.com/zhixunjie/im-fun/internal/logic/apihttp"
+	"github.com/zhixunjie/im-fun/internal/logic/conf"
+	"github.com/zhixunjie/im-fun/internal/logic/service"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
-	dao.InitDao()
-	engine := gin.Default()
+	if err := conf.InitConfig(); err != nil {
+		panic(err)
+	}
+	// init service
+	svc := service.New(conf.Conf)
+	// init HTTP server
+	httpSrv := apihttp.New(conf.Conf, svc)
+	// init GRPC server
+	rpcSrv := apigrpc.New(conf.Conf.RPC.Server, svc)
 
-	// 设置-路由
-	http.SetupRouter(engine)
-
-	// 开始执行
-	if err := engine.Run(":8080"); err != nil {
-		fmt.Printf("startup service failed, err:%v\n", err)
+	// signal
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
+	for {
+		s := <-c
+		log.Infof("get a signal %s", s.String())
+		switch s {
+		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
+			httpSrv.Close()
+			rpcSrv.GracefulStop()
+			log.Flush()
+			return
+		case syscall.SIGHUP:
+		default:
+			return
+		}
 	}
 }

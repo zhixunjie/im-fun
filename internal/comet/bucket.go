@@ -2,7 +2,7 @@ package comet
 
 import (
 	pb "github.com/zhixunjie/im-fun/api/comet"
-	channel2 "github.com/zhixunjie/im-fun/internal/comet/channel"
+	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"sync"
 )
@@ -10,12 +10,12 @@ import (
 // Bucket global value, use bucket to manage all the channel（all TCP connection）
 type Bucket struct {
 	conf   *conf.Bucket
-	rwLock sync.RWMutex                 // protect the channels for chs
-	chs    map[string]*channel2.Channel // map：model.UserInfo.UserKey => GetChannelByUserKey
+	rwLock sync.RWMutex                // protect the channels for chs
+	chs    map[string]*channel.Channel // map：model.UserInfo.UserKey => GetChannelByUserKey
 
 	// room
 	routineCounter uint64
-	rooms          map[string]*channel2.Room   // map: RoomId => Room
+	rooms          map[string]*channel.Room    // map: RoomId => Room
 	routines       []chan *pb.BroadcastRoomReq // deal with proto to room
 
 	ipCount map[string]int32
@@ -24,8 +24,8 @@ type Bucket struct {
 func NewBucket(conf *conf.Bucket) *Bucket {
 	b := &Bucket{
 		conf:     conf,
-		chs:      make(map[string]*channel2.Channel, conf.Channel),
-		rooms:    make(map[string]*channel2.Room, conf.Room),
+		chs:      make(map[string]*channel.Channel, conf.Channel),
+		rooms:    make(map[string]*channel.Room, conf.Room),
 		routines: make([]chan *pb.BroadcastRoomReq, conf.RoutineAmount),
 		ipCount:  make(map[string]int32),
 	}
@@ -50,7 +50,7 @@ func (b *Bucket) RoomCount() int {
 func (b *Bucket) RoomsCount() (res map[string]int32) {
 	var (
 		roomID string
-		room   *channel2.Room
+		room   *channel.Room
 	)
 	b.rwLock.RLock()
 	res = make(map[string]int32)
@@ -64,8 +64,8 @@ func (b *Bucket) RoomsCount() (res map[string]int32) {
 }
 
 // ChangeRoom change ro room
-func (b *Bucket) ChangeRoom(newRoomId string, ch *channel2.Channel) (err error) {
-	var newRoom *channel2.Room
+func (b *Bucket) ChangeRoom(newRoomId string, ch *channel.Channel) (err error) {
+	var newRoom *channel.Room
 	var ok bool
 	var oldRoom = ch.Room
 
@@ -80,7 +80,7 @@ func (b *Bucket) ChangeRoom(newRoomId string, ch *channel2.Channel) (err error) 
 	}
 	b.rwLock.Lock()
 	if newRoom, ok = b.rooms[newRoomId]; !ok {
-		newRoom = channel2.NewRoom(newRoomId)
+		newRoom = channel.NewRoom(newRoomId)
 		b.rooms[newRoomId] = newRoom
 	}
 	b.rwLock.Unlock()
@@ -98,8 +98,8 @@ func (b *Bucket) ChangeRoom(newRoomId string, ch *channel2.Channel) (err error) 
 	return
 }
 
-func (b *Bucket) Put(roomId string, ch *channel2.Channel) (err error) {
-	var room *channel2.Room
+func (b *Bucket) Put(roomId string, ch *channel.Channel) (err error) {
+	var room *channel.Room
 	var ok bool
 	userInfo := ch.UserInfo
 
@@ -111,7 +111,7 @@ func (b *Bucket) Put(roomId string, ch *channel2.Channel) (err error) {
 	b.chs[userInfo.UserKey] = ch
 	if roomId != "" {
 		if room, ok = b.rooms[roomId]; !ok {
-			room = channel2.NewRoom(roomId)
+			room = channel.NewRoom(roomId)
 			b.rooms[roomId] = room
 		}
 		ch.Room = room
@@ -127,7 +127,7 @@ func (b *Bucket) Put(roomId string, ch *channel2.Channel) (err error) {
 }
 
 // DelChannel 删除一个用户的Channel
-func (b *Bucket) DelChannel(currCh *channel2.Channel) {
+func (b *Bucket) DelChannel(currCh *channel.Channel) {
 	userInfo := currCh.UserInfo
 
 	b.rwLock.Lock()
@@ -154,7 +154,7 @@ func (b *Bucket) DelChannel(currCh *channel2.Channel) {
 	}
 }
 
-func (b *Bucket) GetChannelByUserKey(key string) (ch *channel2.Channel) {
+func (b *Bucket) GetChannelByUserKey(key string) (ch *channel.Channel) {
 	b.rwLock.RLock()
 	ch = b.chs[key]
 	b.rwLock.RUnlock()
@@ -162,7 +162,7 @@ func (b *Bucket) GetChannelByUserKey(key string) (ch *channel2.Channel) {
 }
 
 // GetRoomById 通过房间ID，获取房间
-func (b *Bucket) GetRoomById(roomId string) (room *channel2.Room) {
+func (b *Bucket) GetRoomById(roomId string) (room *channel.Room) {
 	b.rwLock.RLock()
 	room = b.rooms[roomId]
 	b.rwLock.RUnlock()
@@ -170,7 +170,7 @@ func (b *Bucket) GetRoomById(roomId string) (room *channel2.Room) {
 }
 
 // DelRoomById 通过房间ID，删除房间
-func (b *Bucket) DelRoomById(room *channel2.Room) {
+func (b *Bucket) DelRoomById(room *channel.Room) {
 	b.rwLock.Lock()
 	delete(b.rooms, room.Id)
 	b.rwLock.Unlock()

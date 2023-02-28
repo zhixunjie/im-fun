@@ -22,7 +22,7 @@ func main() {
 	srv := comet.NewServer(conf.Conf)
 	// init TCP server
 	// init WS server
-	// init grpc server
+	// init GRPC server
 	rpcSrv := grpc.New(srv, conf.Conf.RPC.Server)
 
 	// signal

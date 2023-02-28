@@ -39,12 +39,12 @@ func NewPoolHash(config *Options) PoolHash {
 	return hash
 }
 
-// Reader get a reader memory buffer.
-func (pool *PoolHash) Reader(rn int) *Pool {
+// ReaderPool get a reader memory buffer.
+func (pool *PoolHash) ReaderPool(rn int) *Pool {
 	return &(pool.Readers[rn%pool.options.ReadPoolOption.PoolNum])
 }
 
-// Writer get a writer memory buffer pool.
-func (pool *PoolHash) Writer(rn int) *Pool {
+// WriterPool get a writer memory buffer pool.
+func (pool *PoolHash) WriterPool(rn int) *Pool {
 	return &(pool.Writers[rn%pool.options.WritePoolOption.PoolNum])
 }

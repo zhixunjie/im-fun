@@ -23,13 +23,13 @@ func New(s *comet.Server, conf *conf.RPCServer) *grpc.Server {
 		MaxConnectionAge:      time.Duration(conf.MaxLifeTime),
 	}))
 	pb.RegisterCometServer(srv, &server{srv: s, UnimplementedCometServer: pb.UnimplementedCometServer{}})
-	lis, err := net.Listen(conf.Network, conf.Addr)
+	listener, err := net.Listen(conf.Network, conf.Addr)
 	if err != nil {
 		panic(err)
 	}
 	// begin to listen
 	go func() {
-		if err = srv.Serve(lis); err != nil {
+		if err = srv.Serve(listener); err != nil {
 			panic(err)
 		}
 	}()

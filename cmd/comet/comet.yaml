@@ -33,8 +33,8 @@ connect:
 protocol:
   timer: 32
   timerSize: 2048
-  svrProto: 10
-  cliProto: 5
+  serverProtoNum: 10
+  clientProtoNum: 5
   handshakeTimeout: "8s"
 
 bucket:

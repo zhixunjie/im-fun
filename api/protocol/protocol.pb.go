@@ -20,9 +20,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-//
-// v1.0.0
-// protocol
+// v1
 type Proto struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

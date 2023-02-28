@@ -38,7 +38,7 @@ func NewRound(c *conf.Config) (round *Round) {
 	return
 }
 
-// Timer get a timer.
-func (r *Round) Timer(rn int) *time.Timer {
+// TimerPool get a timer.
+func (r *Round) TimerPool(rn int) *time.Timer {
 	return &(r.Timers[rn%r.options.Timer])
 }

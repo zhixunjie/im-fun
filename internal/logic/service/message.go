@@ -13,7 +13,7 @@ import (
 )
 
 // SendMessage 发送消息
-func SendMessage(ctx context.Context, req *request.SendMsgReq) (response.SendMsgResp, error) {
+func (svc *Service) SendMessage(ctx context.Context, req *request.SendMsgReq) (response.SendMsgResp, error) {
 	var resp response.SendMsgResp
 	currTimestamp := time.Now().Unix()
 
@@ -96,7 +96,7 @@ func transformMessage(ctx context.Context, req *request.SendMsgReq, currTimestam
 }
 
 // FetchMessage 拉取消息
-func FetchMessage(ctx context.Context, req *request.FetchMsgReq) (response.SendMsgResp, error) {
+func (svc *Service) FetchMessage(ctx context.Context, req *request.FetchMsgReq) (response.SendMsgResp, error) {
 	var resp response.SendMsgResp
 
 	return resp, nil
