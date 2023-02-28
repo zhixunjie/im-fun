@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-	"github.com/zhixunjie/im-fun/internal/comet/connect"
+	"github.com/zhixunjie/im-fun/internal/comet"
 	"net"
 	"time"
 
@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-func New(s *connect.Server, conf *conf.RPCServer) *grpc.Server {
+func New(s *comet.Server, conf *conf.RPCServer) *grpc.Server {
 	srv := grpc.NewServer(grpc.KeepaliveParams(keepalive.ServerParameters{
 		MaxConnectionIdle:     time.Duration(conf.IdleTimeout),
 		MaxConnectionAgeGrace: time.Duration(conf.ForceCloseWait),
@@ -37,7 +37,7 @@ func New(s *connect.Server, conf *conf.RPCServer) *grpc.Server {
 }
 
 type server struct {
-	srv *connect.Server
+	srv *comet.Server
 	pb.UnimplementedCometServer
 }
 
@@ -67,7 +67,7 @@ func (s *server) Broadcast(ctx context.Context, req *pb.BroadcastReq) (*pb.Broad
 	if req.Proto == nil {
 		return nil, errors.ErrBroadCastArg
 	}
-	connect.BroadcastToAllBucket(s.srv, req.GetProto(), int(req.Speed))
+	comet.BroadcastToAllBucket(s.srv, req.GetProto(), int(req.Speed))
 	return &pb.BroadcastReply{}, nil
 }
 

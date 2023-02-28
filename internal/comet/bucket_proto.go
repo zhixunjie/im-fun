@@ -1,9 +1,9 @@
-package connect
+package comet
 
 import (
 	pb "github.com/zhixunjie/im-fun/api/comet"
 	"github.com/zhixunjie/im-fun/api/protocol"
-	"github.com/zhixunjie/im-fun/internal/comet/connect/channel"
+	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"sync/atomic"
 	"time"
 )

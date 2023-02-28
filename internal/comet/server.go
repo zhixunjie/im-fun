@@ -1,4 +1,4 @@
-package connect
+package comet
 
 import (
 	"github.com/zhenjl/cityhash"

@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/golang/glog"
+	"github.com/zhixunjie/im-fun/internal/comet"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
-	"github.com/zhixunjie/im-fun/internal/comet/connect"
 	"github.com/zhixunjie/im-fun/internal/comet/grpc"
 	"math/rand"
 	"os"
@@ -19,7 +19,7 @@ func main() {
 	}
 	InitCommon()
 	// init server
-	srv := connect.NewServer(conf.Conf)
+	srv := comet.NewServer(conf.Conf)
 	// init TCP server
 	// init WS server
 	// init grpc server

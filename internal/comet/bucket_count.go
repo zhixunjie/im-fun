@@ -1,6 +1,8 @@
-package connect
+package comet
 
-import "github.com/zhixunjie/im-fun/internal/comet/connect/channel"
+import (
+	"github.com/zhixunjie/im-fun/internal/comet/channel"
+)
 
 func (b *Bucket) IPCount() (res map[string]struct{}) {
 	var ip string
