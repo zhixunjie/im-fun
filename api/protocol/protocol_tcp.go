@@ -32,7 +32,7 @@ func (proto *Proto) ReadTCP(reader *bufio.Reader) (err error) {
 		return err
 	}
 	// parse header
-	pack, err := parseHeader(proto, buf)
+	pack, err := unCode(proto, buf)
 	if err != nil {
 		logrus.Errorf("err=%v,", err)
 		return err

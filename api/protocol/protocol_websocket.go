@@ -16,7 +16,7 @@ func (proto *Proto) ReadWebsocket(conn *websocket.Conn) (err error) {
 	}
 
 	// parse header
-	pack, err := parseHeader(proto, buf)
+	pack, err := unCode(proto, buf)
 	if err != nil {
 		logrus.Errorf("err=%v,", err)
 		return err
@@ -33,13 +33,13 @@ func (proto *Proto) ReadWebsocket(conn *websocket.Conn) (err error) {
 
 // WriteWebsocket write a proto to websocket connection.
 func (proto *Proto) WriteWebsocket(conn *websocket.Conn) (err error) {
-	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
 
 	// write header
 	packLen := _rawHeaderSize + len(proto.Body)
 	if err = conn.WriteHeader(websocket.BinaryMessage, packLen); err != nil {
 		return
 	}
+	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
 	binary.BigEndian.PutInt32(buf[_packOffset:], int32(packLen))
 	binary.BigEndian.PutInt16(buf[_headerOffset:], int16(_rawHeaderSize))
 	binary.BigEndian.PutInt16(buf[_verOffset:], int16(proto.Ver))
