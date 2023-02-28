@@ -5,8 +5,8 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 )
 
-// ReadWebsocket read a proto from websocket connection.
-func (proto *Proto) ReadWebsocket(conn *websocket.Conn) (err error) {
+// ReadWs read a proto from websocket connection.
+func (proto *Proto) ReadWs(conn *websocket.Conn) (err error) {
 	buf, err := conn.ReadMessage()
 	if err != nil {
 		return err
@@ -27,15 +27,16 @@ func (proto *Proto) ReadWebsocket(conn *websocket.Conn) (err error) {
 	return
 }
 
-// WriteWebsocket write a proto to websocket connection.
-func (proto *Proto) WriteWebsocket(conn *websocket.Conn) (err error) {
+// WriteWs write a proto to websocket connection.
+func (proto *Proto) WriteWs(conn *websocket.Conn) (err error) {
 	// format:
 	// pack = [ [websocket header] + [websocket payload]]
 	// websocket payload = [ [header] + [body] ]
 
 	// websocket header
-	packLen := _rawHeaderSize + len(proto.Body)
-	if err = conn.WriteHeader(websocket.BinaryMessage, packLen); err != nil {
+	payloadLen := _rawHeaderSize + len(proto.Body)
+	err = conn.WriteHeader(websocket.BinaryMessage, payloadLen)
+	if err != nil {
 		return err
 	}
 
@@ -54,24 +55,27 @@ func (proto *Proto) WriteWebsocket(conn *websocket.Conn) (err error) {
 	return nil
 }
 
-// WriteWebsocketHeart write websocket heartbeat with room online.
-func (proto *Proto) WriteWebsocketHeart(wr *websocket.Conn, online int32) (err error) {
-	packLen := _rawHeaderSize + _heartSize
-	buf := make([]byte, packLen) // TODO try to reduce GC
+// WriteWsHeart write websocket heartbeat with room online.
+func (proto *Proto) WriteWsHeart(conn *websocket.Conn, online int32) (err error) {
+	// format:
+	// pack = [ [websocket header] + [websocket payload]]
+	// websocket payload = [ [header] + [body] ]
 
-	// write header
-	err = wr.WriteHeader(websocket.BinaryMessage, packLen)
+	// websocket header
+	payloadLen := _rawHeaderSize + _heartSize
+	err = conn.WriteHeader(websocket.BinaryMessage, payloadLen)
 	if err != nil {
-		return
+		return err
 	}
-	// proto header
-	binary.BigEndian.PutInt32(buf[_packOffset:], int32(packLen))
-	binary.BigEndian.PutInt16(buf[_headerOffset:], int16(_rawHeaderSize))
-	binary.BigEndian.PutInt16(buf[_verOffset:], int16(proto.Ver))
-	binary.BigEndian.PutInt32(buf[_opOffset:], proto.Op)
-	binary.BigEndian.PutInt32(buf[_seqOffset:], proto.Seq)
-	// proto body
+
+	// websocket payload
+	buf := make([]byte, payloadLen) // TODO try to reduce GC
+	buf = codeHeader(proto, buf)
 	binary.BigEndian.PutInt32(buf[_heartOffset:], online)
-	// TODO .....
+	err = conn.WritePayload(codeHeader(proto, buf))
+	if err != nil {
+		return err
+	}
+
 	return
 }
