@@ -8,29 +8,23 @@ import (
 
 // ReadWebsocket read a proto from websocket connection.
 func (proto *Proto) ReadWebsocket(conn *websocket.Conn) (err error) {
+	// read the whole message
 	buf, err := conn.ReadMessage()
 	if err != nil {
 		logrus.Errorf("err=%v,", err)
 		return
 	}
-	if len(buf) < _rawHeaderSize {
-		return ErrProtoHeaderLen
-	}
-	packLen := binary.BigEndian.Int32(buf[_packOffset:_headerOffset])
-	headerLen := binary.BigEndian.Int16(buf[_headerOffset:_verOffset])
-	proto.Ver = int32(binary.BigEndian.Int16(buf[_verOffset:_opOffset]))
-	proto.Op = binary.BigEndian.Int32(buf[_opOffset:_seqOffset])
-	proto.Seq = binary.BigEndian.Int32(buf[_seqOffset:])
-	if packLen < 0 || packLen > _maxPackSize {
-		return ErrProtoPackLen
-	}
-	if headerLen != _rawHeaderSize {
-		return ErrProtoHeaderLen
+
+	// parse header
+	pack, err := parseHeader(proto, buf)
+	if err != nil {
+		logrus.Errorf("err=%v,", err)
+		return err
 	}
 
 	// read body
-	if bodyLen := int(packLen - int32(headerLen)); bodyLen > 0 {
-		proto.Body = buf[headerLen:packLen]
+	if pack.BodyLen > 0 {
+		proto.Body = buf[pack.HeaderLen:pack.BodyLen]
 	} else {
 		proto.Body = nil
 	}

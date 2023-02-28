@@ -47,7 +47,9 @@ var (
 )
 
 type Package struct {
-	BodyLen int
+	PackLen   int // 整个数据包的长度
+	HeaderLen int // 头部的长度
+	BodyLen   int // 请求体的长度
 }
 
 func parseHeader(proto *Proto, buf []byte) (Package, error) {
