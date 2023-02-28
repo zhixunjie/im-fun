@@ -4,7 +4,7 @@ package imfun.comet;
 
 option go_package = "github.com/zhixunjie/im-fun/api/comet;comet";
 
-import "github.com/zhixunjie/im-fun/api/protocol/protocol.proto";
+import "protocol/protocol.proto";
 
 message PushMsgReq {
   repeated string keys = 1;

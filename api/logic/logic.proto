@@ -4,7 +4,7 @@ package imfun.logic;
 
 option go_package = "github.com/zhixunjie/im-fun/api/logic;logic";
 
-import "github.com/zhixunjie/im-fun/api/protocol/protocol.proto";
+import "protocol/protocol.proto";
 
 message PushMsg {
   enum Type {

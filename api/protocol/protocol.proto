@@ -1,9 +1,13 @@
 syntax = "proto3";
 
-package imfun.protocol;
+package goim.protocol;
 
-option go_package = "github.com/zhixunjie/api/protocol;protocol";
+option go_package = "github.com/zhixunjie/im-fun/api/protocol;protocol";
 
+/*
+ * v1.0.0
+ * protocol
+ */
 message Proto {
   int32 ver = 1;
   int32 op = 2;
