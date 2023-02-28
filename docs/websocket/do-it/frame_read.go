@@ -57,66 +57,71 @@ func (c *Conn) ReadMessage() (payload []byte, err error) {
 }
 
 // 读取帧
-// frame protocol: https://datatracker.ietf.org/doc/html/rfc6455#section-5.2
+// https://datatracker.ietf.org/doc/html/rfc6455#section-5.2
 func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 	// 1. get first byte(8bit)
-	var b byte
-	b, err = c.reader.ReadByte()
+	var firstByte byte
+	firstByte, err = c.reader.ReadByte()
 	if err != nil {
 		return
 	}
 
 	// 2. read bit: fin
-	fin := b & fin
+	fin := firstByte & fin
 	isFin = fin != 0 // equal 1 means final frag
 
 	// 3. read bit：rsv
 	// rsv MUST be 0
-	if rsv := b & (rsv1 | rsv2 | rsv3); rsv != 0 {
+	if rsv := firstByte & (rsv1 | rsv2 | rsv3); rsv != 0 {
 		err = errors.New("rsv not allow")
 		return false, 0, nil, err
 	}
-	// 4. read bit: opCode code
-	opCode = int(b & opcode)
+	// 4. read bit: opcode
+	opCode = int(firstByte & opcode)
 
 	// //////////////////////////
-
-	// 1. get second byte(8bit)
-	b, err = c.reader.ReadByte()
+	// 2. get second byte(8bit)
+	readerBuffer := make([]byte, 8)
+	var secondByte byte
+	secondByte, err = c.reader.ReadByte()
 	if err != nil {
 		return
 	}
 
 	// 2. read bit: mark
 	// Defines whether the "Payload data" is masked.
-	masked := (b & mark) != 0
+	masked := (secondByte & mark) != 0
 
-	// 3. read bit: payload length
+	// 3. read bit: payload's length
+	// note: payload's length maybe 1 byte，maybe multiple bytes
+	// - therefore, we read 1 byte at first
+	// - if we find that value exceed 125，length need more bytes to save
+	// - we read the next 2 bytes, or the next 8 bytes
 	var payloadLen int64
-	readBuffer := make([]byte, 8)
-	lenVal := int64(b & payloadLength)
-	// get payload length
+	lenVal := int64(secondByte & payloadLength)
+
+	// 4. get payload length（）
 	switch {
 	case lenVal < 126:
 		// 1) if 0-125, that is the payload length
 		payloadLen = lenVal
 	case lenVal == 126:
 		// 2) If 126, the following 2 bytes interpreted as a 16-bit unsigned integer are the payload length.
-		err = c.reader.ReadBytesN(readBuffer[:2])
+		err = c.reader.ReadBytesN(readerBuffer[:2])
 		if err != nil {
 			logrus.Errorf("ReadBytesN err=%v", err)
 			return
 		}
-		payloadLen = int64(binary.BigEndian.Uint16(readBuffer[:2]))
+		payloadLen = int64(binary.BigEndian.Uint16(readerBuffer[:2]))
 	case lenVal == 127:
 		// 3)  If 127, the following 8 bytes interpreted as a 64-bit unsigned integer
 		// (the most significant bit MUST be 0) are the payload length.
-		err = c.reader.ReadBytesN(readBuffer[:8])
+		err = c.reader.ReadBytesN(readerBuffer[:8])
 		if err != nil {
 			logrus.Errorf("ReadBytesN err=%v", err)
 			return
 		}
-		payloadLen = int64(binary.BigEndian.Uint64(readBuffer[:8]))
+		payloadLen = int64(binary.BigEndian.Uint64(readerBuffer[:8]))
 	}
 	if payloadLen < 0 {
 		logrus.Errorf("payloadLen not allow")
@@ -138,7 +143,7 @@ func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 		}
 		copy(c.maskKey, maskKey)
 	}
-	// 4. read payload（finally）
+	// 4. read payload（finally，OMG）
 	// https://datatracker.ietf.org/doc/html/rfc6455#section-5.3
 	if payloadLen > 0 {
 		payload = make([]byte, payloadLen)
@@ -147,7 +152,6 @@ func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 			logrus.Errorf("ReadBytesN err=%v", err)
 			return
 		}
-		// https://datatracker.ietf.org/doc/html/rfc6455#section-5.3
 		if masked {
 			maskBytes(c.maskKey, 0, payload)
 		}

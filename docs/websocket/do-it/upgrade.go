@@ -23,6 +23,7 @@ var (
 )
 
 // Upgrade Switching Protocols
+// https://datatracker.ietf.org/doc/html/rfc6455#section-1.3
 func Upgrade(closer io.ReadWriteCloser, rr *bufio.Reader, wr *bufio.Writer, req *Request) (conn *Conn, err error) {
 	// check header
 	err = verifyHeader(req)

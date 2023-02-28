@@ -2,48 +2,62 @@ package websocket
 
 import (
 	"encoding/binary"
+	"github.com/sirupsen/logrus"
 )
 
-// WriteMessage write a message by type.
+// WriteMessage write a message（跟read反着来就好）
+// https://datatracker.ietf.org/doc/html/rfc6455#section-5.2
+// https://datatracker.ietf.org/doc/html/rfc6455#section-5.5
+// https://datatracker.ietf.org/doc/html/rfc6455#section-5.6
 func (c *Conn) WriteMessage(msgType int, msg []byte) (err error) {
+	// 1. write header
 	if err = c.WriteHeader(msgType, len(msg)); err != nil {
 		return
 	}
+	// 2. write body
 	err = c.WriteBody(msg)
 	return
 }
 
 // WriteHeader write header frame.
-func (c *Conn) WriteHeader(msgType int, length int) (err error) {
-	var h []byte
-	if h, err = c.writer.Peek(2); err != nil {
-		return
+func (c *Conn) WriteHeader(opcode int, length int) error {
+	// 1. set first byte(8bit)
+	firstByte := byte(0)
+	firstByte = firstByte | fin          // fin
+	firstByte = firstByte | byte(opcode) // opcode
+	err := c.writer.WriteByte(firstByte)
+	if err != nil {
+		logrus.Errorf("err=%v", err)
+		return err
 	}
-	// 1.First byte. FIN/RSV1/RSV2/RSV3/OpCode(4bits)
-	h[0] = 0
-	h[0] = h[0] | (fin | byte(msgType))
-	// 2.Second byte. Mask/Payload len(7bits)
-	h[1] = 0
+
+	// //////////////////////////////
+	// 2. set second byte(8bit)
+	writerBuff := make([]byte, 8)
+	secondByte := byte(0)
 	switch {
-	case length <= 125:
-		// 7 bits
-		h[1] |= byte(length)
+	case length < 126:
+		secondByte = secondByte | byte(length)
 	case length < 65536:
-		// 16 bits
-		h[1] |= 126
-		if h, err = c.writer.Peek(2); err != nil {
-			return
-		}
-		binary.BigEndian.PutUint16(h, uint16(length))
+		secondByte = secondByte | 126
+		binary.BigEndian.PutUint16(writerBuff[:2], uint16(length))
 	default:
-		// 64 bits
-		h[1] |= 127
-		if h, err = c.writer.Peek(8); err != nil {
-			return
-		}
-		binary.BigEndian.PutUint64(h, uint64(length))
+		secondByte = secondByte | 127
+		binary.BigEndian.PutUint64(writerBuff[:8], uint64(length))
 	}
-	return
+	// write second byte
+	err = c.writer.WriteByte(secondByte)
+	if err != nil {
+		logrus.Errorf("err=%v", err)
+		return err
+	}
+	// write other byte
+	_, err = c.writer.Write(writerBuff)
+	if err != nil {
+		logrus.Errorf("err=%v", err)
+		return err
+	}
+	return nil
 }
 
 // WriteBody write a message body.
@@ -52,11 +66,6 @@ func (c *Conn) WriteBody(b []byte) (err error) {
 		_, err = c.writer.Write(b)
 	}
 	return
-}
-
-// Peek write peek.
-func (c *Conn) Peek(n int) ([]byte, error) {
-	return c.writer.Peek(n)
 }
 
 // Flush flush writer buffer

@@ -48,6 +48,7 @@ RFC：
 - https://datatracker.ietf.org/doc/html/rfc6455
 - https://datatracker.ietf.org/doc/html/rfc6455#section-5.2 frame
 - https://datatracker.ietf.org/doc/html/rfc6455#section-1.3 upgrade
+- [nhooyr.md](research/nhooyr.md)
 
 ~~~
 0                   1                   2                   3
@@ -70,3 +71,4 @@ RFC：
 +---------------------------------------------------------------+
 ~~~
 
+加解码这个事情，不知道为什么我老喜欢做。没啥好做的其实，就一个烦字，而且出问题很难定位。

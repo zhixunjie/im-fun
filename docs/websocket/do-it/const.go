@@ -23,6 +23,7 @@ const (
 
 // The message types are defined in RFC 6455, section 11.8.
 // https://datatracker.ietf.org/doc/html/rfc6455#section-11.8
+// https://datatracker.ietf.org/doc/html/rfc6455#section-5.5
 // note：
 // 1) 3-7 are reserved for further non-control frames.
 // 2) 11-16 are reserved for further control frames.
