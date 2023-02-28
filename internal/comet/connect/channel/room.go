@@ -1,7 +1,6 @@
-package connect
+package channel
 
 import (
-	"github.com/zhixunjie/im-fun/internal/comet/connect/channel"
 	"sync"
 
 	"github.com/zhixunjie/im-fun/api/protocol"
@@ -11,8 +10,8 @@ import (
 type Room struct {
 	Id        string
 	rLock     sync.RWMutex
-	next      *channel.Channel // linklist: ch1 -> ch2 -> ch3 （every connection has a channel）
-	Online    int32            // dirty read is ok
+	next      *Channel // linklist: ch1 -> ch2 -> ch3 （every connection has a channel）
+	Online    int32    // dirty read is ok
 	AllOnline int32
 }
 
@@ -25,7 +24,7 @@ func NewRoom(id string) (r *Room) {
 
 // PutChannel 把Channel放到房间中
 // insert to the head of the linklist
-func (r *Room) PutChannel(ch *channel.Channel) (err error) {
+func (r *Room) PutChannel(ch *Channel) (err error) {
 	r.rLock.Lock()
 	if r.next != nil {
 		r.next.Prev = ch
@@ -39,7 +38,7 @@ func (r *Room) PutChannel(ch *channel.Channel) (err error) {
 }
 
 // DelChannel 从房间删除对象的Channel
-func (r *Room) DelChannel(ch *channel.Channel) {
+func (r *Room) DelChannel(ch *Channel) {
 	r.rLock.Lock()
 	if ch.Next != nil { // if not tail in the linklist
 		ch.Next.Prev = ch.Prev

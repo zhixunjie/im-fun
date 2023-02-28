@@ -2,7 +2,6 @@ package channel
 
 import (
 	"github.com/zhixunjie/im-fun/api/protocol"
-	"github.com/zhixunjie/im-fun/internal/comet/connect"
 	"github.com/zhixunjie/im-fun/internal/comet/errors"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
 )
@@ -10,7 +9,7 @@ import (
 // Channel used by message pusher send msg to write goroutine.
 type Channel struct {
 	// The Room that Channel(User) is In
-	Room   *connect.Room
+	Room   *Room
 	signal chan *protocol.Proto
 	Next   *Channel
 	Prev   *Channel

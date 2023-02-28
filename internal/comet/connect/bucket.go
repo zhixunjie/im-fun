@@ -15,7 +15,7 @@ type Bucket struct {
 
 	// room
 	routineCounter uint64
-	rooms          map[string]*Room            // map: RoomId => Room
+	rooms          map[string]*channel.Room    // map: RoomId => Room
 	routines       []chan *pb.BroadcastRoomReq // deal with proto to room
 
 	ipCount map[string]int32
@@ -25,7 +25,7 @@ func NewBucket(conf *conf.Bucket) *Bucket {
 	b := &Bucket{
 		conf:     conf,
 		chs:      make(map[string]*channel.Channel, conf.Channel),
-		rooms:    make(map[string]*Room, conf.Room),
+		rooms:    make(map[string]*channel.Room, conf.Room),
 		routines: make([]chan *pb.BroadcastRoomReq, conf.RoutineAmount),
 		ipCount:  make(map[string]int32),
 	}
@@ -50,7 +50,7 @@ func (b *Bucket) RoomCount() int {
 func (b *Bucket) RoomsCount() (res map[string]int32) {
 	var (
 		roomID string
-		room   *Room
+		room   *channel.Room
 	)
 	b.rwLock.RLock()
 	res = make(map[string]int32)
@@ -65,7 +65,7 @@ func (b *Bucket) RoomsCount() (res map[string]int32) {
 
 // ChangeRoom change ro room
 func (b *Bucket) ChangeRoom(newRoomId string, ch *channel.Channel) (err error) {
-	var newRoom *Room
+	var newRoom *channel.Room
 	var ok bool
 	var oldRoom = ch.Room
 
@@ -80,7 +80,7 @@ func (b *Bucket) ChangeRoom(newRoomId string, ch *channel.Channel) (err error) {
 	}
 	b.rwLock.Lock()
 	if newRoom, ok = b.rooms[newRoomId]; !ok {
-		newRoom = NewRoom(newRoomId)
+		newRoom = channel.NewRoom(newRoomId)
 		b.rooms[newRoomId] = newRoom
 	}
 	b.rwLock.Unlock()
@@ -99,7 +99,7 @@ func (b *Bucket) ChangeRoom(newRoomId string, ch *channel.Channel) (err error) {
 }
 
 func (b *Bucket) Put(roomId string, ch *channel.Channel) (err error) {
-	var room *Room
+	var room *channel.Room
 	var ok bool
 	userInfo := ch.UserInfo
 
@@ -111,7 +111,7 @@ func (b *Bucket) Put(roomId string, ch *channel.Channel) (err error) {
 	b.chs[userInfo.UserKey] = ch
 	if roomId != "" {
 		if room, ok = b.rooms[roomId]; !ok {
-			room = NewRoom(roomId)
+			room = channel.NewRoom(roomId)
 			b.rooms[roomId] = room
 		}
 		ch.Room = room
@@ -162,7 +162,7 @@ func (b *Bucket) GetChannelByUserKey(key string) (ch *channel.Channel) {
 }
 
 // GetRoomById 通过房间ID，获取房间
-func (b *Bucket) GetRoomById(roomId string) (room *Room) {
+func (b *Bucket) GetRoomById(roomId string) (room *channel.Room) {
 	b.rwLock.RLock()
 	room = b.rooms[roomId]
 	b.rwLock.RUnlock()
@@ -170,7 +170,7 @@ func (b *Bucket) GetRoomById(roomId string) (room *Room) {
 }
 
 // DelRoomById 通过房间ID，删除房间
-func (b *Bucket) DelRoomById(room *Room) {
+func (b *Bucket) DelRoomById(room *channel.Room) {
 	b.rwLock.Lock()
 	delete(b.rooms, room.Id)
 	b.rwLock.Unlock()

@@ -1,5 +1,7 @@
 package connect
 
+import "github.com/zhixunjie/im-fun/internal/comet/connect/channel"
+
 func (b *Bucket) IPCount() (res map[string]struct{}) {
 	var ip string
 	b.rwLock.RLock()
@@ -14,7 +16,7 @@ func (b *Bucket) IPCount() (res map[string]struct{}) {
 // GetRoomsOnline 获取所有在线人数大于0的房间
 func (b *Bucket) GetRoomsOnline() map[string]struct{} {
 	var roomId string
-	var room *Room
+	var room *channel.Room
 
 	res := make(map[string]struct{})
 	b.rwLock.RLock()
@@ -30,7 +32,7 @@ func (b *Bucket) GetRoomsOnline() map[string]struct{} {
 // UpdateRoomOnline 更新每个房间的所有在线人数
 func (b *Bucket) UpdateRoomOnline(roomCountMap map[string]int32) {
 	var roomId string
-	var room *Room
+	var room *channel.Room
 
 	b.rwLock.RLock()
 	for roomId, room = range b.rooms {
