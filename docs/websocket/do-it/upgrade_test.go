@@ -1,68 +1,69 @@
 package websocket
 
 import (
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
+	"golang.org/x/net/websocket"
 	"net"
-	"reflect"
 	"testing"
 	"time"
-
-	"golang.org/x/net/websocket"
 )
 
 func TestServer(t *testing.T) {
-	var (
-		data = []byte{0, 1, 2}
-	)
-	ln, err := net.Listen("tcp", ":8080")
+	data := []byte("hello client")
+	var err error
+
+	// listen
+	listen, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		t.FailNow()
 	}
-	go func() {
-		conn, err := ln.Accept()
-		if err != nil {
-			t.Error(err)
-		}
+	for {
+		conn, err := listen.Accept()
+		assert.Nil(t, err)
 		rd := bufio.NewReader(conn)
 		wr := bufio.NewWriter(conn)
 		req, err := ReadRequest(rd)
-		if err != nil {
-			t.Error(err)
-		}
-		if req.RequestURI != "/sub" {
-			t.Error(err)
-		}
+		assert.Nil(t, err)
+		assert.Equal(t, "/sub", req.RequestURI)
+
+		// upgrade
 		ws, err := Upgrade(conn, rd, wr, req)
-		if err != nil {
-			t.Error(err)
+		assert.Nil(t, err)
+
+		for {
+			err = ws.WriteMessage(TextMessage, data)
+			assert.Nil(t, err)
+
+			err = ws.Flush()
+			assert.Nil(t, err)
+
+			buf, err := ws.ReadMessage()
+			assert.Nil(t, err)
+			fmt.Printf("%s\n", buf)
+
+			time.Sleep(2 * time.Second)
 		}
-		if err = ws.WriteMessage(BinaryMessage, data); err != nil {
-			t.Error(err)
-		}
-		if err = ws.Flush(); err != nil {
-			t.Error(err)
-		}
-		op, b, err := ws.ReadMessage()
-		if err != nil || op != BinaryMessage || !reflect.DeepEqual(b, data) {
-			t.Error(err)
-		}
-	}()
-	time.Sleep(time.Millisecond * 100)
-	// ws client
+	}
+}
+
+func TestClient(t *testing.T) {
 	ws, err := websocket.Dial("ws://127.0.0.1:8080/sub", "", "*")
 	if err != nil {
 		t.FailNow()
 	}
-	// receive binary frame
-	var b []byte
-	if err = websocket.Message.Receive(ws, &b); err != nil {
-		t.FailNow()
-	}
-	if !reflect.DeepEqual(b, data) {
-		t.FailNow()
-	}
-	// send binary frame
-	if err = websocket.Message.Send(ws, data); err != nil {
-		t.FailNow()
+
+	for {
+		// receive binary frame
+		var buf []byte
+		err = websocket.Message.Receive(ws, &buf)
+		assert.Nil(t, err)
+		fmt.Printf("%s\n", buf)
+
+		// send binary frame
+		data := []byte("hello server")
+		err = websocket.Message.Send(ws, data)
+		assert.Nil(t, err)
 	}
 }

@@ -11,7 +11,8 @@ import (
 // https://datatracker.ietf.org/doc/html/rfc6455#section-5.6
 func (c *Conn) WriteMessage(msgType int, msg []byte) (err error) {
 	// 1. write header
-	if err = c.WriteHeader(msgType, len(msg)); err != nil {
+	err = c.WriteHeader(msgType, len(msg))
+	if err != nil {
 		return
 	}
 	// 2. write body
@@ -38,24 +39,43 @@ func (c *Conn) WriteHeader(opcode int, length int) error {
 	switch {
 	case length < 126:
 		secondByte = secondByte | byte(length)
+		// write second byte
+		err = c.writer.WriteByte(secondByte)
+		if err != nil {
+			logrus.Errorf("err=%v", err)
+			return err
+		}
 	case length < 65536:
+		// write second byte
 		secondByte = secondByte | 126
+		err = c.writer.WriteByte(secondByte)
+		if err != nil {
+			logrus.Errorf("err=%v", err)
+			return err
+		}
+		// write other byte
 		binary.BigEndian.PutUint16(writerBuff[:2], uint16(length))
+		_, err = c.writer.Write(writerBuff[:2])
+		if err != nil {
+			logrus.Errorf("err=%v", err)
+			return err
+		}
 	default:
+		// write second byte
 		secondByte = secondByte | 127
+		err = c.writer.WriteByte(secondByte)
+		if err != nil {
+			logrus.Errorf("err=%v", err)
+			return err
+		}
+
+		// write other byte
 		binary.BigEndian.PutUint64(writerBuff[:8], uint64(length))
-	}
-	// write second byte
-	err = c.writer.WriteByte(secondByte)
-	if err != nil {
-		logrus.Errorf("err=%v", err)
-		return err
-	}
-	// write other byte
-	_, err = c.writer.Write(writerBuff)
-	if err != nil {
-		logrus.Errorf("err=%v", err)
-		return err
+		_, err = c.writer.Write(writerBuff[:8])
+		if err != nil {
+			logrus.Errorf("err=%v", err)
+			return err
+		}
 	}
 	return nil
 }
@@ -64,6 +84,9 @@ func (c *Conn) WriteHeader(opcode int, length int) error {
 func (c *Conn) WriteBody(b []byte) (err error) {
 	if len(b) > 0 {
 		_, err = c.writer.Write(b)
+		if err != nil {
+			logrus.Errorf("Write err=%v", err)
+		}
 	}
 	return
 }
