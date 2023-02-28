@@ -11,12 +11,12 @@ func (proto *Proto) ReadWs(conn *websocket.Conn) (err error) {
 	if err != nil {
 		return err
 	}
-	// read header
+	// proto header
 	pack, err := unCodeHeader(proto, buf)
 	if err != nil {
 		return err
 	}
-	// read body
+	// proto body
 	if pack.BodyLen > 0 {
 		proto.Body = buf[pack.HeaderLen:pack.BodyLen]
 	} else {
@@ -40,10 +40,12 @@ func (proto *Proto) WriteWs(conn *websocket.Conn) (err error) {
 
 	// websocket payload
 	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
+	// proto header
 	err = conn.WritePayload(codeHeader(proto, buf))
 	if err != nil {
 		return err
 	}
+	// proto body
 	if proto.Body != nil {
 		err = conn.WritePayload(proto.Body)
 		if err != nil {

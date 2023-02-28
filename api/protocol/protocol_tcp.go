@@ -8,10 +8,10 @@ import (
 
 // WriteTo write a proto to bytes writer.
 func (proto *Proto) WriteTo(writer *buffer.Writer) {
-	// writer header
+	// proto header
 	buf := writer.Peek(_rawHeaderSize)
-	codeHeader(proto, buf)
-	// writer body
+	buf = codeHeader(proto, buf)
+	// proto body
 	if proto.Body != nil {
 		writer.Write(proto.Body)
 	}
@@ -24,12 +24,12 @@ func (proto *Proto) ReadTCP(reader *bufio.Reader) (err error) {
 	if err != nil {
 		return err
 	}
-	// read header
+	// proto header
 	pack, err := unCodeHeader(proto, buf)
 	if err != nil {
 		return err
 	}
-	// read body
+	// proto body
 	if pack.BodyLen > 0 {
 		proto.Body = make([]byte, pack.BodyLen) // TODO try to reduce GC
 		err = reader.ReadBytesN(proto.Body)
@@ -44,7 +44,7 @@ func (proto *Proto) ReadTCP(reader *bufio.Reader) (err error) {
 
 // WriteTCP write a proto to TCP writer.
 func (proto *Proto) WriteTCP(writer *bufio.Writer) (err error) {
-	// write raw message
+	// raw message（no header，send between service，only service job will send this kind of msg by now）
 	if proto.Op == int32(OpRaw) {
 		_, err = writer.Write(proto.Body)
 		return
@@ -70,11 +70,8 @@ func (proto *Proto) WriteTCPHeart(wr *bufio.Writer, online int32) (err error) {
 	// proto header
 	packLen := _rawHeaderSize + _heartSize
 	buf := make([]byte, packLen) // TODO try to reduce GC
-	binary.BigEndian.PutInt32(buf[_packOffset:], int32(packLen))
-	binary.BigEndian.PutInt16(buf[_headerOffset:], int16(_rawHeaderSize))
-	binary.BigEndian.PutInt16(buf[_verOffset:], int16(proto.Ver))
-	binary.BigEndian.PutInt32(buf[_opOffset:], proto.Op)
-	binary.BigEndian.PutInt32(buf[_seqOffset:], proto.Seq)
+	buf = codeHeader(proto, buf)
+
 	// proto body
 	binary.BigEndian.PutInt32(buf[_heartOffset:], online)
 	_, err = wr.Write(buf)
