@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// BroadcastToAllBucket 消息广播：广播到所有Bucket的所有Channel
 func BroadcastToAllBucket(srv *Server, proto *protocol.Proto, speed int) {
 	// TODO 使用队列进行广播的处理
 	go func() {
