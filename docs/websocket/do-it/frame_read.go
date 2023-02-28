@@ -81,7 +81,7 @@ func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 
 	// //////////////////////////
 	// 2. get second byte(8bit)
-	readerBuffer := make([]byte, 8)
+	readerBuffer := make([]byte, 8) // TODO try to reduce gc
 	var secondByte byte
 	secondByte, err = c.reader.ReadByte()
 	if err != nil {
@@ -132,7 +132,7 @@ func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 	// All frames sent from the client to the server are masked by a 32-bit value that is contained within the frame.
 	// masked key is used to masked payload
 	if masked {
-		maskKey := make([]byte, 4)
+		maskKey := make([]byte, 4) // TODO try to reduce gc
 		err = c.reader.ReadBytesN(maskKey)
 		if err != nil {
 			logrus.Errorf("ReadBytesN err=%v", err)
@@ -146,7 +146,7 @@ func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 	// 4. read payload（finally，OMG）
 	// https://datatracker.ietf.org/doc/html/rfc6455#section-5.3
 	if payloadLen > 0 {
-		payload = make([]byte, payloadLen)
+		payload = make([]byte, payloadLen) // TODO try to reduce gc
 		err = c.reader.ReadBytesN(payload)
 		if err != nil {
 			logrus.Errorf("ReadBytesN err=%v", err)

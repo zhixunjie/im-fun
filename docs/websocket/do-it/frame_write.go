@@ -33,7 +33,7 @@ func (c *Conn) WriteHeader(opcode int, length int) error {
 
 	// //////////////////////////////
 	// 2. set second byte(8bit)
-	writerBuff := make([]byte, 8)
+	writerBuff := make([]byte, 8) // TODO try to reduce gc
 	secondByte := byte(0)
 	switch {
 	case length < 126:
