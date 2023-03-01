@@ -19,6 +19,13 @@ mysql:
     dbName: im
 redis:
   - addr: 127.0.0.1:6379
+    active: 60000
+    idle: 1024
+    dialTimeout: "200ms"
+    readTimeout: "500ms"
+    writeTimeout: "500ms"
+    idleTimeout: "120s"
+    expire: "30m"
 kafka:
   - topic: im_push
     brokers:

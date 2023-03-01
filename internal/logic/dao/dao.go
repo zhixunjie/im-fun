@@ -10,6 +10,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"runtime"
+	"time"
 )
 
 type Dao struct {
@@ -17,6 +18,7 @@ type Dao struct {
 	RedisClient   *redis.Client
 	MySQLClient   *gorm.DB
 	KafkaProducer sarama.SyncProducer
+	redisExpire   int32
 }
 
 func New(c *conf.Config) *Dao {
@@ -33,6 +35,7 @@ func New(c *conf.Config) *Dao {
 		KafkaProducer: kafkaProducer,
 		RedisClient:   CreateRedisClient(redisConf.Addr, redisConf.Auth),
 		MySQLClient:   CreateMySqlClient(mysqlConf.Addr, mysqlConf.UserName, mysqlConf.Password, mysqlConf.DbName),
+		redisExpire:   int32(time.Duration(redisConf.Expire) / time.Second),
 	}
 	return d
 }
