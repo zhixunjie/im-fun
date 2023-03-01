@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/go-redis/redis/v8"
-	"github.com/golang/glog"
+	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -68,13 +68,13 @@ func CreateRedisClient(addr, password string) *redis.Client {
 	// ping pong
 	pong, err := client.Ping(context.Background()).Result()
 	if err != nil {
-		glog.Errorf("Redis Ping fail,err=%v", err)
+		logrus.Errorf("Redis Ping fail,err=%v", err)
 		runtime.Goexit()
 	}
 
 	// fmt.Println("PING Result：", pong, err) // Output: PONG <nil>
 	if pong != "PONG" {
-		glog.Errorf("NewClient res=%v,err=%v\n", pong, err)
+		logrus.Errorf("NewClient res=%v,err=%v\n", pong, err)
 	}
 
 	return client

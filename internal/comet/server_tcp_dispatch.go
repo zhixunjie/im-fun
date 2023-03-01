@@ -2,7 +2,7 @@ package comet
 
 import (
 	"errors"
-	"github.com/golang/glog"
+	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/pkg/buffer"
@@ -46,7 +46,7 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, writerPool *buffer.Pool, writeBu
 	}
 failed:
 	if err != nil {
-		glog.Errorf("UserInfo=%+v,err=%v", ch.UserInfo, err)
+		logrus.Errorf("UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}
 	conn.Close()
 	writerPool.Put(writeBuf)
@@ -63,7 +63,7 @@ func dealReady(ch *channel.Channel, writer *bufio.Writer) error {
 	for {
 		proto, err = ch.ProtoAllocator.GetProtoCanRead()
 		if err != nil {
-			glog.Errorf("GetProtoCanRead err=%v", err)
+			logrus.Errorf("GetProtoCanRead err=%v", err)
 			return ErrNotAndProtoToRead
 		}
 		if protocol.Operation(proto.Op) == protocol.OpHeartbeatReply {
@@ -71,13 +71,13 @@ func dealReady(ch *channel.Channel, writer *bufio.Writer) error {
 				online = ch.Room.OnlineNum()
 			}
 			if err = proto.WriteTCPHeart(writer, online); err != nil {
-				glog.Errorf("WriteTCPHeart err=%v", err)
+				logrus.Errorf("WriteTCPHeart err=%v", err)
 				return ErrTCPWriteError
 			}
 		} else {
 			// write msg to client
 			if err = proto.WriteTCP(writer); err != nil {
-				glog.Errorf("WriteTCP err=%v", err)
+				logrus.Errorf("WriteTCP err=%v", err)
 				return ErrTCPWriteError
 			}
 		}

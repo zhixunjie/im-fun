@@ -3,7 +3,7 @@ package conf
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
-	mytime "github.com/zhixunjie/im-fun/pkg/time"
+	newtime "github.com/zhixunjie/im-fun/pkg/time"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )
@@ -36,6 +36,7 @@ type Config struct {
 	Kafka      []Kafka
 	Redis      []Redis
 	MySQL      []MySQL
+	Node       *Node
 }
 
 type Discovery struct {
@@ -46,8 +47,8 @@ type Discovery struct {
 type HTTPServer struct {
 	Network      string
 	Addr         string
-	ReadTimeout  mytime.Duration
-	WriteTimeout mytime.Duration
+	ReadTimeout  newtime.Duration
+	WriteTimeout newtime.Duration
 }
 
 type RPC struct {
@@ -57,18 +58,30 @@ type RPC struct {
 
 // RPCClient is RPC client config.
 type RPCClient struct {
-	Dial    mytime.Duration
-	Timeout mytime.Duration
+	Dial    newtime.Duration
+	Timeout newtime.Duration
 }
 
 // RPCServer is RPC server config.
 type RPCServer struct {
 	Network           string
 	Addr              string
-	Timeout           mytime.Duration
-	IdleTimeout       mytime.Duration
-	MaxLifeTime       mytime.Duration
-	ForceCloseWait    mytime.Duration
-	KeepAliveInterval mytime.Duration
-	KeepAliveTimeout  mytime.Duration
+	Timeout           newtime.Duration
+	IdleTimeout       newtime.Duration
+	MaxLifeTime       newtime.Duration
+	ForceCloseWait    newtime.Duration
+	KeepAliveInterval newtime.Duration
+	KeepAliveTimeout  newtime.Duration
+}
+
+// Node node config.
+type Node struct {
+	DefaultDomain string
+	HostDomain    string
+	TCPPort       int
+	WSPort        int
+	WSSPort       int
+	HeartbeatMax  int
+	Heartbeat     newtime.Duration
+	RegionWeight  float64
 }

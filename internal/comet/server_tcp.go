@@ -3,7 +3,7 @@ package comet
 import (
 	"context"
 	"encoding/json"
-	"github.com/golang/glog"
+	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
@@ -25,14 +25,14 @@ func InitTCP(server *Server, addrs []string, accept int) (err error) {
 	)
 	for _, bind = range addrs {
 		if addr, err = net.ResolveTCPAddr("tcp", bind); err != nil {
-			glog.Errorf("TCP ResolveTCPAddr(bind) err=%v", bind, err)
+			logrus.Errorf("TCP ResolveTCPAddr(bind) err=%v", bind, err)
 			return
 		}
 		if listener, err = net.ListenTCP("tcp", addr); err != nil {
-			glog.Errorf("TCP ListenTCP(bind) err=%v", bind, err)
+			logrus.Errorf("TCP ListenTCP(bind) err=%v", bind, err)
 			return
 		}
-		glog.Infof("TCP服务器启动成功，正在监听：%s", bind)
+		logrus.Infof("TCP服务器启动成功，正在监听：%s", bind)
 		// 启动N个协程，每个协程开启后进行accept（需要使用REUSE解决惊群问题）
 		for i := 0; i < accept; i++ {
 			// TODO 使用协程池进行管理
@@ -50,19 +50,19 @@ func acceptTCP(server *Server, listener *net.TCPListener) {
 	for {
 		if conn, err = listener.AcceptTCP(); err != nil {
 			// if listener close then return
-			glog.Errorf("listener.Accept(%s) error=%v", listener.Addr().String(), err)
+			logrus.Errorf("listener.Accept(%s) error=%v", listener.Addr().String(), err)
 			return
 		}
 		if err = conn.SetKeepAlive(server.conf.Connect.TCP.KeepAlive); err != nil {
-			glog.Errorf("conn.SetKeepAlive() error=%v", err)
+			logrus.Errorf("conn.SetKeepAlive() error=%v", err)
 			return
 		}
 		if err = conn.SetReadBuffer(server.conf.Connect.TCP.Rcvbuf); err != nil {
-			glog.Errorf("conn.SetReadBuffer() error=%v", err)
+			logrus.Errorf("conn.SetReadBuffer() error=%v", err)
 			return
 		}
 		if err = conn.SetWriteBuffer(server.conf.Connect.TCP.Sndbuf); err != nil {
-			glog.Errorf("conn.SetWriteBuffer() error=%v", err)
+			logrus.Errorf("conn.SetWriteBuffer() error=%v", err)
 			return
 		}
 		go serveTCPInit(server, conn, r)
@@ -83,7 +83,7 @@ func serveTCPInit(s *Server, conn *net.TCPConn, r int) {
 		rAddr = conn.RemoteAddr().String()
 	)
 	if conf.Conf.Debug {
-		glog.Infof("connect success,lAddr=%v,rAddr=%v", lAddr, rAddr)
+		logrus.Infof("connect success,lAddr=%v,rAddr=%v", lAddr, rAddr)
 	}
 	s.serveTCP(conn, rp, wp, tr)
 }
@@ -112,12 +112,12 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool
 	// TODO 暂时把timer关闭，感觉有点问题
 	//trd = timerPool.Add(time.Duration(s.conf.Protocol.HandshakeTimeout), func() {
 	//	conn.Close()
-	//	glog.Errorf("handshake timeout UserInfo=%+v,addr=%v,step=%v",
+	//	logrus.Errorf("handshake timeout UserInfo=%+v,addr=%v,step=%v",
 	//		ch.UserInfo, conn.RemoteAddr().String(), step)
 	//})
 	trd = timerPool.Add(100000*time.Second, func() {
 		conn.Close()
-		glog.Errorf("handshake timeout UserInfo=%+v,addr=%v,step=%v",
+		logrus.Errorf("handshake timeout UserInfo=%+v,addr=%v,step=%v",
 			ch.UserInfo, conn.RemoteAddr().String(), step)
 	})
 
@@ -133,14 +133,14 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool
 		proto, err = ch.ProtoAllocator.GetProtoCanWrite()
 		if err != nil {
 			release()
-			glog.Errorf("UserInfo=%v authTCP err=%v", ch.UserInfo, err)
+			logrus.Errorf("UserInfo=%v authTCP err=%v", ch.UserInfo, err)
 			return
 		}
 		// auth（check token）
 		hb, err = s.authTCP(ctx, ch, proto)
 		if err != nil {
 			release()
-			glog.Errorf("UserInfo=%v authTCP err=%v,hb=%v", ch.UserInfo, err, hb)
+			logrus.Errorf("UserInfo=%v authTCP err=%v,hb=%v", ch.UserInfo, err, hb)
 			return
 		}
 		// set bucket
@@ -148,7 +148,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool
 		err = bucket.Put(ch)
 		if err != nil {
 			release()
-			glog.Errorf("UserInfo=%v authTCP err=%v", ch.UserInfo, err)
+			logrus.Errorf("UserInfo=%v authTCP err=%v", ch.UserInfo, err)
 			return
 		}
 	}
@@ -190,7 +190,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool
 		ch.SendReady()
 	}
 	if err != nil && err != io.EOF && !strings.Contains(err.Error(), "closed") {
-		glog.Errorf("UserInfo=%v sth has happened", ch.UserInfo, err)
+		logrus.Errorf("UserInfo=%v sth has happened", ch.UserInfo, err)
 	}
 	// 回收相关资源
 	{
@@ -200,7 +200,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool
 		conn.Close()
 		ch.Close()
 		if err = s.Disconnect(ctx, ch); err != nil {
-			glog.Errorf("Disconnect UserInfo=%+v,err=%v", ch.UserInfo, err)
+			logrus.Errorf("Disconnect UserInfo=%+v,err=%v", ch.UserInfo, err)
 		}
 	}
 }
@@ -217,7 +217,7 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 		if protocol.Operation(proto.Op) == protocol.OpAuth {
 			break
 		} else {
-			glog.Errorf("tcp request operation(%d) not auth", proto.Op)
+			logrus.Errorf("tcp request operation(%d) not auth", proto.Op)
 		}
 	}
 
@@ -229,7 +229,7 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 		Token    string `json:"token"`
 	}
 	if err = json.Unmarshal(proto.Body, &params); err != nil {
-		glog.Errorf("Unmarshal body=%v,err=%v", proto.Body, err)
+		logrus.Errorf("Unmarshal body=%v,err=%v", proto.Body, err)
 		return
 	}
 
@@ -239,7 +239,7 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 	ch.UserInfo.RoomId = params.RoomId
 	ch.UserInfo.Platform = params.Platform
 	if hb, err = s.Connect(ctx, ch, params.Token); err != nil {
-		glog.Errorf("Connect UserInfo=%v, err=%v", ch.UserInfo, err)
+		logrus.Errorf("Connect UserInfo=%v, err=%v", ch.UserInfo, err)
 		return
 	}
 
@@ -247,7 +247,7 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 	proto.Op = int32(protocol.OpAuthReply)
 	proto.Body = nil
 	if err = proto.WriteTCP(writer); err != nil {
-		glog.Errorf("WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)
+		logrus.Errorf("WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)
 		return
 	}
 	err = writer.Flush()

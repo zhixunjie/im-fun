@@ -49,20 +49,24 @@ var _ pb.LogicServer = &server{}
 
 // Connect connect a conn.
 func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (*pb.ConnectReply, error) {
-	//mid, key, room, accepts, hb, err := s.svc.Connect(ctx, req.Server, req.Cookie, req.Token)
-	//if err != nil {
-	//	return &pb.ConnectReply{}, err
-	//}
-	return &pb.ConnectReply{}, nil
+	hb, err := s.svc.Connect(ctx, req)
+	if err != nil {
+		return &pb.ConnectReply{}, err
+	}
+	return &pb.ConnectReply{
+		Heartbeat: hb,
+	}, nil
 }
 
 // Disconnect disconnect a conn.
 func (s *server) Disconnect(ctx context.Context, req *pb.DisconnectReq) (*pb.DisconnectReply, error) {
-	//has, err := s.svc.Disconnect(ctx, req.Mid, req.Key, req.Server)
-	//if err != nil {
-	//	return &pb.DisconnectReply{}, err
-	//}
-	return &pb.DisconnectReply{}, nil
+	has, err := s.svc.Disconnect(ctx, req)
+	if err != nil {
+		return &pb.DisconnectReply{}, err
+	}
+	return &pb.DisconnectReply{
+		Has: has,
+	}, nil
 }
 
 // Heartbeat beartbeat a conn.

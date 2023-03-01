@@ -2,10 +2,10 @@ package comet
 
 import (
 	"context"
+	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"time"
 
-	"github.com/golang/glog"
 	"github.com/zhixunjie/im-fun/api/logic"
 	"github.com/zhixunjie/im-fun/api/protocol"
 )
@@ -64,7 +64,7 @@ func (s *Server) Operate(ctx context.Context, p *protocol.Proto, ch *channel.Cha
 	switch protocol.Operation(p.Op) {
 	case protocol.OpChangeRoom:
 		if err := b.ChangeRoom(string(p.Body), ch); err != nil {
-			glog.Errorf("b.ChangeRoom(%s) error(%v)", p.Body, err)
+			logrus.Errorf("b.ChangeRoom(%s) error(%v)", p.Body, err)
 		}
 		p.Op = int32(protocol.OpChangeRoomReply)
 	case protocol.OpSub:
@@ -74,7 +74,7 @@ func (s *Server) Operate(ctx context.Context, p *protocol.Proto, ch *channel.Cha
 	default:
 		// TBD
 		if err := s.Receive(ctx, ch, p); err != nil {
-			glog.Errorf("UserInfo=%+v,op=%v,err=%v", ch.UserInfo, p.Op, err)
+			logrus.Errorf("UserInfo=%+v,op=%v,err=%v", ch.UserInfo, p.Op, err)
 		}
 		p.Body = nil
 	}

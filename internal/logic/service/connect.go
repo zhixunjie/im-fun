@@ -2,44 +2,43 @@ package service
 
 import (
 	"context"
-	"github.com/golang/glog"
-	"github.com/google/uuid"
-	"github.com/zhixunjie/im-fun/api/logic"
+	"errors"
+	"github.com/sirupsen/logrus"
+	pb "github.com/zhixunjie/im-fun/api/logic"
 	"github.com/zhixunjie/im-fun/api/protocol"
 )
 
-type param struct {
-	Mid      int64   `json:"mid"`
-	Key      string  `json:"key"`
-	RoomID   string  `json:"room_id"`
-	Platform string  `json:"platform"`
-	Accepts  []int32 `json:"accepts"`
-}
-
 // Connect connected a conn.
-func (svc *Service) Connect(ctx context.Context, proto *logic.ConnectReq) (mid int64, key, roomID string, accepts []int32, hb int64, err error) {
-	var params param
-	mid = params.Mid
-	roomID = params.RoomID
-	accepts = params.Accepts
-	//hb = int64(l.ctx.Node.Heartbeat) * int64(svc.conf.Node.HeartbeatMax)
-	if key = params.Key; key == "" {
-		key = uuid.New().String()
+func (svc *Service) Connect(ctx context.Context, proto *pb.ConnectReq) (hb int64, err error) {
+	if proto.UserId == 0 {
+		logrus.Errorf("UserId not allow,token=%+v", proto.GetToken())
+		return hb, errors.New("UserId not allow")
 	}
-	//if err = svc.dao.AddMapping(ctx, mid, key, server); err != nil {
-	//	glog.Errorf("l.dao.AddMapping(%d,%s,%s) error(%v)", mid, key, server, err)
-	//}
-	//glog.Infof("conn connected key:%s server:%s mid:%d token:%s", key, server, mid, token)
+	if proto.UserKey == "" {
+		logrus.Errorf("UserId not allow,token=%+v", proto.GetToken())
+		return hb, errors.New("UserId not allow")
+	}
+	if proto.Token == "" {
+		logrus.Errorf("UserId not allow,token=%+v", proto.GetToken())
+		return hb, errors.New("UserId not allow")
+	}
+
+	// set return
+	hb = int64(svc.conf.Node.Heartbeat) * int64(svc.conf.Node.HeartbeatMax)
+	if err = svc.dao.AddMapping(ctx, proto.UserId, proto.UserKey, proto.ServerId); err != nil {
+		logrus.Errorf("AddMapping error=%v,UserId=%v,UserKey=%v", err, proto.UserId, proto.UserKey)
+	}
+	logrus.Infof("Connect success error=%v,UserId=%v,UserKey=%v", err, proto.UserId, proto.UserKey)
 	return
 }
 
 // Disconnect disconnect a conn.
-func (svc *Service) Disconnect(c context.Context, mid int64, key, server string) (has bool, err error) {
-	//if has, err = svc.dao.DelMapping(c, mid, key, server); err != nil {
-	//	glog.Errorf("l.dao.DelMapping(%d,%s) error(%v)", mid, key, server)
-	//	return
-	//}
-	glog.Infof("conn disconnected key:%s server:%s mid:%d", key, server, mid)
+func (svc *Service) Disconnect(c context.Context, proto *pb.DisconnectReq) (has bool, err error) {
+	if has, err = svc.dao.DelMapping(c, proto.UserId, proto.UserKey, proto.ServerId); err != nil {
+		logrus.Errorf("DelMapping error=%v,UserId=%v,UserKey=%v", err, proto.UserId, proto.UserKey)
+		return
+	}
+	logrus.Infof("Disconnect success error=%v,UserId=%v,UserKey=%v", err, proto.UserId, proto.UserKey)
 	return
 }
 
@@ -47,16 +46,16 @@ func (svc *Service) Disconnect(c context.Context, mid int64, key, server string)
 func (svc *Service) Heartbeat(c context.Context, mid int64, key, server string) (err error) {
 	//has, err := svc.dao.ExpireMapping(c, mid, key)
 	//if err != nil {
-	//	glog.Errorf("l.dao.ExpireMapping(%d,%s,%s) error(%v)", mid, key, server, err)
+	//	logrus.Errorf("l.dao.ExpireMapping(%d,%s,%s) error(%v)", mid, key, server, err)
 	//	return
 	//}
 	//if !has {
 	//	if err = svc.dao.AddMapping(c, mid, key, server); err != nil {
-	//		glog.Errorf("l.dao.AddMapping(%d,%s,%s) error(%v)", mid, key, server, err)
+	//		logrus.Errorf("l.dao.AddMapping(%d,%s,%s) error(%v)", mid, key, server, err)
 	//		return
 	//	}
 	//}
-	glog.Infof("conn heartbeat key:%s server:%s mid:%d", key, server, mid)
+	logrus.Infof("conn heartbeat key:%s server:%s mid:%d", key, server, mid)
 	return
 }
 
@@ -75,6 +74,6 @@ func (svc *Service) RenewOnline(c context.Context, server string, roomCount map[
 
 // Receive receive a message.
 func (svc *Service) Receive(c context.Context, mid int64, proto *protocol.Proto) (err error) {
-	glog.Infof("receive mid:%d message:%+v", mid, proto)
+	logrus.Infof("receive mid:%d message:%+v", mid, proto)
 	return
 }
