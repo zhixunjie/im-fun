@@ -15,11 +15,15 @@ var (
 	ErrTCPWriteError     = errors.New("write err")
 )
 
-func (s *Server) dispatchTCP(conn *net.TCPConn, writer *bufio.Writer, writerPool *buffer.Pool, writeBuf *buffer.Buffer, ch *channel.Channel) {
+// dispatchTCP deal any proto send to signal channel（Just like a state machine）
+// possibility：SendReady（client message） or service job
+func (s *Server) dispatchTCP(conn *net.TCPConn, writerPool *buffer.Pool, writeBuf *buffer.Buffer, ch *channel.Channel) {
 	var err error
 	var finish bool
+	writer := ch.Writer
 
 	for {
+		// waiting any message from signal channel（if not, it will block here）
 		var waiting = ch.Waiting()
 		switch waiting {
 		case protocol.ProtoFinish:
@@ -31,6 +35,7 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, writer *bufio.Writer, writerPool
 				goto failed
 			}
 		default:
+			// write msg to client
 			if err = waiting.WriteTCP(writer); err != nil {
 				goto failed
 			}
@@ -41,7 +46,7 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, writer *bufio.Writer, writerPool
 	}
 failed:
 	if err != nil {
-		glog.Errorf("key=%s, err=%v", ch.UserInfo.UserKey, err)
+		glog.Errorf("UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}
 	conn.Close()
 	writerPool.Put(writeBuf)
@@ -59,17 +64,20 @@ func dealReady(ch *channel.Channel, writer *bufio.Writer) error {
 		proto, err = ch.ProtoAllocator.GetProtoCanRead()
 		if err != nil {
 			glog.Errorf("GetProtoCanRead err=%v", err)
-			break
+			return ErrNotAndProtoToRead
 		}
 		if protocol.Operation(proto.Op) == protocol.OpHeartbeatReply {
 			if ch.Room != nil {
 				online = ch.Room.OnlineNum()
 			}
 			if err = proto.WriteTCPHeart(writer, online); err != nil {
+				glog.Errorf("WriteTCPHeart err=%v", err)
 				return ErrTCPWriteError
 			}
 		} else {
+			// write msg to client
 			if err = proto.WriteTCP(writer); err != nil {
+				glog.Errorf("WriteTCP err=%v", err)
 				return ErrTCPWriteError
 			}
 		}

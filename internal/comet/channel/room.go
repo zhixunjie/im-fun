@@ -9,7 +9,7 @@ import (
 // Room is a room and store channel room info.
 type Room struct {
 	Id        string
-	rLock     sync.RWMutex
+	rwLock    sync.RWMutex
 	next      *Channel // linklist: ch1 -> ch2 -> ch3 （every connection has a channel）
 	Online    int32    // dirty read is ok
 	AllOnline int32
@@ -25,7 +25,7 @@ func NewRoom(id string) (r *Room) {
 // PutChannel 把Channel放到房间中
 // insert to the head of the linklist
 func (r *Room) PutChannel(ch *Channel) (err error) {
-	r.rLock.Lock()
+	r.rwLock.Lock()
 	if r.next != nil {
 		r.next.Prev = ch
 	}
@@ -33,13 +33,13 @@ func (r *Room) PutChannel(ch *Channel) (err error) {
 	ch.Prev = nil
 	r.next = ch
 	r.Online++
-	r.rLock.Unlock()
+	r.rwLock.Unlock()
 	return
 }
 
 // DelChannel 从房间删除对象的Channel
 func (r *Room) DelChannel(ch *Channel) {
-	r.rLock.Lock()
+	r.rwLock.Lock()
 	if ch.Next != nil { // if not tail in the linklist
 		ch.Next.Prev = ch.Prev
 	}
@@ -51,26 +51,26 @@ func (r *Room) DelChannel(ch *Channel) {
 	ch.Next = nil
 	ch.Prev = nil
 	r.Online--
-	r.rLock.Unlock()
+	r.rwLock.Unlock()
 }
 
 // PushToAllChan 把proto推送到房间中的所有Channel
 func (r *Room) PushToAllChan(proto *protocol.Proto) {
-	r.rLock.RLock()
+	r.rwLock.RLock()
 	// if chan full，discard it
 	for ch := r.next; ch != nil; ch = ch.Next {
 		_ = ch.Push(proto)
 	}
-	r.rLock.RUnlock()
+	r.rwLock.RUnlock()
 }
 
 func (r *Room) Close() {
-	r.rLock.RLock()
+	r.rwLock.RLock()
 	// close channel one by one in the room
 	for ch := r.next; ch != nil; ch = ch.Next {
 		ch.Close()
 	}
-	r.rLock.RUnlock()
+	r.rwLock.RUnlock()
 }
 
 // OnlineNum 房间的在线人数

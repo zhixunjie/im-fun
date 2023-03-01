@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/golang/glog"
 	"github.com/google/uuid"
+	"github.com/zhixunjie/im-fun/api/logic"
 	"github.com/zhixunjie/im-fun/api/protocol"
 )
 
@@ -17,20 +17,16 @@ type param struct {
 }
 
 // Connect connected a conn.
-func (svc *Service) Connect(c context.Context, server, cookie string, token []byte) (mid int64, key, roomID string, accepts []int32, hb int64, err error) {
+func (svc *Service) Connect(ctx context.Context, proto *logic.ConnectReq) (mid int64, key, roomID string, accepts []int32, hb int64, err error) {
 	var params param
-	if err = json.Unmarshal(token, &params); err != nil {
-		glog.Errorf("json.Unmarshal(%s) error(%v)", token, err)
-		return
-	}
 	mid = params.Mid
 	roomID = params.RoomID
 	accepts = params.Accepts
-	//hb = int64(l.c.Node.Heartbeat) * int64(svc.conf.Node.HeartbeatMax)
+	//hb = int64(l.ctx.Node.Heartbeat) * int64(svc.conf.Node.HeartbeatMax)
 	if key = params.Key; key == "" {
 		key = uuid.New().String()
 	}
-	//if err = svc.dao.AddMapping(c, mid, key, server); err != nil {
+	//if err = svc.dao.AddMapping(ctx, mid, key, server); err != nil {
 	//	glog.Errorf("l.dao.AddMapping(%d,%s,%s) error(%v)", mid, key, server, err)
 	//}
 	//glog.Infof("conn connected key:%s server:%s mid:%d token:%s", key, server, mid, token)

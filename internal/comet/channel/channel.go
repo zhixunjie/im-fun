@@ -32,5 +32,6 @@ func NewChannel(conf *conf.Config) *Channel {
 	ch.signal = make(chan *protocol.Proto, conf.Protocol.ServerProtoNum)
 	ch.Reader = new(bufio.Reader)
 	ch.Writer = new(bufio.Writer)
+	ch.UserInfo = new(UserInfo)
 	return ch
 }

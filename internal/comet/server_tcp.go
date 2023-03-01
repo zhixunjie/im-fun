@@ -2,6 +2,7 @@ package comet
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/golang/glog"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
@@ -91,72 +92,94 @@ func serveTCPInit(s *Server, conn *net.TCPConn, r int) {
 func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool, timerPool *mytime.Timer) {
 	var (
 		err    error
-		roomId string
-		hb     time.Duration
 		proto  *protocol.Proto
 		bucket *Bucket
-		trd    *mytime.TimerData
-		lastHb = time.Now()
-		rb     = readerPool.Get()
-		wb     = writerPool.Get()
-
-		ch = channel.NewChannel(s.conf)
-		rr = ch.Reader
-		wr = ch.Writer
+		//lastHb = time.Now()
 	)
+	var hb time.Duration
+	var trd *mytime.TimerData
+	var rb = readerPool.Get()
+	var wb = writerPool.Get()
+	var ch = channel.NewChannel(s.conf)
 	ch.Reader.ResetBuffer(conn, rb.Bytes())
 	ch.Writer.ResetBuffer(conn, wb.Bytes())
+	ch.UserInfo.IP, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	// handshake
-	trd = timerPool.Add(time.Duration(s.conf.Protocol.HandshakeTimeout), func() {
-		conn.Close()
-		glog.Errorf("key: %s remoteIP: %s step: %d tcp handshake timeout", ch.UserInfo.UserKey, conn.RemoteAddr().String(), step)
-	})
-	ch.UserInfo.IP, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
 
-	if proto, err = ch.ProtoAllocator.GetProtoCanWrite(); err == nil {
-		ch.UserInfo.UserKey, roomId, hb, err = s.authTCP(ctx, rr, wr, proto)
-		if err == nil {
-			bucket = s.AllocBucket(ch.UserInfo.UserKey)
-			err = bucket.Put(roomId, ch)
+	// set timer
+	var step = 0
+	// TODO 暂时把timer关闭，感觉有点问题
+	//trd = timerPool.Add(time.Duration(s.conf.Protocol.HandshakeTimeout), func() {
+	//	conn.Close()
+	//	glog.Errorf("handshake timeout UserInfo=%+v,addr=%v,step=%v",
+	//		ch.UserInfo, conn.RemoteAddr().String(), step)
+	//})
+	trd = timerPool.Add(100000*time.Second, func() {
+		conn.Close()
+		glog.Errorf("handshake timeout UserInfo=%+v,addr=%v,step=%v",
+			ch.UserInfo, conn.RemoteAddr().String(), step)
+	})
+
+	step = 1
+	{
+		release := func() {
+			conn.Close()
+			readerPool.Put(rb)
+			writerPool.Put(wb)
+			timerPool.Del(trd)
+		}
+		// get a proto to write
+		proto, err = ch.ProtoAllocator.GetProtoCanWrite()
+		if err != nil {
+			release()
+			glog.Errorf("UserInfo=%v authTCP err=%v", ch.UserInfo, err)
+			return
+		}
+		// auth（check token）
+		hb, err = s.authTCP(ctx, ch, proto)
+		if err != nil {
+			release()
+			glog.Errorf("UserInfo=%v authTCP err=%v,hb=%v", ch.UserInfo, err, hb)
+			return
+		}
+		// set bucket
+		bucket = s.AllocBucket(ch.UserInfo.UserKey)
+		err = bucket.Put(ch)
+		if err != nil {
+			release()
+			glog.Errorf("UserInfo=%v authTCP err=%v", ch.UserInfo, err)
+			return
 		}
 	}
+	step = 2
+	// set new timer
+	//trd.Key = ch.UserInfo.UserKey
+	//timerPool.Set(trd, hb)
 
-	if err != nil {
-		conn.Close()
-		readerPool.Put(rb)
-		writerPool.Put(wb)
-		timerPool.Del(trd)
-		glog.Errorf("key: %s handshake failed error(%v)", ch.UserInfo.UserKey, err)
-		return
-	}
-	trd.Key = ch.UserInfo.UserKey
-	timerPool.Set(trd, hb)
+	// dispatch
+	go s.dispatchTCP(conn, writerPool, wb, ch)
 
-	go s.dispatchTCP(conn, wr, writerPool, wb, ch)
-	hbTime := s.RandHeartbeatTime()
+	// loop to read client msg
+	//hbTime := s.RandHeartbeatTime()
 	for {
 		if proto, err = ch.ProtoAllocator.GetProtoCanWrite(); err != nil {
 			break
 		}
-		if err = proto.ReadTCP(rr); err != nil {
+		// read msg from client（if there is no msg，it will block here）
+		if err = proto.ReadTCP(ch.Reader); err != nil {
 			break
 		}
 
 		if protocol.Operation(proto.Op) == protocol.OpHeartbeat {
-			timerPool.Set(trd, hb)
+			//timerPool.Set(trd, hb)
 			proto.Op = int32(protocol.OpHeartbeatReply)
 			proto.Body = nil
-			// NOTE: send server heartbeat for a long time
-			if now := time.Now(); now.Sub(lastHb) > hbTime {
-				if err1 := s.Heartbeat(ctx, ch.UserInfo); err1 == nil {
-					lastHb = now
-				}
-			}
-			if conf.Conf.Debug {
-				glog.Infof("tcp heartbeat receive key:%s, mid:%d", ch.UserInfo.UserKey, ch.Mid)
-			}
+			//if now := time.Now(); now.Sub(lastHb) > hbTime {
+			//	if err1 := s.Heartbeat(ctx, ch.UserInfo); err1 == nil {
+			//		lastHb = now
+			//	}
+			//}
 		} else {
 			if err = s.Operate(ctx, proto, ch, bucket); err != nil {
 				break
@@ -164,24 +187,28 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool
 		}
 
 		ch.ProtoAllocator.AdvWritePointer()
-		ch.Ready()
+		ch.SendReady()
 	}
 	if err != nil && err != io.EOF && !strings.Contains(err.Error(), "closed") {
-		glog.Errorf("key: %s server tcp failed error(%v)", ch.UserInfo.UserKey, err)
+		glog.Errorf("UserInfo=%v sth has happened", ch.UserInfo, err)
 	}
-	bucket.DelChannel(ch)
-	timerPool.Del(trd)
-	readerPool.Put(rb)
-	conn.Close()
-	ch.Close()
-	if err = s.Disconnect(ctx, ch.Mid, ch.UserInfo.UserKey); err != nil {
-		glog.Errorf("key: %s mid: %d operator do disconnect error(%v)", ch.UserInfo.UserKey, ch.Mid, err)
+	// 回收相关资源
+	{
+		bucket.DelChannel(ch)
+		timerPool.Del(trd)
+		readerPool.Put(rb) // writePool will release buffer in Server.dispatchTCP()
+		conn.Close()
+		ch.Close()
+		if err = s.Disconnect(ctx, ch); err != nil {
+			glog.Errorf("Disconnect UserInfo=%+v,err=%v", ch.UserInfo, err)
+		}
 	}
 }
 
-func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protocol.Proto) (UserKey, rid string, hb time.Duration, err error) {
+func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protocol.Proto) (hb time.Duration, err error) {
 	reader := ch.Reader
 	writer := ch.Writer
+
 	// 一直读取，直到读取到的Proto的操作类型为protocol.OpAuth
 	for {
 		if err = proto.ReadTCP(reader); err != nil {
@@ -193,14 +220,34 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 			glog.Errorf("tcp request operation(%d) not auth", proto.Op)
 		}
 	}
-	if UserKey, rid, hb, err = s.Connect(ctx, proto); err != nil {
-		glog.Errorf("Connect UserKey=%v, err=%v", UserKey, err)
+
+	var params struct {
+		UserId   int64  `json:"user_id"`
+		UserKey  string `json:"user_key"`
+		RoomId   string `json:"room_id"`
+		Platform string `json:"platform"`
+		Token    string `json:"token"`
+	}
+	if err = json.Unmarshal(proto.Body, &params); err != nil {
+		glog.Errorf("Unmarshal body=%v,err=%v", proto.Body, err)
 		return
 	}
+
+	// update channel
+	ch.UserInfo.UserId = params.UserId
+	ch.UserInfo.UserKey = params.UserKey
+	ch.UserInfo.RoomId = params.RoomId
+	ch.UserInfo.Platform = params.Platform
+	if hb, err = s.Connect(ctx, ch, params.Token); err != nil {
+		glog.Errorf("Connect UserInfo=%v, err=%v", ch.UserInfo, err)
+		return
+	}
+
+	// reply to client
 	proto.Op = int32(protocol.OpAuthReply)
 	proto.Body = nil
 	if err = proto.WriteTCP(writer); err != nil {
-		glog.Errorf("WriteTCP UserKey=%v, err=%v", UserKey, err)
+		glog.Errorf("WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)
 		return
 	}
 	err = writer.Flush()

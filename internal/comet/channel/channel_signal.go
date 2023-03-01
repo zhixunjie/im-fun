@@ -18,7 +18,7 @@ func (c *Channel) Push(p *protocol.Proto) (err error) {
 	return
 }
 
-func (c *Channel) Ready() {
+func (c *Channel) SendReady() {
 	c.signal <- protocol.ProtoReady
 }
 

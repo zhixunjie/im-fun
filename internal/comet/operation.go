@@ -10,30 +10,30 @@ import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 )
 
-// Connect connected a connection.
-func (s *Server) Connect(c context.Context, p *protocol.Proto, cookie string) (mid int64, key, rid string, accepts []int32, heartbeat time.Duration, err error) {
-	reply, err := s.rpcClient.Connect(c, &logic.ConnectReq{
-		Server: s.serverID,
-		Cookie: cookie,
-		Token:  p.Body,
+func (s *Server) Connect(ctx context.Context, ch *channel.Channel, token string) (heartbeat time.Duration, err error) {
+	reply, err := s.rpcClient.Connect(ctx, &logic.ConnectReq{
+		ServerId: s.serverId,
+		UserId:   ch.UserInfo.UserId,
+		UserKey:  ch.UserInfo.UserKey,
+		RoomId:   ch.UserInfo.RoomId,
+		Platform: ch.UserInfo.Platform,
+		Token:    token,
 	})
 	if err != nil {
 		return
 	}
-	return reply.Mid, reply.Key, reply.RoomID, reply.Accepts, time.Duration(reply.Heartbeat), nil
+	return time.Duration(reply.Heartbeat), nil
 }
 
-// Disconnect disconnected a connection.
-func (s *Server) Disconnect(c context.Context, mid int64, key string) (err error) {
-	_, err = s.rpcClient.Disconnect(context.Background(), &logic.DisconnectReq{
-		Server: s.serverID,
-		Mid:    mid,
-		Key:    key,
+func (s *Server) Disconnect(ctx context.Context, ch *channel.Channel) (err error) {
+	_, err = s.rpcClient.Disconnect(ctx, &logic.DisconnectReq{
+		ServerId: s.serverId,
+		UserId:   ch.UserInfo.UserId,
+		UserKey:  ch.UserInfo.UserKey,
 	})
 	return
 }
 
-// Heartbeat heartbeat a connection session.
 func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err error) {
 	_, err = s.rpcClient.Heartbeat(ctx, &logic.HeartbeatReq{
 		UserId:  userInfo.UserId,
@@ -55,13 +55,12 @@ func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err
 //}
 
 // Receive receive a message.
-func (s *Server) Receive(ctx context.Context, mid int64, p *protocol.Proto) (err error) {
-	_, err = s.rpcClient.Receive(ctx, &logic.ReceiveReq{Mid: mid, Proto: p})
+func (s *Server) Receive(ctx context.Context, ch *channel.Channel, p *protocol.Proto) (err error) {
+	_, err = s.rpcClient.Receive(ctx, &logic.ReceiveReq{UserId: ch.UserInfo.UserId, Proto: p})
 	return
 }
 
-// Operate operate.
-func (s *Server) Operate(ctx context.Context, p *protocol.Proto, ch *Channel, b *Bucket) error {
+func (s *Server) Operate(ctx context.Context, p *protocol.Proto, ch *channel.Channel, b *Bucket) error {
 	switch protocol.Operation(p.Op) {
 	case protocol.OpChangeRoom:
 		if err := b.ChangeRoom(string(p.Body), ch); err != nil {
@@ -73,11 +72,11 @@ func (s *Server) Operate(ctx context.Context, p *protocol.Proto, ch *Channel, b 
 	case protocol.OpUnsub:
 		// TBD
 	default:
-		// TODO
-		//if err := s.Receive(ctx, ch.Mid, p); err != nil {
-		//	glog.Errorf("s.Report(%d) op:%d error(%v)", ch.Mid, p.Op, err)
-		//}
-		//p.Body = nil
+		// TBD
+		if err := s.Receive(ctx, ch, p); err != nil {
+			glog.Errorf("UserInfo=%+v,op=%v,err=%v", ch.UserInfo, p.Op, err)
+		}
+		p.Body = nil
 	}
 	return nil
 }

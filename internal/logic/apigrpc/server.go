@@ -75,7 +75,7 @@ func (s *server) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (*pb.Heart
 
 // RenewOnline renew server online.
 func (s *server) RenewOnline(ctx context.Context, req *pb.OnlineReq) (*pb.OnlineReply, error) {
-	allRoomCount, err := s.svc.RenewOnline(ctx, req.Server, req.RoomCount)
+	allRoomCount, err := s.svc.RenewOnline(ctx, req.ServerId, req.RoomCount)
 	if err != nil {
 		return &pb.OnlineReply{}, err
 	}

@@ -98,16 +98,18 @@ func (b *Bucket) ChangeRoom(newRoomId string, ch *channel.Channel) (err error) {
 	return
 }
 
-func (b *Bucket) Put(roomId string, ch *channel.Channel) (err error) {
+func (b *Bucket) Put(ch *channel.Channel) (err error) {
 	var room *channel.Room
 	var ok bool
 	userInfo := ch.UserInfo
+	roomId := userInfo.RoomId
 
 	b.rwLock.Lock()
 	// close old channel
-	if tmpCh := b.chs[userInfo.UserKey]; tmpCh != nil {
-		tmpCh.Close()
+	if oldCh := b.chs[userInfo.UserKey]; oldCh != nil {
+		oldCh.Close()
 	}
+	// set new channel
 	b.chs[userInfo.UserKey] = ch
 	if roomId != "" {
 		if room, ok = b.rooms[roomId]; !ok {

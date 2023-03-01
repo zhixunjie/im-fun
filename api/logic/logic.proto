@@ -23,18 +23,21 @@ message PushMsg {
 
 message ConnectReq {
   string serverId = 1;
-  bytes token = 2;
+  int64 userId = 2;
+  string userKey = 3;
+  string roomId = 4;
+  string token = 5;
+  string platform = 6;
 }
 
 message ConnectReply {
-  int64 userId = 1;
-  string userKey = 2;
-  string roomId = 3;
+  int64 heartbeat = 1;
 }
 
 message DisconnectReq {
-  int64 userId = 1;
-  string userKey = 2;
+  string serverId = 1;
+  int64 userId = 2;
+  string userKey = 3;
 }
 
 message DisconnectReply {
@@ -42,8 +45,9 @@ message DisconnectReply {
 }
 
 message HeartbeatReq {
-  int64 userId = 1;
-  string userKey = 2;
+  string serverId = 1;
+  int64 userId = 2;
+  string userKey = 3;
 }
 
 message HeartbeatReply {
