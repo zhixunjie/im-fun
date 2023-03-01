@@ -34,6 +34,7 @@ func InitConfig() (err error) {
 func defaultConfig() *Config {
 	val := &Config{
 		Debug: false,
+		Env:   DefaultEnv(),
 		Discovery: &Discovery{
 			Addr: "127.0.0.1:7171",
 		},
@@ -61,6 +62,7 @@ func defaultConfig() *Config {
 // Config is comet config.
 type Config struct {
 	Debug     bool
+	Env       *Env
 	Discovery *Discovery
 	Connect   *Connect
 	RPC       *RPC
@@ -71,6 +73,18 @@ type Config struct {
 type Discovery struct {
 	Addr string
 }
+
+// Env is env config.
+type Env struct {
+	Region    string // 地域
+	Zone      string // 可用区
+	DeployEnv string // 部署环境
+	Host      string // 主机
+	Weight    int64  // 权重（负载均衡权重）
+	Offline   bool
+	Addrs     []string
+}
+
 type Connect struct {
 	TCP           *TCP
 	Websocket     *Websocket

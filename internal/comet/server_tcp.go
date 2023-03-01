@@ -7,7 +7,6 @@ import (
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/buffer"
-	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
 	mytime "github.com/zhixunjie/im-fun/pkg/time"
 	"io"
 	"math"
@@ -50,29 +49,29 @@ func acceptTCP(server *Server, listener *net.TCPListener) {
 	for {
 		if conn, err = listener.AcceptTCP(); err != nil {
 			// if listener close then return
-			glog.Errorf("listener.Accept(\"%s\") error=%v", listener.Addr().String(), err)
+			glog.Errorf("listener.Accept(%s) error=%v", listener.Addr().String(), err)
 			return
 		}
-		if err = conn.SetKeepAlive(server.c.TCP.KeepAlive); err != nil {
+		if err = conn.SetKeepAlive(server.conf.Connect.TCP.KeepAlive); err != nil {
 			glog.Errorf("conn.SetKeepAlive() error=%v", err)
 			return
 		}
-		if err = conn.SetReadBuffer(server.c.TCP.Rcvbuf); err != nil {
+		if err = conn.SetReadBuffer(server.conf.Connect.TCP.Rcvbuf); err != nil {
 			glog.Errorf("conn.SetReadBuffer() error=%v", err)
 			return
 		}
-		if err = conn.SetWriteBuffer(server.c.TCP.Sndbuf); err != nil {
+		if err = conn.SetWriteBuffer(server.conf.Connect.TCP.Sndbuf); err != nil {
 			glog.Errorf("conn.SetWriteBuffer() error=%v", err)
 			return
 		}
-		go serveTCP(server, conn, r)
+		go serveTCPInit(server, conn, r)
 		if r++; r == math.MaxInt {
 			r = 0
 		}
 	}
 }
 
-func serveTCP(s *Server, conn *net.TCPConn, r int) {
+func serveTCPInit(s *Server, conn *net.TCPConn, r int) {
 	var (
 		// timer
 		tr = s.round.TimerPool(r)
@@ -85,22 +84,21 @@ func serveTCP(s *Server, conn *net.TCPConn, r int) {
 	if conf.Conf.Debug {
 		glog.Infof("connect success,lAddr=%v,rAddr=%v", lAddr, rAddr)
 	}
-	s.realServe(conn, rp, wp, tr)
+	s.serveTCP(conn, rp, wp, tr)
 }
 
-// realServe serve a tcp connection.
-func (s *Server) realServe(conn *net.TCPConn, rp, wp *buffer.Pool, tr *mytime.Timer) {
+// serveTCP serve a tcp connection.
+func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool, timerPool *mytime.Timer) {
 	var (
 		err    error
 		roomId string
 		hb     time.Duration
-		white  bool
 		proto  *protocol.Proto
 		bucket *Bucket
 		trd    *mytime.TimerData
 		lastHb = time.Now()
-		rb     = rp.Get()
-		wb     = wp.Get()
+		rb     = readerPool.Get()
+		wb     = writerPool.Get()
 
 		ch = channel.NewChannel(s.conf)
 		rr = ch.Reader
@@ -111,7 +109,7 @@ func (s *Server) realServe(conn *net.TCPConn, rp, wp *buffer.Pool, tr *mytime.Ti
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	// handshake
-	trd = tr.Add(time.Duration(s.c.Protocol.HandshakeTimeout), func() {
+	trd = timerPool.Add(time.Duration(s.conf.Protocol.HandshakeTimeout), func() {
 		conn.Close()
 		glog.Errorf("key: %s remoteIP: %s step: %d tcp handshake timeout", ch.UserInfo.UserKey, conn.RemoteAddr().String(), step)
 	})
@@ -127,16 +125,16 @@ func (s *Server) realServe(conn *net.TCPConn, rp, wp *buffer.Pool, tr *mytime.Ti
 
 	if err != nil {
 		conn.Close()
-		rp.Put(rb)
-		wp.Put(wb)
-		tr.Del(trd)
+		readerPool.Put(rb)
+		writerPool.Put(wb)
+		timerPool.Del(trd)
 		glog.Errorf("key: %s handshake failed error(%v)", ch.UserInfo.UserKey, err)
 		return
 	}
 	trd.Key = ch.UserInfo.UserKey
-	tr.Set(trd, hb)
+	timerPool.Set(trd, hb)
 
-	go s.dispatchTCP(conn, wr, wp, wb, ch)
+	go s.dispatchTCP(conn, wr, writerPool, wb, ch)
 	hbTime := s.RandHeartbeatTime()
 	for {
 		if proto, err = ch.ProtoAllocator.GetProtoCanWrite(); err != nil {
@@ -147,7 +145,7 @@ func (s *Server) realServe(conn *net.TCPConn, rp, wp *buffer.Pool, tr *mytime.Ti
 		}
 
 		if protocol.Operation(proto.Op) == protocol.OpHeartbeat {
-			tr.Set(trd, hb)
+			timerPool.Set(trd, hb)
 			proto.Op = int32(protocol.OpHeartbeatReply)
 			proto.Body = nil
 			// NOTE: send server heartbeat for a long time
@@ -172,8 +170,8 @@ func (s *Server) realServe(conn *net.TCPConn, rp, wp *buffer.Pool, tr *mytime.Ti
 		glog.Errorf("key: %s server tcp failed error(%v)", ch.UserInfo.UserKey, err)
 	}
 	bucket.DelChannel(ch)
-	tr.Del(trd)
-	rp.Put(rb)
+	timerPool.Del(trd)
+	readerPool.Put(rb)
 	conn.Close()
 	ch.Close()
 	if err = s.Disconnect(ctx, ch.Mid, ch.UserInfo.UserKey); err != nil {
@@ -181,17 +179,21 @@ func (s *Server) realServe(conn *net.TCPConn, rp, wp *buffer.Pool, tr *mytime.Ti
 	}
 }
 
-func (s *Server) authTCP(ctx context.Context, reader *bufio.Reader, writer *bufio.Writer, proto *protocol.Proto) (UserKey, rid string, hb time.Duration, err error) {
+func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protocol.Proto) (UserKey, rid string, hb time.Duration, err error) {
+	reader := ch.Reader
+	writer := ch.Writer
+	// 一直读取，直到读取到的Proto的操作类型为protocol.OpAuth
 	for {
 		if err = proto.ReadTCP(reader); err != nil {
 			return
 		}
 		if protocol.Operation(proto.Op) == protocol.OpAuth {
 			break
+		} else {
+			glog.Errorf("tcp request operation(%d) not auth", proto.Op)
 		}
-		glog.Errorf("tcp request operation(%d) not auth", proto.Op)
 	}
-	if mid, UserKey, rid, accepts, hb, err = s.Connect(ctx, proto, ""); err != nil {
+	if UserKey, rid, hb, err = s.Connect(ctx, proto); err != nil {
 		glog.Errorf("Connect UserKey=%v, err=%v", UserKey, err)
 		return
 	}

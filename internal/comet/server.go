@@ -2,7 +2,10 @@ package comet
 
 import (
 	"github.com/zhenjl/cityhash"
+	"github.com/zhixunjie/im-fun/api/logic"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"math/rand"
 	"time"
 )
@@ -14,20 +17,22 @@ const (
 
 // Server 服务器（主体入口）
 type Server struct {
+	serverId    string       // 服务器ID（当消息需要发到多台机器，就需要这个ID了）
 	conf        *conf.Config // config
 	round       *Round       // round sth
 	buckets     []*Bucket    // bucket 数组
 	bucketTotal uint32       // bucket总数
 
-	//rpcClient logic.LogicClient
+	rpcClient logic.LogicClient
 }
 
 // NewServer returns a new Server.
 func NewServer(conf *conf.Config) *Server {
 	s := &Server{
-		conf:  conf,
-		round: NewRound(conf),
-		//rpcClient: newLogicClient(conf.RPCClient),
+		serverId:  conf.Env.Host,
+		conf:      conf,
+		round:     NewRound(conf),
+		rpcClient: newLogicClient(conf.RPC.Client),
 	}
 
 	// init bucket
@@ -70,23 +75,23 @@ const (
 	grpcBackoffMaxDelay       = time.Second * 3
 )
 
-//func newLogicClient(conf *conf.RPCClient) logic.LogicClient {
-//	conn, err := grpc.Dial("127.0.0.1:3119",
-//		[]grpc.DialOption{
-//			grpc.WithInsecure(),
-//			grpc.WithInitialWindowSize(grpcInitialWindowSize),
-//			grpc.WithInitialConnWindowSize(grpcInitialConnWindowSize),
-//			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(grpcMaxCallMsgSize)),
-//			grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(grpcMaxSendMsgSize)),
-//			grpc.WithBackoffMaxDelay(grpcBackoffMaxDelay),
-//			grpc.WithKeepaliveParams(keepalive.ClientParameters{
-//				Time:                grpcKeepAliveTime,
-//				Timeout:             grpcKeepAliveTimeout,
-//				PermitWithoutStream: true,
-//			}),
-//		}...)
-//	if err != nil {
-//		panic(err)
-//	}
-//	return logic.NewLogicClient(conn)
-//}
+func newLogicClient(conf *conf.RPCClient) logic.LogicClient {
+	conn, err := grpc.Dial("127.0.0.1:3119",
+		[]grpc.DialOption{
+			grpc.WithInsecure(),
+			grpc.WithInitialWindowSize(grpcInitialWindowSize),
+			grpc.WithInitialConnWindowSize(grpcInitialConnWindowSize),
+			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(grpcMaxCallMsgSize)),
+			grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(grpcMaxSendMsgSize)),
+			grpc.WithBackoffMaxDelay(grpcBackoffMaxDelay),
+			grpc.WithKeepaliveParams(keepalive.ClientParameters{
+				Time:                grpcKeepAliveTime,
+				Timeout:             grpcKeepAliveTimeout,
+				PermitWithoutStream: true,
+			}),
+		}...)
+	if err != nil {
+		panic(err)
+	}
+	return logic.NewLogicClient(conn)
+}

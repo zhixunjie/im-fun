@@ -3,8 +3,29 @@ package conf
 import (
 	"github.com/zhixunjie/im-fun/pkg/buffer"
 	newtime "github.com/zhixunjie/im-fun/pkg/time"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 )
+
+func DefaultEnv() *Env {
+	defHost, _ := os.Hostname()
+	defWeight, _ := strconv.ParseInt(os.Getenv("WEIGHT"), 10, 32)
+	defAddrs := os.Getenv("ADDRS")
+	defOffline, _ := strconv.ParseBool(os.Getenv("OFFLINE"))
+	//defDebug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
+
+	return &Env{
+		Region:    os.Getenv("REGION"),
+		Zone:      os.Getenv("ZONE"),
+		DeployEnv: os.Getenv("DEPLOY_ENV"),
+		Host:      defHost,
+		Weight:    defWeight,
+		Addrs:     strings.Split(defAddrs, ","),
+		Offline:   defOffline,
+	}
+}
 
 func DefaultRPC() *RPC {
 	return &RPC{
