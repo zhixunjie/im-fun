@@ -50,9 +50,6 @@ func (s *server) PushMsg(ctx context.Context, req *pb.PushMsgReq) (reply *pb.Pus
 	}
 	for _, key := range req.UserKeys {
 		bucket := s.srv.AllocBucket(key)
-		if bucket == nil {
-			continue
-		}
 		if channel := bucket.GetChannelByUserKey(key); channel != nil {
 			if err = channel.Push(req.Proto); err != nil {
 				return

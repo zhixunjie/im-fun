@@ -164,7 +164,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool
 		}
 
 		ch.ProtoAllocator.AdvWritePointer()
-		ch.Signal()
+		ch.Ready()
 	}
 	if err != nil && err != io.EOF && !strings.Contains(err.Error(), "closed") {
 		glog.Errorf("key: %s server tcp failed error(%v)", ch.UserInfo.UserKey, err)

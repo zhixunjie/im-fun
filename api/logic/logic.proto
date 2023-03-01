@@ -13,25 +13,23 @@ message PushMsg {
     BROADCAST = 2;
   }
   Type type = 1;
-  int32 operation = 2;
+  int32 subId = 2;
   int32 speed = 3;
-  string server = 4;
-  string room = 5;
+  string serverId = 4;
+  string roomId = 5;
   repeated string userKeys = 6;
   bytes msg = 7;
 }
 
 message ConnectReq {
-  string server = 1;
-  string cookie = 2;
-  bytes token = 3;
+  string serverId = 1;
+  bytes token = 2;
 }
 
 message ConnectReply {
   int64 userId = 1;
   string userKey = 2;
   string roomId = 3;
-  int64 heartbeat = 4;
 }
 
 message DisconnectReq {
@@ -52,7 +50,7 @@ message HeartbeatReply {
 }
 
 message OnlineReq {
-  string server = 1;
+  string serverId = 1;
   map<string, int32> roomCount = 2;
 }
 

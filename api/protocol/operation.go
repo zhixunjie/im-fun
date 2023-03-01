@@ -28,10 +28,10 @@ const (
 	// OpChangeRoom change room
 	OpChangeRoom
 	OpChangeRoomReply
-	// OpSub subscribe operation
+	// OpSub subscribe message
 	OpSub
 	OpSubReply
-	// OpUnsub unsubscribe operation
+	// OpUnsub unsubscribe message（）
 	OpUnsub
 	OpUnsubReply
 )
