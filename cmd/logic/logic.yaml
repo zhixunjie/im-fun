@@ -1,24 +1,24 @@
 ---
 debug: false
 discovery:
-  addr: 127.0.0.1:12379
+  addr: "127.0.0.1:12379"
 http:
   addr: ":8080"
 rpc:
   server:
     network: tcp
     addr: ":12670"
-    timeout: 1s
+    timeout: "1s"
   client:
-    dial: 1s
-    timeout: 1s
+    dial: "1s"
+    timeout: "1s"
 mysql:
-  - addr: 127.0.0.1:3306
-    userName: root
+  - addr: "127.0.0.1:3306"
+    userName: "root"
     password: ""
-    dbName: im
+    dbName: "im"
 redis:
-  - addr: 127.0.0.1:6379
+  - addr: "127.0.0.1:6379"
     active: 60000
     idle: 1024
     dialTimeout: "200ms"
@@ -27,6 +27,15 @@ redis:
     idleTimeout: "120s"
     expire: "30m"
 kafka:
-  - topic: im_push
+  - topic: "im_push"
     brokers:
-      - 127.0.0.1:9092
+      - "127.0.0.1:9092"
+node:
+  defaultDomain: "conn.imfun.io"
+  hostDomain: ".imfun.io"
+  heartbeat: "4m"
+  heartbeatMax: 2
+  tcpPort: 3101
+  wsPort: 3102
+  wssPort: 3103
+  regionWeight: 1.6
