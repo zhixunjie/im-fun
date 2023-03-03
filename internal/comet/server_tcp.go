@@ -119,10 +119,10 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool
 	step = 1
 	{
 		release := func() {
-			conn.Close()
 			readerPool.Put(rb)
 			writerPool.Put(wb)
 			timerPool.Del(trd)
+			_ = conn.Close()
 		}
 		// get a proto to write
 		proto, err = ch.ProtoAllocator.GetProtoCanWrite()
@@ -184,8 +184,8 @@ fail:
 	bucket.DelChannel(ch)
 	timerPool.Del(trd)
 	readerPool.Put(rb) // writePool's buffer will be released  in Server.dispatchTCP()
-	conn.Close()
 	ch.Close()
+	_ = conn.Close()
 	if err = s.Disconnect(ctx, ch); err != nil {
 		logrus.Errorf("Disconnect UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}

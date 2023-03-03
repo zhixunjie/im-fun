@@ -121,7 +121,7 @@ func (s *Server) serveWebSocket(conn *net.TCPConn, readerPool, writerPool *buffe
 		readerPool.Put(rb)
 		writerPool.Put(wb)
 		timerPool.Del(trd)
-		conn.Close()
+		_ = conn.Close()
 	}
 
 	// read request line && upgrade（websocket独有）
@@ -146,7 +146,7 @@ func (s *Server) serveWebSocket(conn *net.TCPConn, readerPool, writerPool *buffe
 			readerPool.Put(rb)
 			writerPool.Put(wb)
 			timerPool.Del(trd)
-			wsConn.Close()
+			_ = wsConn.Close()
 		}
 		// get a proto to write
 		proto, err = ch.ProtoAllocator.GetProtoCanWrite()
@@ -208,8 +208,8 @@ fail:
 	bucket.DelChannel(ch)
 	timerPool.Del(trd)
 	readerPool.Put(rb) // writePool's buffer will be released  in Server.dispatchTCP()
-	wsConn.Close()
 	ch.Close()
+	_ = wsConn.Close()
 	if err = s.Disconnect(ctx, ch); err != nil {
 		logrus.Errorf("Disconnect UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}
