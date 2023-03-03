@@ -19,23 +19,21 @@ var (
 // possibility：SendReady（client message） or service job
 func (s *Server) dispatchTCP(conn *net.TCPConn, writerPool *buffer.Pool, writeBuf *buffer.Buffer, ch *channel.Channel) {
 	var err error
-	var finish bool
+	//var finish bool
 	writer := ch.Writer
 
 	for {
 		// waiting any message from signal channel（if not, it will block here）
 		var waiting = ch.Waiting()
 		switch waiting {
-		case protocol.ProtoFinish:
-			finish = true
+		case protocol.ProtoFinish: // close channel
+			//finish = true
 			goto failed
-		case protocol.ProtoReady:
-			err = dealReady(ch, writer)
-			if errors.Is(err, ErrTCPWriteError) {
+		case protocol.ProtoReady: // read msg from client
+			if err = protoReady(ch, writer); errors.Is(err, ErrTCPWriteError) {
 				goto failed
 			}
-		default:
-			// write msg to client
+		default: // write msg to client
 			if err = waiting.WriteTCP(writer); err != nil {
 				goto failed
 			}
@@ -44,19 +42,19 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, writerPool *buffer.Pool, writeBu
 			break
 		}
 	}
-failed:
+failed: // TODO 子协程的结束，需要通知到主协程（否则主协程不会结束）
 	if err != nil {
 		logrus.Errorf("UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}
 	conn.Close()
 	writerPool.Put(writeBuf)
 	// must ensure all channel message discard, for reader won't be blocking Signal
-	for !finish {
-		finish = ch.Waiting() == protocol.ProtoFinish
-	}
+	//for !finish {
+	//	finish = ch.Waiting() == protocol.ProtoFinish
+	//}
 }
 
-func dealReady(ch *channel.Channel, writer *bufio.Writer) error {
+func protoReady(ch *channel.Channel, writer *bufio.Writer) error {
 	var err error
 	var online int32
 	var proto *protocol.Proto

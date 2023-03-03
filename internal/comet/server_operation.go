@@ -60,23 +60,32 @@ func (s *Server) Receive(ctx context.Context, ch *channel.Channel, p *protocol.P
 	return
 }
 
-func (s *Server) Operate(ctx context.Context, p *protocol.Proto, ch *channel.Channel, b *Bucket) error {
-	switch protocol.Operation(p.Op) {
-	case protocol.OpChangeRoom:
-		if err := b.ChangeRoom(string(p.Body), ch); err != nil {
-			logrus.Errorf("b.ChangeRoom(%s) error(%v)", p.Body, err)
+func (s *Server) Operate(ctx context.Context, proto *protocol.Proto, ch *channel.Channel, bucket *Bucket) error {
+	switch protocol.Operation(proto.Op) {
+	case protocol.OpHeartbeat: // 客户端-心跳上报
+		proto.Op = int32(protocol.OpHeartbeatReply)
+		proto.Body = nil
+		//timerPool.Set(trd, hb)
+		//if now := time.Now(); now.Sub(lastHb) > hbTime {
+		//	if err1 := s.Heartbeat(ctx, ch.UserInfo); err1 == nil {
+		//		lastHb = now
+		//	}
+		//}
+	case protocol.OpChangeRoom: // 客户端房间切换
+		if err := bucket.ChangeRoom(string(proto.Body), ch); err != nil {
+			logrus.Errorf("bucket.ChangeRoom(%s) error(%v)", proto.Body, err)
 		}
-		p.Op = int32(protocol.OpChangeRoomReply)
-	case protocol.OpSub:
+		proto.Op = int32(protocol.OpChangeRoomReply)
+	case protocol.OpSub: // 客户端-添加订阅消息
 		// TBD
-	case protocol.OpUnsub:
+	case protocol.OpUnsub: // 客户端-取消订阅消息
 		// TBD
-	default:
+	default: // 客户端-收到其他消息（直接转到logic进行处理）
 		// TBD
-		if err := s.Receive(ctx, ch, p); err != nil {
-			logrus.Errorf("UserInfo=%+v,op=%v,err=%v", ch.UserInfo, p.Op, err)
+		if err := s.Receive(ctx, ch, proto); err != nil {
+			logrus.Errorf("UserInfo=%+v,op=%v,err=%v", ch.UserInfo, proto.Op, err)
 		}
-		p.Body = nil
+		proto.Body = nil
 	}
 	return nil
 }

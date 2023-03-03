@@ -164,39 +164,32 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool
 	//hbTime := s.RandHeartbeatTime()
 	for {
 		if proto, err = ch.ProtoAllocator.GetProtoCanWrite(); err != nil {
-			break
+			goto fail
 		}
-		// read msg from client（if there is no msg，it will block here）
+		// read msg from client
+		// note：if there is no msg，it will block here
 		if err = proto.ReadTCP(ch.Reader); err != nil {
-			break
+			goto fail
 		}
 
-		if protocol.Operation(proto.Op) == protocol.OpHeartbeat {
-			//timerPool.Set(trd, hb)
-			proto.Op = int32(protocol.OpHeartbeatReply)
-			proto.Body = nil
-			//if now := time.Now(); now.Sub(lastHb) > hbTime {
-			//	if err1 := s.Heartbeat(ctx, ch.UserInfo); err1 == nil {
-			//		lastHb = now
-			//	}
-			//}
-		} else {
-			if err = s.Operate(ctx, proto, ch, bucket); err != nil {
-				break
-			}
+		// deal with the msg
+		if err = s.Operate(ctx, proto, ch, bucket); err != nil {
+			goto fail
 		}
 
+		// dispatch msg
 		ch.ProtoAllocator.AdvWritePointer()
 		ch.SendReady()
 	}
+fail:
 	if err != nil && err != io.EOF && !strings.Contains(err.Error(), "closed") {
-		logrus.Errorf("UserInfo=%v sth has happened", ch.UserInfo, err)
+		logrus.Errorf("UserInfo=%v sth has happened,err=%v", ch.UserInfo, err)
 	}
 	// 回收相关资源
 	{
 		bucket.DelChannel(ch)
 		timerPool.Del(trd)
-		readerPool.Put(rb) // writePool will release buffer in Server.dispatchTCP()
+		readerPool.Put(rb) // writePool's buffer will be released  in Server.dispatchTCP()
 		conn.Close()
 		ch.Close()
 		if err = s.Disconnect(ctx, ch); err != nil {
