@@ -6,37 +6,29 @@ import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/pkg/buffer"
-	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
-	"net"
+	"github.com/zhixunjie/im-fun/pkg/websocket"
 )
 
-var (
-	ErrNotAndProtoToRead = errors.New("not any proto to read")
-	ErrTCPWriteError     = errors.New("write err")
-)
-
-// dispatchTCP deal any proto send to signal channel（Just like a state machine）
+// dispatchWebSocket deal any proto send to signal channel（Just like a state machine）
 // 可能出现的消息：SendReady（client message） or service job
-func (s *Server) dispatchTCP(conn *net.TCPConn, writerPool *buffer.Pool, writeBuf *buffer.Buffer, ch *channel.Channel) {
+func (s *Server) dispatchWebSocket(wsConn *websocket.Conn, writerPool *buffer.Pool, writeBuf *buffer.Buffer, ch *channel.Channel) {
 	var err error
-	writer := ch.Writer
-
 	for {
-		// wait any message from signal channel（if not, it will block here）
+		// wait message from signal channel（if not, it will block here）
 		var proto = ch.Waiting()
 		switch proto {
 		case protocol.ProtoFinish: // close channel
 			goto fail
 		case protocol.ProtoReady: // read msg from client
-			if err = protoReady(ch, writer); errors.Is(err, ErrTCPWriteError) {
+			if err = protoReadyWebsocket(ch, wsConn); errors.Is(err, ErrTCPWriteError) {
 				goto fail
 			}
 		default: // write msg to client
-			if err = proto.WriteTCP(writer); err != nil {
+			if err = proto.WriteWs(wsConn); err != nil {
 				goto fail
 			}
 		}
-		if err = writer.Flush(); err != nil {
+		if err = wsConn.Flush(); err != nil {
 			break
 		}
 	}
@@ -44,11 +36,11 @@ fail: // TODO 子协程的结束，需要通知到主协程（否则主协程不
 	if err != nil {
 		logrus.Errorf("UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}
-	_ = conn.Close()
+	_ = wsConn.Close()
 	writerPool.Put(writeBuf)
 }
 
-func protoReady(ch *channel.Channel, writer *bufio.Writer) error {
+func protoReadyWebsocket(ch *channel.Channel, wsConn *websocket.Conn) error {
 	var err error
 	var online int32
 	var proto *protocol.Proto
@@ -64,12 +56,12 @@ func protoReady(ch *channel.Channel, writer *bufio.Writer) error {
 			if ch.Room != nil {
 				online = ch.Room.OnlineNum()
 			}
-			if err = proto.WriteTCPHeart(writer, online); err != nil {
+			if err = proto.WriteWsHeart(wsConn, online); err != nil {
 				logrus.Errorf("WriteTCPHeart err=%v", err)
 				return ErrTCPWriteError
 			}
 		} else { // write msg to client
-			if err = proto.WriteTCP(writer); err != nil {
+			if err = proto.WriteWs(wsConn); err != nil {
 				logrus.Errorf("WriteTCP err=%v", err)
 				return ErrTCPWriteError
 			}

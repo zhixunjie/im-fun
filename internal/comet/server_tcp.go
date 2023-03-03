@@ -6,9 +6,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
-	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/buffer"
-	mytime "github.com/zhixunjie/im-fun/pkg/time"
+	newtimer "github.com/zhixunjie/im-fun/pkg/time"
 	"io"
 	"math"
 	"net"
@@ -25,11 +24,11 @@ func InitTCP(server *Server, addrs []string, accept int) (err error) {
 	)
 	for _, bind = range addrs {
 		if addr, err = net.ResolveTCPAddr("tcp", bind); err != nil {
-			logrus.Errorf("TCP ResolveTCPAddr(bind) err=%v", bind, err)
+			logrus.Errorf("TCP ResolveTCPAddr(bind=%v) err=%v", bind, err)
 			return
 		}
 		if listener, err = net.ListenTCP("tcp", addr); err != nil {
-			logrus.Errorf("TCP ListenTCP(bind) err=%v", bind, err)
+			logrus.Errorf("TCP ListenTCP(bind=%v) err=%v", bind, err)
 			return
 		}
 		logrus.Infof("TCP服务器启动成功，正在监听：%s", bind)
@@ -82,14 +81,12 @@ func serveTCPInit(s *Server, conn *net.TCPConn, r int) {
 		lAddr = conn.LocalAddr().String()
 		rAddr = conn.RemoteAddr().String()
 	)
-	if conf.Conf.Debug {
-		logrus.Infof("connect success,lAddr=%v,rAddr=%v", lAddr, rAddr)
-	}
+	logrus.Infof("connect success,lAddr=%v,rAddr=%v", lAddr, rAddr)
 	s.serveTCP(conn, rp, wp, tr)
 }
 
 // serveTCP serve a tcp connection.
-func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool, timerPool *mytime.Timer) {
+func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool, timerPool *newtimer.Timer) {
 	var (
 		err    error
 		proto  *protocol.Proto
@@ -97,12 +94,15 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool
 		//lastHb = time.Now()
 	)
 	var hb time.Duration
-	var trd *mytime.TimerData
-	var rb = readerPool.Get()
-	var wb = writerPool.Get()
+	var trd *newtimer.TimerData
 	var ch = channel.NewChannel(s.conf)
+	// set reader
+	var rb = readerPool.Get()
 	ch.Reader.ResetBuffer(conn, rb.Bytes())
+	// set writer
+	var wb = writerPool.Get()
 	ch.Writer.ResetBuffer(conn, wb.Bytes())
+	// set user ip
 	ch.UserInfo.IP, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -112,14 +112,9 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool
 	// TODO 暂时把timer关闭，感觉有点问题
 	//trd = timerPool.Add(time.Duration(s.conf.Protocol.HandshakeTimeout), func() {
 	//	conn.Close()
-	//	logrus.Errorf("handshake timeout UserInfo=%+v,addr=%v,step=%v",
-	//		ch.UserInfo, conn.RemoteAddr().String(), step)
+	//	logrus.Errorf("TCP handshake timeout UserInfo=%+v,addr=%v,step=%v,hb=%v",
+	//		ch.UserInfo, conn.RemoteAddr().String(), step, hb)
 	//})
-	trd = timerPool.Add(100000*time.Second, func() {
-		conn.Close()
-		logrus.Errorf("handshake timeout UserInfo=%+v,addr=%v,step=%v",
-			ch.UserInfo, conn.RemoteAddr().String(), step)
-	})
 
 	step = 1
 	{
@@ -133,14 +128,14 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool
 		proto, err = ch.ProtoAllocator.GetProtoCanWrite()
 		if err != nil {
 			release()
-			logrus.Errorf("UserInfo=%v authTCP err=%v", ch.UserInfo, err)
+			logrus.Errorf("GetProtoCanWrite err=%v,UserInfo=%v,step=%v,hb=%v", err, ch.UserInfo, step, hb)
 			return
 		}
 		// auth（check token）
 		hb, err = s.authTCP(ctx, ch, proto)
 		if err != nil {
 			release()
-			logrus.Errorf("UserInfo=%v authTCP err=%v,hb=%v", ch.UserInfo, err, hb)
+			logrus.Errorf("authTCP err=%v,UserInfo=%v", err, ch.UserInfo)
 			return
 		}
 		// set bucket
@@ -148,7 +143,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *buffer.Pool
 		err = bucket.Put(ch)
 		if err != nil {
 			release()
-			logrus.Errorf("UserInfo=%v authTCP err=%v", ch.UserInfo, err)
+			logrus.Errorf("AllocBucket err=%v,UserInfo=%v", err, ch.UserInfo)
 			return
 		}
 	}
@@ -186,15 +181,13 @@ fail:
 		logrus.Errorf("UserInfo=%v sth has happened,err=%v", ch.UserInfo, err)
 	}
 	// 回收相关资源
-	{
-		bucket.DelChannel(ch)
-		timerPool.Del(trd)
-		readerPool.Put(rb) // writePool's buffer will be released  in Server.dispatchTCP()
-		conn.Close()
-		ch.Close()
-		if err = s.Disconnect(ctx, ch); err != nil {
-			logrus.Errorf("Disconnect UserInfo=%+v,err=%v", ch.UserInfo, err)
-		}
+	bucket.DelChannel(ch)
+	timerPool.Del(trd)
+	readerPool.Put(rb) // writePool's buffer will be released  in Server.dispatchTCP()
+	conn.Close()
+	ch.Close()
+	if err = s.Disconnect(ctx, ch); err != nil {
+		logrus.Errorf("Disconnect UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}
 }
 
