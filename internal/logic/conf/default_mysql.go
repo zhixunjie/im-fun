@@ -12,8 +12,8 @@ func DefaultMySQL() []MySQL {
 }
 
 type MySQL struct {
-	Addr     string
-	UserName string
-	Password string
-	DbName   string
+	Addr     string `yaml:"addr"`
+	UserName string `yaml:"userName"`
+	Password string `yaml:"password"`
+	DbName   string `yaml:"dbName"`
 }

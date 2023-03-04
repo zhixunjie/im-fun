@@ -30,59 +30,59 @@ func InitConfig() (err error) {
 }
 
 type Config struct {
-	Debug      bool
-	Discovery  *Discovery
-	RPC        *RPC
-	HTTPServer *HTTPServer
-	Kafka      []kafka.ProducerConf
-	Redis      []Redis
-	MySQL      []MySQL
-	Node       *Node
+	Debug      bool                 `yaml:"debug"`
+	Discovery  *Discovery           `yaml:"discovery"`
+	RPC        *RPC                 `yaml:"rpc"`
+	HTTPServer *HTTPServer          `yaml:"http"`
+	Kafka      []kafka.ProducerConf `yaml:"kafka"`
+	Redis      []Redis              `yaml:"redis"`
+	MySQL      []MySQL              `yaml:"mysql"`
+	Node       *Node                `yaml:"node"`
 }
 
 type Discovery struct {
-	Addr string
+	Addr string `yaml:"addr"`
 }
 
 // HTTPServer is http server config.
 type HTTPServer struct {
-	Network      string
-	Addr         string
-	ReadTimeout  newtime.Duration
-	WriteTimeout newtime.Duration
+	Network      string           `yaml:"network"`
+	Addr         string           `yaml:"addr"`
+	ReadTimeout  newtime.Duration `yaml:"readTimeout"`
+	WriteTimeout newtime.Duration `yaml:"writeTimeout"`
 }
 
 type RPC struct {
-	Server *RPCServer
-	Client *RPCClient
+	Server *RPCServer `yaml:"server"`
+	Client *RPCClient `yaml:"client"`
 }
 
 // RPCClient is RPC client config.
 type RPCClient struct {
-	Dial    newtime.Duration
-	Timeout newtime.Duration
+	Dial    newtime.Duration `yaml:"dial"`
+	Timeout newtime.Duration `yaml:"timeout"`
 }
 
 // RPCServer is RPC server config.
 type RPCServer struct {
-	Network           string
-	Addr              string
-	Timeout           newtime.Duration
-	IdleTimeout       newtime.Duration
-	MaxLifeTime       newtime.Duration
-	ForceCloseWait    newtime.Duration
-	KeepAliveInterval newtime.Duration
-	KeepAliveTimeout  newtime.Duration
+	Network           string           `yaml:"network"`
+	Addr              string           `yaml:"addr"`
+	Timeout           newtime.Duration `yaml:"timeout"`
+	IdleTimeout       newtime.Duration `yaml:"idleTimeout"`
+	MaxLifeTime       newtime.Duration `yaml:"maxLifeTime"`
+	ForceCloseWait    newtime.Duration `yaml:"forceCloseWait"`
+	KeepAliveInterval newtime.Duration `yaml:"keepAliveInterval"`
+	KeepAliveTimeout  newtime.Duration `yaml:"keepAliveTimeout"`
 }
 
 // Node node config.
 type Node struct {
-	DefaultDomain string
-	HostDomain    string
-	TCPPort       int
-	WSPort        int
-	WSSPort       int
-	HeartbeatMax  int
-	Heartbeat     newtime.Duration
-	RegionWeight  float64
+	DefaultDomain string           `yaml:"defaultDomain"`
+	HostDomain    string           `yaml:"hostDomain"`
+	TCPPort       int              `yaml:"tcpPort"`
+	WSPort        int              `yaml:"wsPort"`
+	WSSPort       int              `yaml:"wssPort"`
+	HeartbeatMax  int              `yaml:"heartbeatMax"`
+	Heartbeat     newtime.Duration `yaml:"heartbeat"`
+	RegionWeight  float64          `yaml:"regionWeight"`
 }

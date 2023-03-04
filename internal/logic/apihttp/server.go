@@ -1,6 +1,7 @@
 package apihttp
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/internal/logic/dao"
@@ -26,6 +27,7 @@ func New(conf *conf.Config, svc *service.Service) *Server {
 
 	// begin to listen
 	go func() {
+		fmt.Printf("HTTP服务启动成功，正在监听：%v\n", conf.HTTPServer.Addr)
 		if err := engine.Run(conf.HTTPServer.Addr); err != nil {
 			panic(err)
 		}

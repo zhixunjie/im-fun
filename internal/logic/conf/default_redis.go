@@ -14,14 +14,14 @@ func DefaultRedis() []Redis {
 
 // Redis .
 type Redis struct {
-	Network      string
-	Addr         string
-	Auth         string
-	Active       int
-	Idle         int
-	DialTimeout  newtime.Duration
-	ReadTimeout  newtime.Duration
-	WriteTimeout newtime.Duration
-	IdleTimeout  newtime.Duration
-	Expire       newtime.Duration
+	Network      string           `yaml:"network"`
+	Addr         string           `yaml:"addr"`
+	Auth         string           `yaml:"auth"`
+	Active       int              `yaml:"active"`
+	Idle         int              `yaml:"idle"`
+	DialTimeout  newtime.Duration `yaml:"dialTimeout"`
+	ReadTimeout  newtime.Duration `yaml:"readTimeout"`
+	WriteTimeout newtime.Duration `yaml:"writeTimeout"`
+	IdleTimeout  newtime.Duration `yaml:"idleTimeout"`
+	Expire       newtime.Duration `yaml:"expire"`
 }

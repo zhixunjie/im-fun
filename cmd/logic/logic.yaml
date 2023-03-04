@@ -6,7 +6,7 @@ http:
   addr: ":8080"
 rpc:
   server:
-    network: tcp
+    network: "tcp"
     addr: ":12670"
     timeout: "1s"
   client:
@@ -35,7 +35,7 @@ node:
   hostDomain: ".imfun.io"
   heartbeat: "4m"
   heartbeatMax: 2
-  tcpPort: 3101
-  wsPort: 3102
-  wssPort: 3103
+  tcpPort: 12571
+  wsPort: 12572
+  wssPort: 12573
   regionWeight: 1.6
