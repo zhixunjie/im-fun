@@ -2,6 +2,8 @@ package apigrpc
 
 import (
 	"context"
+	"errors"
+	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/logic/service"
 	"net"
 	"time"
@@ -47,8 +49,20 @@ type server struct {
 
 var _ pb.LogicServer = &server{}
 
-// Connect connect a conn.
 func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (*pb.ConnectReply, error) {
+	if req.UserId == 0 {
+		logrus.Errorf("UserId not allow,token=%+v", req.GetToken())
+		return &pb.ConnectReply{}, errors.New("req.UserId not allow")
+	}
+	if req.UserKey == "" {
+		logrus.Errorf("UserKey not allow,token=%+v", req.GetToken())
+		return &pb.ConnectReply{}, errors.New("req.UserKey not allow")
+	}
+	if req.Token == "" {
+		logrus.Errorf("Token not allow,token=%+v", req.GetToken())
+		return &pb.ConnectReply{}, errors.New("req.Token not allow")
+	}
+
 	hb, err := s.svc.Connect(ctx, req)
 	if err != nil {
 		return &pb.ConnectReply{}, err
@@ -58,7 +72,6 @@ func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (*pb.ConnectRe
 	}, nil
 }
 
-// Disconnect disconnect a conn.
 func (s *server) Disconnect(ctx context.Context, req *pb.DisconnectReq) (*pb.DisconnectReply, error) {
 	has, err := s.svc.Disconnect(ctx, req)
 	if err != nil {
@@ -69,7 +82,6 @@ func (s *server) Disconnect(ctx context.Context, req *pb.DisconnectReq) (*pb.Dis
 	}, nil
 }
 
-// Heartbeat beartbeat a conn.
 func (s *server) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (*pb.HeartbeatReply, error) {
 	//if err := s.svc.Heartbeat(ctx, req.Mid, req.Key, req.Server); err != nil {
 	//	return &pb.HeartbeatReply{}, err
@@ -77,7 +89,6 @@ func (s *server) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (*pb.Heart
 	return &pb.HeartbeatReply{}, nil
 }
 
-// RenewOnline renew server online.
 func (s *server) RenewOnline(ctx context.Context, req *pb.OnlineReq) (*pb.OnlineReply, error) {
 	allRoomCount, err := s.svc.RenewOnline(ctx, req.ServerId, req.RoomCount)
 	if err != nil {
@@ -86,7 +97,6 @@ func (s *server) RenewOnline(ctx context.Context, req *pb.OnlineReq) (*pb.Online
 	return &pb.OnlineReply{AllRoomCount: allRoomCount}, nil
 }
 
-// Receive receive a message.
 func (s *server) Receive(ctx context.Context, req *pb.ReceiveReq) (*pb.ReceiveReply, error) {
 	//if err := s.svc.Receive(ctx, req.Mid, req.Proto); err != nil {
 	//	return &pb.ReceiveReply{}, err
@@ -94,7 +104,6 @@ func (s *server) Receive(ctx context.Context, req *pb.ReceiveReq) (*pb.ReceiveRe
 	return &pb.ReceiveReply{}, nil
 }
 
-// nodes return nodes.
 func (s *server) Nodes(ctx context.Context, req *pb.NodesReq) (*pb.NodesReply, error) {
 	//return s.svc.NodesWeighted(ctx, req.Platform, req.ClientIP), nil
 	return &pb.NodesReply{}, nil

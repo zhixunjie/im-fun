@@ -6,10 +6,16 @@ func (s *Server) SetupRouter() {
 	// 设置-单个路由
 	router.GET("/ping", s.pingHandler)
 
-	// 设置-路由组
+	// message
 	g1 := router.Group("/message")
 	{
 		g1.POST("/send", s.sendHandler)
 		g1.GET("/fetch", s.fetchHandler)
 	}
+
+	// push
+	router.POST("/push/user/keys", s.pushUserKeys) // 发送给指定的用户key
+	router.POST("/push/user/ids", s.pushUserIds)   // 发送给指定的用户id
+	router.POST("/push/user/room", s.pushUserRoom) // 广播给房间的所有用户
+	router.POST("/push/user/all", s.pushUserAll)   // 广播给所有用户
 }

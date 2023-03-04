@@ -8,7 +8,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/model/request"
 	"github.com/zhixunjie/im-fun/internal/logic/model/response"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
-	utils2 "github.com/zhixunjie/im-fun/pkg/utils"
+	"github.com/zhixunjie/im-fun/pkg/utils"
 	"time"
 )
 
@@ -57,7 +57,7 @@ func transformMessage(ctx context.Context, req *request.SendMsgReq, currTimestam
 	var defaultRet model.Message
 
 	// get msg_id
-	smallerId, largeId := utils2.GetSortNum(req.SendId, req.ReceiveId)
+	smallerId, largeId := utils.GetSortNum(req.SendId, req.ReceiveId)
 	msgId, err := gen_id.GenerateMsgId(ctx, largeId, currTimestamp)
 	if err != nil {
 		return defaultRet, err

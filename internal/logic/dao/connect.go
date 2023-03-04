@@ -11,7 +11,7 @@ const (
 	KeyExpire = 3600
 )
 
-// Hash：userId -> userKey => server
+// Hash：userId -> userKey => serverId
 func keyHashUserId(userId int64) string {
 	return fmt.Sprintf("mid_%d", userId)
 }
@@ -26,8 +26,8 @@ func keyServerOnline(key string) string {
 	return fmt.Sprintf("ol_%s", key)
 }
 
-// AddMapping add a mapping.
-func (d *Dao) AddMapping(ctx context.Context, userId int64, userKey, serverId string) (err error) {
+// SessionBinding add relationship
+func (d *Dao) SessionBinding(ctx context.Context, userId int64, userKey, serverId string) (err error) {
 	mem := d.RedisClient
 
 	// set hash
@@ -53,7 +53,7 @@ func (d *Dao) AddMapping(ctx context.Context, userId int64, userKey, serverId st
 	return
 }
 
-func (d *Dao) DelMapping(ctx context.Context, userId int64, userKey, serverId string) (has bool, err error) {
+func (d *Dao) SessionDel(ctx context.Context, userId int64, userKey, serverId string) (has bool, err error) {
 	mem := d.RedisClient
 
 	// delete hash

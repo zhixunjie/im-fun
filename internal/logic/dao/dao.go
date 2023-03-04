@@ -3,10 +3,10 @@ package dao
 import (
 	"context"
 	"fmt"
-	"github.com/Shopify/sarama"
 	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
+	"github.com/zhixunjie/im-fun/pkg/kafka"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"runtime"
@@ -17,7 +17,7 @@ type Dao struct {
 	conf          *conf.Config
 	RedisClient   *redis.Client
 	MySQLClient   *gorm.DB
-	KafkaProducer sarama.SyncProducer
+	KafkaProducer kafka.SyncProducer
 	redisExpire   int32
 }
 
@@ -25,7 +25,7 @@ func New(c *conf.Config) *Dao {
 	redisConf := c.Redis[0]
 	mysqlConf := c.MySQL[0]
 
-	kafkaProducer, err := newKafkaProducer(&c.Kafka[0])
+	kafkaProducer, err := kafka.NewSyncProducer(&c.Kafka[0])
 	if err != nil {
 		panic(err)
 	}

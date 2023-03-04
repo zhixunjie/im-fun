@@ -5,6 +5,7 @@ type PingResp struct {
 	Pong string `json:"pong"`
 }
 
+// SendMsgResp 发送消息-响应
 type SendMsgResp struct {
 	Base
 	Data SendMsgRespData `json:"data"`

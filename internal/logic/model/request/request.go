@@ -4,6 +4,7 @@ type PingReq struct {
 	Id int `json:"id"`
 }
 
+// SendMsgReq 发送消息-请求
 type SendMsgReq struct {
 	SendId        uint64   `json:"send_id"`
 	SendType      int32    `json:"send_type"`

@@ -1,6 +1,7 @@
 package apihttp
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/zhixunjie/im-fun/internal/logic/model/request"
 	"github.com/zhixunjie/im-fun/internal/logic/model/response"
@@ -11,12 +12,12 @@ func (s *Server) sendHandler(ctx *gin.Context) {
 	// request
 	var req request.SendMsgReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + err.Error()})
+		response.JsonError(ctx, err)
 		return
 	}
 
 	if req.SendId == 0 || req.ReceiveId == 0 {
-		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + "id not allow"})
+		response.JsonError(ctx, errors.New("id not allow"))
 		return
 	}
 
@@ -35,7 +36,7 @@ func (s *Server) fetchHandler(ctx *gin.Context) {
 	// request
 	var req request.PingReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + err.Error()})
+		response.JsonError(ctx, err)
 		return
 	}
 

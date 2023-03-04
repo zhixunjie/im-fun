@@ -1,4 +1,4 @@
-package model
+package utils
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 )
 
 // EncodeRoomKey encode a room key.
-func EncodeRoomKey(typ string, room string) string {
-	return fmt.Sprintf("%s://%s", typ, room)
+func EncodeRoomKey(roomType string, roomId string) string {
+	return fmt.Sprintf("%s://%s", roomType, roomId)
 }
 
 // DecodeRoomKey decode room key.
