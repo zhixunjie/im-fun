@@ -45,10 +45,10 @@ var (
 	MySQLClient *gorm.DB
 )
 
-func InitDao() {
-	RedisClient = CreateRedisClient("127.0.0.1:6379", "")
-	MySQLClient = CreateMySqlClient("127.0.0.1:3306", "root", "", "im")
-}
+//func InitDao() {
+//	RedisClient = CreateRedisClient("127.0.0.1:6379", "")
+//	MySQLClient = CreateMySqlClient("127.0.0.1:3306", "root", "", "im")
+//}
 
 func CreateMySqlClient(addr string, userName string, password string, database string) *gorm.DB {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=true", userName, password, addr, database)
