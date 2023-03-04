@@ -2,7 +2,7 @@ package buffer
 
 // Writer writer.
 type Writer struct {
-	n   int
+	n   int // n means buffer has been written
 	buf []byte
 }
 

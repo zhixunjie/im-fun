@@ -15,7 +15,7 @@ var (
 type Ring struct {
 	// read
 	rp   uint64
-	num  uint64
+	max  uint64
 	mask uint64
 
 	// write
@@ -23,18 +23,18 @@ type Ring struct {
 	data []protocol.Proto
 }
 
-func (r *Ring) Init(num uint64) {
-	// num must be a number of 2^n
-	if num&(num-1) != 0 {
-		for num&(num-1) != 0 {
-			num &= num - 1
+func (r *Ring) Init(max uint64) {
+	// max must be a number of 2^n
+	if max&(max-1) != 0 {
+		for max&(max-1) != 0 {
+			max &= max - 1
 		}
-		num <<= 1
+		max <<= 1
 	}
 	// make proto error
-	r.data = make([]protocol.Proto, num)
-	r.num = num
-	r.mask = r.num - 1
+	r.data = make([]protocol.Proto, max)
+	r.max = max
+	r.mask = r.max - 1
 }
 
 // GetProtoCanRead 获取一个Proto（用于读取的Proto）
@@ -42,17 +42,17 @@ func (r *Ring) GetProtoCanRead() (proto *protocol.Proto, err error) {
 	if r.rp == r.wp {
 		return nil, ErrRingEmpty
 	}
-	proto = &r.data[r.rp&r.mask]
+	proto = &r.data[r.rp&r.mask] // r.rp % r.mask
 	return
 }
 
 // GetProtoCanWrite 获取一个Proto（用于写入的Proto）
 func (r *Ring) GetProtoCanWrite() (proto *protocol.Proto, err error) {
 	// 超出一定范围就不能再写入了，前端的消息就发不过来了。
-	if r.wp-r.rp >= r.num {
+	if r.wp-r.rp >= r.max {
 		return nil, ErrRingFull
 	}
-	proto = &r.data[r.wp&r.mask]
+	proto = &r.data[r.wp&r.mask] // r.wp % r.mask
 	return
 }
 
