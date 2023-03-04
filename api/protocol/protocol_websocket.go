@@ -43,7 +43,8 @@ func (proto *Proto) WriteWs(conn *websocket.Conn) (err error) {
 	// websocket payload
 	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
 	// proto header
-	err = conn.WritePayload(codeProtoHeader(proto, buf))
+	buf = codeProtoHeader(proto, buf)
+	err = conn.WritePayload(buf)
 	if err != nil {
 		return err
 	}

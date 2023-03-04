@@ -52,6 +52,7 @@ type ProtoPack struct {
 	BodyLen   int // 请求体的长度
 }
 
+// header编码：把proto的内容写入到buf
 func codeProtoHeader(proto *Proto, buf []byte) []byte {
 	packLen := _rawHeaderSize + int32(len(proto.Body))
 	binary.BigEndian.PutInt32(buf[_packOffset:], packLen)
@@ -63,6 +64,7 @@ func codeProtoHeader(proto *Proto, buf []byte) []byte {
 	return buf
 }
 
+// header解码：把buf的内容解码到proto
 func unCodeProtoHeader(proto *Proto, buf []byte) (ProtoPack, error) {
 	var header ProtoPack
 	if len(buf) < _rawHeaderSize {

@@ -3,6 +3,7 @@ package conf
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"github.com/zhixunjie/im-fun/pkg/kafka"
 	newtime "github.com/zhixunjie/im-fun/pkg/time"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -33,7 +34,7 @@ type Config struct {
 	Discovery  *Discovery
 	RPC        *RPC
 	HTTPServer *HTTPServer
-	Kafka      []Kafka
+	Kafka      []kafka.ProducerConf
 	Redis      []Redis
 	MySQL      []MySQL
 	Node       *Node

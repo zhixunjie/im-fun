@@ -1,6 +1,7 @@
 package comet
 
 import (
+	"context"
 	"github.com/zhenjl/cityhash"
 	"github.com/zhixunjie/im-fun/api/logic"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
@@ -76,7 +77,9 @@ const (
 )
 
 func newLogicClient(conf *conf.RPCClient) logic.LogicClient {
-	conn, err := grpc.Dial("127.0.0.1:3119",
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	conn, err := grpc.DialContext(ctx, "127.0.0.1:3119",
 		[]grpc.DialOption{
 			grpc.WithInsecure(),
 			grpc.WithInitialWindowSize(grpcInitialWindowSize),

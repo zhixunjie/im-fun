@@ -1,23 +1,11 @@
 package protocol
 
 import (
-	"github.com/zhixunjie/im-fun/pkg/buffer"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
 	"github.com/zhixunjie/im-fun/pkg/encoding/binary"
 )
 
 // 针对TCP连接的消息发送和接收
-
-// WriteTo write a proto to bytes writer.
-func (proto *Proto) WriteTo(writer *buffer.Writer) {
-	// proto header
-	buf := writer.Peek(_rawHeaderSize)
-	buf = codeProtoHeader(proto, buf)
-	// proto body
-	if proto.Body != nil {
-		writer.Write(proto.Body)
-	}
-}
 
 // ReadTCP read a proto from TCP reader.
 func (proto *Proto) ReadTCP(reader *bufio.Reader) (err error) {
@@ -53,7 +41,8 @@ func (proto *Proto) WriteTCP(writer *bufio.Writer) (err error) {
 	}
 	// proto header
 	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
-	_, err = writer.Write(codeProtoHeader(proto, buf))
+	buf = codeProtoHeader(proto, buf)
+	_, err = writer.Write(buf)
 	if err != nil {
 		return err
 	}
@@ -68,7 +57,7 @@ func (proto *Proto) WriteTCP(writer *bufio.Writer) (err error) {
 }
 
 // WriteTCPHeart write TCP heartbeat with room online.
-func (proto *Proto) WriteTCPHeart(wr *bufio.Writer, online int32) (err error) {
+func (proto *Proto) WriteTCPHeart(writer *bufio.Writer, online int32) (err error) {
 	// proto header
 	packLen := _rawHeaderSize + _heartSize
 	buf := make([]byte, packLen) // TODO try to reduce GC
@@ -76,7 +65,7 @@ func (proto *Proto) WriteTCPHeart(wr *bufio.Writer, online int32) (err error) {
 
 	// proto body
 	binary.BigEndian.PutInt32(buf[_heartOffset:], online)
-	_, err = wr.Write(buf)
+	_, err = writer.Write(buf)
 	if err != nil {
 		return err
 	}
