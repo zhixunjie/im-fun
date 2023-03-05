@@ -6,4 +6,4 @@ kafka:
   - topic: "im_push"
     brokers:
       - "127.0.0.1:9092"
-    group: "im_push_group"
+    groupId: "im_push_group"

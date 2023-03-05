@@ -35,7 +35,7 @@ func (proto *Proto) ReadTCP(reader *bufio.Reader) (err error) {
 // WriteTCP write a proto to TCP writer.
 func (proto *Proto) WriteTCP(writer *bufio.Writer) (err error) {
 	// raw message（no header，send between service，only service job will send this kind of msg by now）
-	if proto.Op == int32(OpRaw) {
+	if proto.Op == int32(OpBatchMsg) {
 		_, err = writer.Write(proto.Body)
 		return
 	}

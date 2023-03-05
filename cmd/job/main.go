@@ -13,7 +13,7 @@ func main() {
 	if err := conf.InitConfig(); err != nil {
 		panic(err)
 	}
-	_ = job.New(conf.Conf)
+	job := job.New(conf.Conf)
 
 	// signal
 	c := make(chan os.Signal, 1)
@@ -23,6 +23,7 @@ func main() {
 		logrus.Infof("get a signal %s", s.String())
 		switch s {
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
+			job.Close()
 			return
 		case syscall.SIGHUP:
 		default:

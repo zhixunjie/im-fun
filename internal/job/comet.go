@@ -6,35 +6,33 @@ import (
 	"github.com/zhixunjie/im-fun/internal/job/conf"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
-	"os"
 	"time"
 )
 
 // Logic -> Job -> Comet
 
 type Comet struct {
-	serverId      string
-	rpcClient     comet.CometClient
-	pushChan      []chan *comet.PushMsgReq       // push to some user
-	roomChan      []chan *comet.BroadcastRoomReq // push to the room
-	broadcastChan chan *comet.BroadcastReq       // push to all user
-	pushChanNum   uint64
-	roomChanNum   uint64
-	routineNum    uint64
+	serverId     string
+	rpcClient    comet.CometClient
+	userKeysChan []chan *comet.PushUserKeysReq // push to some user
+	userRoomChan []chan *comet.PushUserRoomReq // push to the room
+	userAllChan  chan *comet.PushUserAllReq    // push to all user
+	pushChanNum  uint64
+	roomChanNum  uint64
+	routineNum   uint64
 
 	ctx    context.Context
 	cancel context.CancelFunc
 }
 
-func NewComet(c *conf.Comet) (*Comet, error) {
-	defHost, _ := os.Hostname()
+func NewComet(serverId string, c *conf.Comet) (*Comet, error) {
 	routineNum := c.RoutineNum
 	cmt := &Comet{
-		serverId:      defHost,
-		pushChan:      make([]chan *comet.PushMsgReq, routineNum),
-		roomChan:      make([]chan *comet.BroadcastRoomReq, routineNum),
-		broadcastChan: make(chan *comet.BroadcastReq, routineNum),
-		routineNum:    uint64(routineNum),
+		serverId:     serverId,
+		userKeysChan: make([]chan *comet.PushUserKeysReq, routineNum),
+		userRoomChan: make([]chan *comet.PushUserRoomReq, routineNum),
+		userAllChan:  make(chan *comet.PushUserAllReq, routineNum),
+		routineNum:   uint64(routineNum),
 	}
 
 	// create rpc client
@@ -48,8 +46,8 @@ func NewComet(c *conf.Comet) (*Comet, error) {
 	chanNum := c.ChanNum
 	cmt.ctx, cmt.cancel = context.WithCancel(context.Background())
 	for i := 0; i < routineNum; i++ {
-		cmt.pushChan[i] = make(chan *comet.PushMsgReq, chanNum)
-		cmt.roomChan[i] = make(chan *comet.BroadcastRoomReq, chanNum)
+		cmt.userKeysChan[i] = make(chan *comet.PushUserKeysReq, chanNum)
+		cmt.userRoomChan[i] = make(chan *comet.PushUserRoomReq, chanNum)
 		go cmt.Process(i)
 	}
 	return cmt, nil

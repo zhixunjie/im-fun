@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
+	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/buffer"
 	newtimer "github.com/zhixunjie/im-fun/pkg/time"
 	"io"
@@ -15,14 +16,10 @@ import (
 	"time"
 )
 
-// InitTCP listen all tcp.bind and start accept connections.
-func InitTCP(server *Server, addrs []string, accept int) (err error) {
-	var (
-		bind     string
-		listener *net.TCPListener
-		addr     *net.TCPAddr
-	)
-	for _, bind = range addrs {
+func InitTCP(server *Server, accept int) (listener *net.TCPListener, err error) {
+	var addr *net.TCPAddr
+	addrs := conf.Conf.Connect.TCP.Bind
+	for _, bind := range addrs {
 		if addr, err = net.ResolveTCPAddr("tcp", bind); err != nil {
 			logrus.Errorf("TCP ResolveTCPAddr(bind=%v) err=%v", bind, err)
 			return
@@ -31,7 +28,7 @@ func InitTCP(server *Server, addrs []string, accept int) (err error) {
 			logrus.Errorf("TCP ListenTCP(bind=%v) err=%v", bind, err)
 			return
 		}
-		logrus.Infof("TCP服务器启动成功，正在监听：%s", bind)
+		logrus.Infof("TCP server is listening：%s", bind)
 		// 启动N个协程，每个协程开启后进行accept（需要使用REUSE解决惊群问题）
 		for i := 0; i < accept; i++ {
 			// TODO 使用协程池进行管理
@@ -52,7 +49,7 @@ func acceptTCP(server *Server, listener *net.TCPListener) {
 			logrus.Errorf("listener.Accept(%s) error=%v", listener.Addr().String(), err)
 			return
 		}
-		if err = conn.SetKeepAlive(server.conf.Connect.TCP.KeepAlive); err != nil {
+		if err = conn.SetKeepAlive(server.conf.Connect.TCP.Keepalive); err != nil {
 			logrus.Errorf("conn.SetKeepAlive() error=%v", err)
 			return
 		}

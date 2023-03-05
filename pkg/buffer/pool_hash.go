@@ -1,14 +1,14 @@
 package buffer
 
 type Options struct {
-	ReadPoolOption  PoolOptions
-	WritePoolOption PoolOptions
+	ReadPoolOption  PoolOptions `yaml:"readPoolOption"`
+	WritePoolOption PoolOptions `yaml:"writePoolOption"`
 }
 
 type PoolOptions struct {
-	PoolNum  int // 池子的个数
-	BatchNum int // 池子创建Buffer时批量创建的个数
-	BufSize  int // 每个Buffer的字节数
+	PoolNum  int `yaml:"poolNum"`  // 池子的个数
+	BatchNum int `yaml:"batchNum"` // 池子创建Buffer时批量创建的个数
+	BufSize  int `yaml:"bufSize"`  // 每个Buffer的字节数
 }
 
 type PoolHash struct {

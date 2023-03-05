@@ -3,13 +3,13 @@ package kafka
 import "github.com/Shopify/sarama"
 
 type ProducerConf struct {
-	Topic   string
-	Brokers []string
+	Topic   string   `yaml:"topic"`
+	Brokers []string `yaml:"brokers"`
 }
 type ConsumerGroupConf struct {
-	Topic   string
-	Brokers []string
-	GroupId string
+	Topic   string   `yaml:"topic"`
+	Brokers []string `yaml:"brokers"`
+	GroupId string   `yaml:"groupId"`
 }
 
 func getProducerConfig() *sarama.Config {

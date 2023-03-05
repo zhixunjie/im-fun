@@ -30,24 +30,24 @@ func InitConfig() (err error) {
 }
 
 type Config struct {
-	Debug     bool
-	Discovery *Discovery
-	Kafka     []kafka.ConsumerGroupConf
-	Comet     *Comet
-	Room      *Room
+	Debug     bool                      `yaml:"debug"`
+	Discovery *Discovery                `yaml:"discovery"`
+	Kafka     []kafka.ConsumerGroupConf `yaml:"kafka"`
+	Comet     *Comet                    `yaml:"comet"`
+	Room      *Room                     `yaml:"room"`
 }
 
 type Discovery struct {
-	Addr string
+	Addr string `yaml:"addr"`
 }
 
 type Room struct {
-	Batch  int
-	Signal newtime.Duration
-	Idle   newtime.Duration
+	Batch  int              `yaml:"batch"`
+	Signal newtime.Duration `yaml:"signal"`
+	Idle   newtime.Duration `yaml:"idle"`
 }
 
 type Comet struct {
-	ChanNum    int
-	RoutineNum int
+	ChanNum    int `yaml:"chanNum"`
+	RoutineNum int `yaml:"routineNum"`
 }

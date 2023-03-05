@@ -1,16 +1,21 @@
 package apihttp
 
 import (
+	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/internal/logic/service"
+	"net/http"
+	"time"
 )
 
 // Server is http server.
 type Server struct {
-	engine *gin.Engine
-	svc    *service.Service
+	engine     *gin.Engine
+	httpServer *http.Server
+	svc        *service.Service
 }
 
 func New(conf *conf.Config, svc *service.Service) *Server {
@@ -28,16 +33,31 @@ func New(conf *conf.Config, svc *service.Service) *Server {
 	// 设置-路由
 	srv.SetupRouter()
 
+	// set net.http
+	addr := conf.HTTPServer.Addr
+	httpServer := &http.Server{
+		Addr:    addr,
+		Handler: engine,
+	}
+	srv.httpServer = httpServer
+
 	// begin to listen
+	fmt.Printf("HTTP server is listening：%v\n", addr)
 	go func() {
-		fmt.Printf("HTTP server is listening：%v\n", conf.HTTPServer.Addr)
-		if err := engine.Run(conf.HTTPServer.Addr); err != nil {
-			panic(err)
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logrus.Fatalf("ListenAndServe,err=%v", err)
 		}
 	}()
 	return srv
 }
 
 func (s *Server) Close() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
+	// invoke Shutdown：stop accept new connection && will be forced to stop after 5 seconds
+	if err := s.httpServer.Shutdown(ctx); err != nil {
+		logrus.Fatalf("Server Shutdown Failed:%+v", err)
+	}
+	logrus.Infof("Server Exited Properly")
 }

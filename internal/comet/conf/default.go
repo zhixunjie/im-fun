@@ -36,8 +36,8 @@ func DefaultRPC() *RPC {
 			IdleTimeout:       newtime.Duration(time.Second * 60),
 			MaxLifeTime:       newtime.Duration(time.Hour * 2),
 			ForceCloseWait:    newtime.Duration(time.Second * 20),
-			KeepAliveInterval: newtime.Duration(time.Second * 60),
-			KeepAliveTimeout:  newtime.Duration(time.Second * 20),
+			KeepaliveInterval: newtime.Duration(time.Second * 60),
+			KeepaliveTimeout:  newtime.Duration(time.Second * 20),
 		},
 		Client: &RPCClient{
 			Dial:    newtime.Duration(time.Second),
@@ -52,7 +52,7 @@ func DefaultConnect() *Connect {
 			Bind:      []string{":3101"},
 			Sndbuf:    4096,
 			Rcvbuf:    4096,
-			KeepAlive: false,
+			Keepalive: false,
 		},
 		Websocket: &Websocket{
 			Bind: []string{":3102"},

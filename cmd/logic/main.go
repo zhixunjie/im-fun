@@ -1,7 +1,7 @@
 package main
 
 import (
-	log "github.com/golang/glog"
+	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/logic/apigrpc"
 	"github.com/zhixunjie/im-fun/internal/logic/apihttp"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
@@ -27,12 +27,11 @@ func main() {
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
 	for {
 		s := <-c
-		log.Infof("get a signal %s", s.String())
+		logrus.Infof("get a signal %s", s.String())
 		switch s {
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
 			httpSrv.Close()
 			rpcSrv.GracefulStop()
-			log.Flush()
 			return
 		case syscall.SIGHUP:
 		default:

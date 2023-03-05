@@ -14,15 +14,10 @@ var (
 	ErrTimerEmpty  = errors.New("timer empty")
 	ErrTimerNoItem = errors.New("timer item not exist")
 
-	// ErrPushMsgArg channel
-	ErrPushMsgArg           = errors.New("rpc pushmsg arg error")
-	ErrPushMsgsArg          = errors.New("rpc pushmsgs arg error")
-	ErrMPushMsgArg          = errors.New("rpc mpushmsg arg error")
-	ErrMPushMsgsArg         = errors.New("rpc mpushmsgs arg error")
+	// ErrParamsNotAllow channel
+	ErrParamsNotAllow       = errors.New("params error")
 	ErrSignalFullMsgDropped = errors.New("signal channel full, msg dropped")
 
-	// ErrBroadCastArg bucket
-	ErrBroadCastArg     = errors.New("rpc broadcast arg error")
 	ErrBroadCastRoomArg = errors.New("rpc broadcast  room arg error")
 
 	// ErrRoomDrop room

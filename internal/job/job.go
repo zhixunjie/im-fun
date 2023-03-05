@@ -4,31 +4,42 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/zhixunjie/im-fun/internal/job/conf"
 	"github.com/zhixunjie/im-fun/pkg/kafka"
+	"os"
 	"sync"
 )
 
 type Job struct {
-	c            *conf.Config
-	consumer     *kafka.ConsumerGroup
-	cometServers map[string]*Comet
+	conf     *conf.Config
+	consumer *kafka.ConsumerGroup
+	allComet map[string]*Comet
 
 	//rooms      map[string]*Room
-	roomsMutex sync.RWMutex
+	rwMutex sync.RWMutex
 }
 
-func New(c *conf.Config) *Job {
+func New(conf *conf.Config) *Job {
 	job := &Job{
-		c: c,
+		conf: conf,
 		//rooms:    make(map[string]*Room),
 	}
+
 	// make consumer
 	fn := func(msg *sarama.ConsumerMessage) {
 		job.Consume(msg)
 	}
-	tmp, err := kafka.NewConsumerGroup(&c.Kafka[0], fn)
+	tmp, err := kafka.NewConsumerGroup(&conf.Kafka[0], fn)
 	if err != nil {
 		panic(err)
 	}
 	job.consumer = tmp
+
+	// make comet
+	defHost, _ := os.Hostname()
+	cm, err := NewComet(defHost, conf.Comet)
+	if err != nil {
+		panic(err)
+	}
+	job.allComet[defHost] = cm
+
 	return job
 }

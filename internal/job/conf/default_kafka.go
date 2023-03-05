@@ -11,9 +11,3 @@ func DefaultKafka() []kafka.ConsumerGroupConf {
 		},
 	}
 }
-
-// Kafka .
-type Kafka struct {
-	Topic   string
-	Brokers []string
-}

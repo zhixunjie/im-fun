@@ -10,7 +10,7 @@ import (
 
 func (d *Dao) KafkaPushKeys(serverId string, userKeys []string, subId int32, msg []byte) (err error) {
 	protoMsg := &pb.PushMsg{
-		Type:     pb.PushMsg_PUSH,
+		Type:     pb.PushMsg_UserKeys,
 		SubId:    subId,
 		ServerId: serverId,
 		UserKeys: userKeys,
@@ -31,7 +31,7 @@ func (d *Dao) KafkaPushKeys(serverId string, userKeys []string, subId int32, msg
 
 func (d *Dao) KafkaPushRoom(req *request.PushUserRoomReq) (err error) {
 	protoMsg := &pb.PushMsg{
-		Type:   pb.PushMsg_ROOM,
+		Type:   pb.PushMsg_UserRoom,
 		SubId:  req.SubId,
 		RoomId: utils.EncodeRoomKey(req.RoomType, req.RoomId),
 		Msg:    req.Message,
@@ -51,7 +51,7 @@ func (d *Dao) KafkaPushRoom(req *request.PushUserRoomReq) (err error) {
 
 func (d *Dao) KafkaPushAll(req *request.PushUserAllReq) (err error) {
 	protoMsg := &pb.PushMsg{
-		Type:  pb.PushMsg_BROADCAST,
+		Type:  pb.PushMsg_UserAll,
 		SubId: req.SubId,
 		Speed: req.Speed,
 		Msg:   req.Message,

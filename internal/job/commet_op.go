@@ -9,59 +9,48 @@ import (
 	"time"
 )
 
-func (c *Comet) Push(arg *comet.PushMsgReq) (err error) {
+func (c *Comet) PushUserKeys(arg *comet.PushUserKeysReq) (err error) {
 	idx := atomic.AddUint64(&c.pushChanNum, 1) % c.routineNum
-	c.pushChan[idx] <- arg
+	c.userKeysChan[idx] <- arg
 	return
 }
 
-func (c *Comet) BroadcastRoom(arg *comet.BroadcastRoomReq) (err error) {
+func (c *Comet) PushUserRoom(arg *comet.PushUserRoomReq) (err error) {
 	idx := atomic.AddUint64(&c.roomChanNum, 1) % c.routineNum
-	c.roomChan[idx] <- arg
+	c.userRoomChan[idx] <- arg
 	return
 }
 
-func (c *Comet) Broadcast(arg *comet.BroadcastReq) (err error) {
-	c.broadcastChan <- arg
+func (c *Comet) PushUserAll(arg *comet.PushUserAllReq) (err error) {
+	c.userAllChan <- arg
 	return
 }
 
 func (c *Comet) Process(i int) {
 	logHead := "Process|"
-	pushChan := c.pushChan[i]
-	roomChan := c.roomChan[i]
-	broadcastChan := c.broadcastChan
 
-	// loop to send msg to comet
+	// loop to send msg to allComet
 	for {
 		select {
 		case <-c.ctx.Done():
 			return
-		case broadcast := <-broadcastChan:
-			_, err := c.rpcClient.Broadcast(context.Background(), &comet.BroadcastReq{
-				Proto:   broadcast.Proto,
-				ProtoOp: broadcast.ProtoOp,
-				Speed:   broadcast.Speed,
-			})
+		case msg := <-c.userKeysChan[i]:
+			_, err := c.rpcClient.PushUserKeys(context.Background(), msg)
 			if err != nil {
-				logrus.Errorf(logHead+"c.rpcClient.Broadcast(%s, reply) serverId:%s error(%v)", broadcast, c.serverId, err)
+				logrus.Errorf(logHead+"conf.rpcClient.PushUserKeys(%s),serverId=%s,error=%v",
+					msg, c.serverId, err)
 			}
-		case room := <-roomChan:
-			_, err := c.rpcClient.BroadcastRoom(context.Background(), &comet.BroadcastRoomReq{
-				RoomId: room.RoomId,
-				Proto:  room.Proto,
-			})
+		case msg := <-c.userRoomChan[i]:
+			_, err := c.rpcClient.PushUserRoom(context.Background(), msg)
 			if err != nil {
-				logrus.Errorf(logHead+"c.rpcClient.BroadcastRoom(%s, reply) serverId:%s error(%v)", room, c.serverId, err)
+				logrus.Errorf(logHead+"conf.rpcClient.BroadcastRoom(%s),serverId=%s,error=%v",
+					msg, c.serverId, err)
 			}
-		case push := <-pushChan:
-			_, err := c.rpcClient.PushMsg(context.Background(), &comet.PushMsgReq{
-				UserKeys: push.UserKeys,
-				Proto:    push.Proto,
-				ProtoOp:  push.ProtoOp,
-			})
+		case msg := <-c.userAllChan:
+			_, err := c.rpcClient.PushUserAll(context.Background(), msg)
 			if err != nil {
-				logrus.Errorf(logHead+"c.rpcClient.PushMsg(%s, reply) serverId:%s error(%v)", push, c.serverId, err)
+				logrus.Errorf(logHead+"conf.rpcClient.Broadcast(%s),serverId=%s,error=%v",
+					msg, c.serverId, err)
 			}
 		}
 	}
@@ -69,13 +58,17 @@ func (c *Comet) Process(i int) {
 
 func (c *Comet) Close() (err error) {
 	finish := make(chan bool)
+	closePushChan := c.userKeysChan
+	closeRoomChan := c.userRoomChan
+	closeBroadcastChan := c.userAllChan
+
 	go func() {
 		for {
-			n := len(c.broadcastChan)
-			for _, ch := range c.pushChan {
+			n := len(closeBroadcastChan)
+			for _, ch := range closePushChan {
 				n += len(ch)
 			}
-			for _, ch := range c.roomChan {
+			for _, ch := range closeRoomChan {
 				n += len(ch)
 			}
 			if n == 0 {
@@ -87,10 +80,10 @@ func (c *Comet) Close() (err error) {
 	}()
 	select {
 	case <-finish:
-		logrus.Info("close comet finish")
+		logrus.Info("close allComet finish")
 	case <-time.After(5 * time.Second):
-		err = fmt.Errorf("close comet(server:%s push:%d room:%d broadcast:%d) timeout",
-			c.serverId, len(c.pushChan), len(c.roomChan), len(c.broadcastChan))
+		err = fmt.Errorf("close allComet(server:%s push:%d room:%d broadcast:%d) timeout",
+			c.serverId, len(closePushChan), len(closeRoomChan), len(closeBroadcastChan))
 	}
 	c.cancel()
 	return

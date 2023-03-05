@@ -5,6 +5,8 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/encoding/binary"
 )
 
+const ProtoVersion = 1
+
 const (
 	// MaxBodySize max proto body size
 	MaxBodySize = int32(1 << 12)

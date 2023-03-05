@@ -12,8 +12,8 @@ rpc:
 connect:
   tcp:
     bind: [ ":12571" ]
-    sndBuf: 4096
-    rcvBuf: 4096
+    sndbuf: 4096
+    rcvbuf: 4096
     keepalive: false
   websocket:
     bind: [ ":12572" ]

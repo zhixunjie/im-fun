@@ -56,7 +56,7 @@ func (svc *Service) PushUserIds(ctx context.Context, req *request.PushUserIdsReq
 
 // PushUserRoom 发送消息（by kafka）
 func (svc *Service) PushUserRoom(ctx context.Context, req *request.PushUserRoomReq) error {
-	logHead := "PushUserRoom|"
+	logHead := "BroadcastRoom|"
 	err := svc.dao.KafkaPushRoom(req)
 	if err != nil {
 		logrus.Errorf(logHead+"err=%v", err)

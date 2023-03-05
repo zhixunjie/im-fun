@@ -10,9 +10,3 @@ func DefaultKafka() []kafka.ProducerConf {
 		},
 	}
 }
-
-// Kafka .
-type Kafka struct {
-	Topic   string   `yaml:"topic"`
-	Brokers []string `yaml:"brokers"`
-}
