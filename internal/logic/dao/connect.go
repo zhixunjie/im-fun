@@ -13,17 +13,17 @@ const (
 
 // Hash：userId -> userKey => serverId
 func keyHashUserId(userId int64) string {
-	return fmt.Sprintf("mid_%d", userId)
+	return fmt.Sprintf("session_hash_%d", userId)
 }
 
 // String：userKey => server
 func keyStringUserKey(userKey string) string {
-	return fmt.Sprintf("key_%s", userKey)
+	return fmt.Sprintf("session_string_%s", userKey)
 }
 
 // server => online
 func keyServerOnline(key string) string {
-	return fmt.Sprintf("ol_%s", key)
+	return fmt.Sprintf("online_%s", key)
 }
 
 // SessionBinding add relationship

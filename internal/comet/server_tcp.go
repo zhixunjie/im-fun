@@ -74,11 +74,9 @@ func serveTCPInit(s *Server, conn *net.TCPConn, r int) {
 		tr = s.round.TimerPool(r)
 		rp = s.round.BufferPool.ReaderPool(r)
 		wp = s.round.BufferPool.WriterPool(r)
-		// ip addr
-		lAddr = conn.LocalAddr().String()
-		rAddr = conn.RemoteAddr().String()
 	)
-	logrus.Infof("connect success,lAddr=%v,rAddr=%v", lAddr, rAddr)
+	logrus.Infof("connect success,lAddr=%v,RemoteAddr=%v",
+		conn.LocalAddr().String(), conn.RemoteAddr().String())
 	s.serveTCP(conn, rp, wp, tr)
 }
 

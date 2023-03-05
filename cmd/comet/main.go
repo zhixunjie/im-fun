@@ -5,6 +5,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/comet"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/internal/comet/grpc"
+	"github.com/zhixunjie/im-fun/pkg/log"
 	"math/rand"
 	"net"
 	"os"
@@ -15,6 +16,7 @@ import (
 )
 
 func main() {
+	log.InitLogConfig()
 	var err error
 	if err = conf.InitConfig(); err != nil {
 		panic(err)

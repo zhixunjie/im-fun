@@ -2,7 +2,6 @@ package apihttp
 
 import (
 	"context"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
@@ -42,7 +41,7 @@ func New(conf *conf.Config, svc *service.Service) *Server {
 	srv.httpServer = httpServer
 
 	// begin to listen
-	fmt.Printf("HTTP server is listening：%v\n", addr)
+	logrus.Infof("HTTP server is listening：%v\n", addr)
 	go func() {
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logrus.Fatalf("ListenAndServe,err=%v", err)

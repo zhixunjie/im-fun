@@ -49,9 +49,9 @@ var (
 )
 
 type ProtoPack struct {
-	PackLen   int // 整个数据包的长度
-	HeaderLen int // 头部的长度
-	BodyLen   int // 请求体的长度
+	PackLen   int32 // 整个数据包的长度
+	HeaderLen int16 // 头部的长度
+	BodyLen   int32 // 请求体的长度
 }
 
 // header编码：把proto的内容写入到buf
@@ -78,7 +78,9 @@ func unCodeProtoHeader(proto *Proto, buf []byte) (ProtoPack, error) {
 	proto.Ver = int32(binary.BigEndian.Int16(buf[_verOffset:_opOffset]))
 	proto.Op = binary.BigEndian.Int32(buf[_opOffset:_seqOffset])
 	proto.Seq = binary.BigEndian.Int32(buf[_seqOffset:])
-	header.BodyLen = int(packLen - int32(headerLen))
+	header.PackLen = packLen
+	header.HeaderLen = headerLen
+	header.BodyLen = packLen - int32(headerLen)
 	// check message
 	if packLen > _maxPackSize {
 		return header, ErrProtoPackLen

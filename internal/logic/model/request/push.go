@@ -3,7 +3,7 @@ package request
 type PushUserKeysReq struct {
 	UserKeys []string `json:"user_keys"`
 	SubId    int32    `json:"sub_id"`
-	Message  []byte   `json:"message"`
+	Message  string   `json:"message"`
 }
 
 type PushUserIdsReq struct {

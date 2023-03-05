@@ -37,13 +37,14 @@ func NewConsumerGroup(conf *ConsumerGroupConf, fn Callback) (*ConsumerGroup, err
 	ctx := context.Background()
 	topics := []string{conf.Topic}
 	go func() {
+		logHead := "KafkaConsumer|"
 		var err error
 		for {
 			//fmt.Println("waiting for message......")
-			logrus.Infof("waiting for message......,conf=%+v", conf)
+			logrus.Infof(logHead+"conf=%+v,waiting for message......", conf)
 			err = consumerGroup.Consume(ctx, topics, handler)
 			if err != nil {
-				logrus.Errorf("err=%v,conf=%+v", err, conf)
+				logrus.Errorf(logHead+"err=%v,conf=%+v", err, conf)
 				return
 			}
 		}

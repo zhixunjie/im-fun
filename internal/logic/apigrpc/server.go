@@ -3,7 +3,6 @@ package apigrpc
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/logic/service"
 	"net"
@@ -35,7 +34,7 @@ func New(conf *conf.RPCServer, svc *service.Service) *grpc.Server {
 		panic(err)
 	}
 	// begin to listen
-	fmt.Printf("GRPC server is listening %v：%v\n", conf.Network, conf.Addr)
+	logrus.Infof("GRPC server is listening %v：%v\n", conf.Network, conf.Addr)
 	go func() {
 		if err = srv.Serve(listener); err != nil {
 			panic(err)

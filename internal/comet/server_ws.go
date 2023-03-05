@@ -75,11 +75,9 @@ func serveWebSocketInit(s *Server, conn *net.TCPConn, r int) {
 		tr = s.round.TimerPool(r)
 		rp = s.round.BufferPool.ReaderPool(r)
 		wp = s.round.BufferPool.WriterPool(r)
-		// ip addr
-		lAddr = conn.LocalAddr().String()
-		rAddr = conn.RemoteAddr().String()
 	)
-	logrus.Infof("connect success,lAddr=%v,rAddr=%v", lAddr, rAddr)
+	logrus.Infof("connect success,LocalAddr=%v,RemoteAddr=%v",
+		conn.LocalAddr().String(), conn.RemoteAddr().String())
 	s.serveWebSocket(conn, rp, wp, tr)
 }
 
@@ -156,7 +154,7 @@ func (s *Server) serveWebSocket(conn *net.TCPConn, readerPool, writerPool *buffe
 		hb, err = s.authWebsocket(ctx, wsConn, ch, proto)
 		if err != nil {
 			releaseNew()
-			logrus.Errorf("authTCP err=%v,UserInfo=%v", err, ch.UserInfo)
+			logrus.Errorf("authWebsocket err=%v,UserInfo=%v", err, ch.UserInfo)
 			return
 		}
 		// set bucket
@@ -213,6 +211,7 @@ fail:
 }
 
 func (s *Server) authWebsocket(ctx context.Context, wsConn *websocket.Conn, ch *channel.Channel, proto *protocol.Proto) (hb time.Duration, err error) {
+	logHead := "authWebsocket|"
 	// 一直读取，直到读取到的Proto的操作类型为protocol.OpAuth
 	for {
 		if err = proto.ReadWs(wsConn); err != nil {
@@ -221,7 +220,7 @@ func (s *Server) authWebsocket(ctx context.Context, wsConn *websocket.Conn, ch *
 		if protocol.Operation(proto.Op) == protocol.OpAuth {
 			break
 		} else {
-			logrus.Errorf("tcp request operation(%d) not auth", proto.Op)
+			logrus.Errorf(logHead+"tcp request operation(%d) not auth", proto.Op)
 		}
 	}
 
@@ -233,7 +232,7 @@ func (s *Server) authWebsocket(ctx context.Context, wsConn *websocket.Conn, ch *
 		Token    string `json:"token"`
 	}
 	if err = json.Unmarshal(proto.Body, &params); err != nil {
-		logrus.Errorf("Unmarshal body=%v,err=%v", proto.Body, err)
+		logrus.Errorf(logHead+"Unmarshal body=%s,err=%v", proto.Body, err)
 		return
 	}
 
@@ -243,7 +242,7 @@ func (s *Server) authWebsocket(ctx context.Context, wsConn *websocket.Conn, ch *
 	ch.UserInfo.RoomId = params.RoomId
 	ch.UserInfo.Platform = params.Platform
 	if hb, err = s.Connect(ctx, ch, params.Token); err != nil {
-		logrus.Errorf("Connect UserInfo=%v, err=%v", ch.UserInfo, err)
+		logrus.Errorf(logHead+"Connect UserInfo=%v, err=%v", ch.UserInfo, err)
 		return
 	}
 
@@ -251,7 +250,7 @@ func (s *Server) authWebsocket(ctx context.Context, wsConn *websocket.Conn, ch *
 	proto.Op = int32(protocol.OpAuthReply)
 	proto.Body = nil
 	if err = proto.WriteWs(wsConn); err != nil {
-		logrus.Errorf("WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)
+		logrus.Errorf(logHead+"WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)
 		return
 	}
 	err = wsConn.Flush()

@@ -50,8 +50,6 @@ const (
 )
 
 var (
-	// ErrMessageClose close control message
-	ErrMessageClose = errors.New("close control message")
-	// ErrMessageMaxRead continuation frame max read
+	ErrMessageClose   = errors.New("got client's close message")
 	ErrMessageMaxRead = errors.New("continuation frame max read")
 )

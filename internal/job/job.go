@@ -19,7 +19,8 @@ type Job struct {
 
 func New(conf *conf.Config) *Job {
 	job := &Job{
-		conf: conf,
+		conf:     conf,
+		allComet: map[string]*Comet{},
 		//rooms:    make(map[string]*Room),
 	}
 

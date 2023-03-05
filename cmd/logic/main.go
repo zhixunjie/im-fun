@@ -6,12 +6,14 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/apihttp"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/internal/logic/service"
+	"github.com/zhixunjie/im-fun/pkg/log"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
+	log.InitLogConfig()
 	if err := conf.InitConfig(); err != nil {
 		panic(err)
 	}

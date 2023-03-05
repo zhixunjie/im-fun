@@ -4,12 +4,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/job"
 	"github.com/zhixunjie/im-fun/internal/job/conf"
+	"github.com/zhixunjie/im-fun/pkg/log"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
+	log.InitLogConfig()
 	if err := conf.InitConfig(); err != nil {
 		panic(err)
 	}

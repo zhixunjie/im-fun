@@ -20,7 +20,7 @@ func (proto *Proto) ReadWs(conn *websocket.Conn) (err error) {
 	}
 	// proto body
 	if pack.BodyLen > 0 {
-		proto.Body = buf[pack.HeaderLen:pack.BodyLen]
+		proto.Body = buf[pack.HeaderLen:pack.PackLen]
 	} else {
 		proto.Body = nil
 	}

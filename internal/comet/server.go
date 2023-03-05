@@ -79,7 +79,7 @@ const (
 func newLogicClient(conf *conf.RPCClient) logic.LogicClient {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	conn, err := grpc.DialContext(ctx, "127.0.0.1:3119",
+	conn, err := grpc.DialContext(ctx, "127.0.0.1:12670",
 		[]grpc.DialOption{
 			grpc.WithInsecure(),
 			grpc.WithInitialWindowSize(grpcInitialWindowSize),

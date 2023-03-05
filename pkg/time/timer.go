@@ -112,6 +112,9 @@ func (t *Timer) Add(expire time.Duration, fn func()) (td *TimerData) {
 // Del removes the element at index i from the heap.
 // The complexity is O(log(n)) where n = h.Len().
 func (t *Timer) Del(td *TimerData) {
+	if td == nil {
+		return
+	}
 	t.lock.Lock()
 	t.del(td)
 	t.put(td)
