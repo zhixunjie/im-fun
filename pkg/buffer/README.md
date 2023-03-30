@@ -35,4 +35,5 @@ Pool Hash：
     - Bufio 复用了 Buffer，从而减少每个TCP的IO读写带来的Buffer GC。
 - Buffer Pool：
     - 通过链表方式分配内存。
-    - 每次内存增长时，会预先分配一大段内存再进行切分。
+    - 当发现内存池子没有缓冲时，需要预先分配一大段内存再进行切分（批量创建buffer）。
+      - 相对于golang自带的sync.Pool， 好处就是批量New，而不是一个个去New。
