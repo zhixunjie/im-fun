@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/comet"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
@@ -9,6 +10,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"runtime"
@@ -17,6 +19,12 @@ import (
 )
 
 func main() {
+	// 启动pprof的HTTP服务器
+	go func() {
+		fmt.Println("start pprof HTTP Server")
+		_ = http.ListenAndServe("127.0.0.1:6060", nil)
+	}()
+
 	log.InitLogConfig()
 	var err error
 	if err = conf.InitConfig(); err != nil {
@@ -37,11 +45,6 @@ func main() {
 	}
 	// init GRPC server
 	rpcSrv := grpc.New(srv, conf.Conf.RPC.Server)
-
-	// 启动pprof的HTTP服务器
-	go func() {
-		logrus.Println(http.ListenAndServe("127.0.0.1:6060", nil))
-	}()
 
 	// signal
 	c := make(chan os.Signal, 1)
