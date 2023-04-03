@@ -3,8 +3,8 @@ package gen_id
 import (
 	"context"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"github.com/spf13/cast"
-	"github.com/zhixunjie/im-fun/internal/logic/dao"
 )
 
 const (
@@ -16,10 +16,10 @@ const (
 // GenerateMsgId 生成msg_id
 // 注意：msg_id要求全局唯一
 // 另外：msg_id跟largerId的后4位是相同的
-func GenerateMsgId(ctx context.Context, slotId uint64, currTimestamp int64) (uint64, error) {
+func GenerateMsgId(ctx context.Context, mem *redis.Client, slotId uint64, currTimestamp int64) (uint64, error) {
 	// 每秒一个Key，在Key上面进行+1操作
 	key := getMsgIdIncrNum(currTimestamp)
-	incr, err := incNum(ctx, key, 2)
+	incr, err := incNum(ctx, mem, key, 2)
 	if err != nil {
 		return 0, err
 	}
@@ -32,8 +32,7 @@ func GenerateMsgId(ctx context.Context, slotId uint64, currTimestamp int64) (uin
 }
 
 // incNum 每秒一个Key，进行累加
-func incNum(ctx context.Context, key string, expireSec int) (int64, error) {
-	mem := dao.RedisClient
+func incNum(ctx context.Context, mem *redis.Client, key string, expireSec int) (int64, error) {
 	value, err := mem.IncrBy(ctx, key, 1).Result()
 	if err != nil {
 		return 0, err

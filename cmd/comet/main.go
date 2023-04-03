@@ -8,6 +8,7 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/log"
 	"math/rand"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -36,6 +37,11 @@ func main() {
 	}
 	// init GRPC server
 	rpcSrv := grpc.New(srv, conf.Conf.RPC.Server)
+
+	// 启动pprof的HTTP服务器
+	go func() {
+		logrus.Println(http.ListenAndServe("127.0.0.1:6060", nil))
+	}()
 
 	// signal
 	c := make(chan os.Signal, 1)

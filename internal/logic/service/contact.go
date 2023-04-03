@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"github.com/zhixunjie/im-fun/internal/logic/dao"
 	"github.com/zhixunjie/im-fun/internal/logic/model"
 	"github.com/zhixunjie/im-fun/internal/logic/model/request"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
@@ -14,17 +13,17 @@ func (svc *Service) Ping() {
 }
 
 // 消息发送方的会话
-func transformSenderContact(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (model.Contact, error) {
+func (svc *Service) transformSenderContact(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (model.Contact, error) {
 	var defaultRet model.Contact
 
 	// get version_id（区别的地方）
-	versionId, err := gen_id.GetContactVersionId(ctx, currTimestamp, req.SendId)
+	versionId, err := gen_id.GetContactVersionId(ctx, svc.dao.RedisClient, currTimestamp, req.SendId)
 	if err != nil {
 		return defaultRet, err
 	}
 
 	// query contact（区别的地方，获取"消息发送方"的会话）
-	contact, err := dao.QueryContactById(req.SendId, req.ReceiveId)
+	contact, err := svc.dao.QueryContactById(req.SendId, req.ReceiveId)
 	if err != nil {
 		return defaultRet, err
 	}
@@ -48,17 +47,17 @@ func transformSenderContact(ctx context.Context, req *request.SendMsgReq, currTi
 }
 
 // 消息接收方的会话
-func transformReceiverContact(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (model.Contact, error) {
+func (svc *Service) transformReceiverContact(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (model.Contact, error) {
 	var defaultRet model.Contact
 
 	// get version_id（区别的地方）
-	versionId, err := gen_id.GetContactVersionId(ctx, currTimestamp, req.ReceiveId)
+	versionId, err := gen_id.GetContactVersionId(ctx, svc.dao.RedisClient, currTimestamp, req.ReceiveId)
 	if err != nil {
 		return defaultRet, err
 	}
 
 	// query contact（区别的地方，获取"消息接收方"的会话）
-	contact, err := dao.QueryContactById(req.ReceiveId, req.SendId)
+	contact, err := svc.dao.QueryContactById(req.ReceiveId, req.SendId)
 	if err != nil {
 		return defaultRet, err
 	}

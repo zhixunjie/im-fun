@@ -6,7 +6,7 @@ import (
 )
 
 // GetMessageDbAndTable 这里传入msgId或者largerId都是可以的
-func GetMessageDbAndTable(id uint64) (string, string) {
+func (d *Dao) GetMessageDbAndTable(id uint64) (string, string) {
 	// 临时写死
 	if true {
 		return "", "message_0"
@@ -20,28 +20,26 @@ func GetMessageDbAndTable(id uint64) (string, string) {
 }
 
 // QueryMsgLogic 查询某条消息的详情
-func QueryMsgLogic(msgId uint64) (model.Message, error) {
+func (d *Dao) QueryMsgLogic(msgId uint64) (model.Message, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
-	return QueryMsgByMsgId(msgId)
+	return d.QueryMsgByMsgId(msgId)
 }
 
 // QueryMsgByMsgId 查询某条消息的详情，From：DB
-func QueryMsgByMsgId(msgId uint64) (model.Message, error) {
-	db := MySQLClient
-	_, tbName := GetMessageDbAndTable(msgId)
+func (d *Dao) QueryMsgByMsgId(msgId uint64) (model.Message, error) {
+	_, tbName := d.GetMessageDbAndTable(msgId)
 	var row model.Message
-	err := db.Table(tbName).Where("msg_id=?", msgId).Find(&row).Error
+	err := d.MySQLClient.Table(tbName).Where("msg_id=?", msgId).Find(&row).Error
 	if err != nil {
 		return row, err
 	}
 	return row, nil
 }
 
-func AddMsg(row *model.Message) error {
-	db := MySQLClient
-	_, tbName := GetMessageDbAndTable(row.MsgId)
-	err := db.Table(tbName).Create(&row).Error
+func (d *Dao) AddMsg(row *model.Message) error {
+	_, tbName := d.GetMessageDbAndTable(row.MsgId)
+	err := d.MySQLClient.Table(tbName).Create(&row).Error
 	if err != nil {
 		return err
 	}

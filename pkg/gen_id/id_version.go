@@ -3,15 +3,16 @@ package gen_id
 import (
 	"context"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"github.com/spf13/cast"
 )
 
 // GetMsgVersionId 获取"消息表"的version_id
 // 注意：version_id不需要全局唯一，只要在同一个会话中唯一即可
-func GetMsgVersionId(ctx context.Context, currTimestamp int64, smallerId uint64, largerId uint64) (uint64, error) {
+func GetMsgVersionId(ctx context.Context, mem *redis.Client, currTimestamp int64, smallerId uint64, largerId uint64) (uint64, error) {
 	// 每小时一个Key，在Key上面进行+1操作
 	key := getMsgVersionIncrNum(currTimestamp, smallerId, largerId)
-	incr, err := incNum(ctx, key, 86400+120)
+	incr, err := incNum(ctx, mem, key, 86400+120)
 	if err != nil {
 		return 0, err
 	}
@@ -24,10 +25,10 @@ func GetMsgVersionId(ctx context.Context, currTimestamp int64, smallerId uint64,
 
 // GetContactVersionId 获取"会话表"的version_id
 // 注意：version_id不需要全局唯一，只要在同一个用户中唯一即可
-func GetContactVersionId(ctx context.Context, currTimestamp int64, ownerId uint64) (uint64, error) {
+func GetContactVersionId(ctx context.Context, mem *redis.Client, currTimestamp int64, ownerId uint64) (uint64, error) {
 	// 每小时一个Key，在Key上面进行+1操作
 	key := getContactVersionIncrNum(currTimestamp, ownerId)
-	incr, err := incNum(ctx, key, 86400+120)
+	incr, err := incNum(ctx, mem, key, 86400+120)
 	if err != nil {
 		return 0, err
 	}

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
-	dao2 "github.com/zhixunjie/im-fun/internal/logic/dao"
+	"github.com/go-redis/redis/v8"
 	"github.com/zhixunjie/im-fun/internal/logic/model"
 	"github.com/zhixunjie/im-fun/internal/logic/model/request"
 	"github.com/zhixunjie/im-fun/internal/logic/model/response"
@@ -18,27 +18,27 @@ func (svc *Service) SendMessage(ctx context.Context, req *request.SendMsgReq) (r
 	currTimestamp := time.Now().Unix()
 
 	// transform message
-	msg, err := transformMessage(ctx, req, currTimestamp)
+	msg, err := transformMessage(ctx, svc.dao.RedisClient, req, currTimestamp)
 	if err != nil {
 		return resp, err
 	}
 
 	// transform contact（sender）
-	senderContact, err := transformSenderContact(ctx, req, currTimestamp, msg.MsgId)
+	senderContact, err := svc.transformSenderContact(ctx, req, currTimestamp, msg.MsgId)
 	if err != nil {
 		return resp, err
 	}
 
 	// transform contact（receiver）
-	receiverContact, err := transformReceiverContact(ctx, req, currTimestamp, msg.MsgId)
+	receiverContact, err := svc.transformReceiverContact(ctx, req, currTimestamp, msg.MsgId)
 	if err != nil {
 		return resp, err
 	}
 
 	// DB操作
-	_ = dao2.AddMsg(&msg)
-	_ = dao2.AddOrUpdateContact(&senderContact)
-	_ = dao2.AddOrUpdateContact(&receiverContact)
+	_ = svc.dao.AddMsg(&msg)
+	_ = svc.dao.AddOrUpdateContact(&senderContact)
+	_ = svc.dao.AddOrUpdateContact(&receiverContact)
 
 	return response.SendMsgResp{
 		Data: response.SendMsgRespData{
@@ -53,18 +53,18 @@ func (svc *Service) SendMessage(ctx context.Context, req *request.SendMsgReq) (r
 	}, nil
 }
 
-func transformMessage(ctx context.Context, req *request.SendMsgReq, currTimestamp int64) (model.Message, error) {
+func transformMessage(ctx context.Context, mem *redis.Client, req *request.SendMsgReq, currTimestamp int64) (model.Message, error) {
 	var defaultRet model.Message
 
 	// get msg_id
 	smallerId, largeId := utils.GetSortNum(req.SendId, req.ReceiveId)
-	msgId, err := gen_id.GenerateMsgId(ctx, largeId, currTimestamp)
+	msgId, err := gen_id.GenerateMsgId(ctx, mem, largeId, currTimestamp)
 	if err != nil {
 		return defaultRet, err
 	}
 
 	// get version_id
-	versionId, err := gen_id.GetMsgVersionId(ctx, currTimestamp, smallerId, largeId)
+	versionId, err := gen_id.GetMsgVersionId(ctx, mem, currTimestamp, smallerId, largeId)
 	if err != nil {
 		return defaultRet, err
 	}
