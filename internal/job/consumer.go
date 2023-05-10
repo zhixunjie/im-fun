@@ -24,8 +24,8 @@ func (job *Job) Consume(msg *sarama.ConsumerMessage) (err error) {
 	case pb.PushMsg_UserKeys:
 		err = job.PushUserKeys(message.SubId, message.ServerId, message.UserKeys, message.Msg)
 	case pb.PushMsg_UserRoom:
-		//room := job.getRoom(message.Room)
-		//err = room.Push(message.SubId, message.Msg)
+		room := job.getRoom(message.RoomId)
+		err = room.PushToChannel(message.Msg)
 	case pb.PushMsg_UserAll:
 		//err = job.broadcast(message.SubId, message.Msg, message.Speed)
 	default:

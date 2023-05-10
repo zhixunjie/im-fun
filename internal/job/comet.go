@@ -43,11 +43,10 @@ func NewComet(serverId string, c *conf.Comet) (*Comet, error) {
 	}
 
 	// creat channel and routine
-	chanNum := c.ChanNum
 	cmt.ctx, cmt.cancel = context.WithCancel(context.Background())
 	for i := 0; i < routineNum; i++ {
-		cmt.userKeysChan[i] = make(chan *comet.PushUserKeysReq, chanNum)
-		cmt.userRoomChan[i] = make(chan *comet.PushUserRoomReq, chanNum)
+		cmt.userKeysChan[i] = make(chan *comet.PushUserKeysReq, c.ChanNum)
+		cmt.userRoomChan[i] = make(chan *comet.PushUserRoomReq, c.ChanNum)
 		go cmt.Process(i)
 	}
 	return cmt, nil

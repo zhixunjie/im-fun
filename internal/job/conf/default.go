@@ -14,9 +14,9 @@ func defaultConfig() *Config {
 		Kafka: DefaultKafka(),
 		Comet: &Comet{ChanNum: 1024, RoutineNum: 32},
 		Room: &Room{
-			Batch:  20,
-			Signal: newtime.Duration(time.Second),
-			Idle:   newtime.Duration(time.Minute * 15),
+			Batch:         20,
+			TimerDuration: newtime.Duration(time.Second),
+			Idle:          newtime.Duration(time.Minute * 15),
 		},
 	}
 }

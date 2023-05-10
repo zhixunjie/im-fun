@@ -27,11 +27,13 @@ func (w *Writer) Reset() {
 }
 
 // Buffer return buffer's []byte
+// 返回已写入的缓冲区数据
 func (w *Writer) Buffer() []byte {
 	return w.buf[:w.n]
 }
 
 // Peek buffer
+// 预留缓冲区的一段内存（即将会被写入数据的内存）
 func (w *Writer) Peek(n int) []byte {
 	var buf []byte
 	w.grow(n)

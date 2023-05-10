@@ -36,3 +36,17 @@
 11. 服务注册、服务发现。
 12. 分布式部署、大型IM系统。
 13. 性能测试、性能调优、内存泄露。
+
+---
+
+TCP的数据包格式：
+
+- 数据包由两部分组成：Header + Body。
+- Package Length：整个包的长度（Header + Body）。
+- Header Length：Header部分的长度。
+- Protocol Version：数据包格式的版本。
+- Operation：操作类型（对应不同类型操作的消息），如：接收批量消息、心跳请求/响应等。
+- Sequence Id：序列号
+- Body：请求体，根据业务需求，可以自定义不同的请求体内容。
+
+![image-20230418112113592](https://typroa-jasonzhi.oss-cn-guangzhou.aliyuncs.com/imgs/image-20230418112113592.png)

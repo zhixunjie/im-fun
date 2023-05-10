@@ -42,12 +42,12 @@ type Discovery struct {
 }
 
 type Room struct {
-	Batch  int              `yaml:"batch"`
-	Signal newtime.Duration `yaml:"signal"`
-	Idle   newtime.Duration `yaml:"idle"`
+	Batch         int              `yaml:"batch"`
+	TimerDuration newtime.Duration `yaml:"timerDuration"`
+	Idle          newtime.Duration `yaml:"idle"`
 }
 
 type Comet struct {
-	ChanNum    int `yaml:"chanNum"`
-	RoutineNum int `yaml:"routineNum"`
+	ChanNum    int `yaml:"chanNum"`    // 每个协程对应多个Channel，这里设置每个Channel的缓冲区大小
+	RoutineNum int `yaml:"routineNum"` // 协程数目，用于消费Channel的消息
 }
