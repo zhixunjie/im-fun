@@ -22,11 +22,11 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CometClient interface {
-	// push by user keys
+	// send msg with user keys
 	SendToUserKeys(ctx context.Context, in *SendToUserKeysReq, opts ...grpc.CallOption) (*SendToUserKeysReply, error)
-	// push by room's user
+	// send msg with room's user
 	SendToRoom(ctx context.Context, in *SendToRoomReq, opts ...grpc.CallOption) (*SendToRoomReply, error)
-	// push by every user
+	// send msg with every user
 	SendToAll(ctx context.Context, in *SendToAllReq, opts ...grpc.CallOption) (*SendToAllReply, error)
 	// get all rooms
 	GetAllRoomId(ctx context.Context, in *GetAllRoomIdReq, opts ...grpc.CallOption) (*GetAllRoomIdReply, error)
@@ -80,11 +80,11 @@ func (c *cometClient) GetAllRoomId(ctx context.Context, in *GetAllRoomIdReq, opt
 // All implementations must embed UnimplementedCometServer
 // for forward compatibility
 type CometServer interface {
-	// push by user keys
+	// send msg with user keys
 	SendToUserKeys(context.Context, *SendToUserKeysReq) (*SendToUserKeysReply, error)
-	// push by room's user
+	// send msg with room's user
 	SendToRoom(context.Context, *SendToRoomReq) (*SendToRoomReply, error)
-	// push by every user
+	// send msg with every user
 	SendToAll(context.Context, *SendToAllReq) (*SendToAllReply, error)
 	// get all rooms
 	GetAllRoomId(context.Context, *GetAllRoomIdReq) (*GetAllRoomIdReply, error)
