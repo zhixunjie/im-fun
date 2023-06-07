@@ -55,7 +55,7 @@ type ProtoPack struct {
 }
 
 // header编码：把proto的头信息，编码写入到buf的头
-func codeProtoHeader(proto *Proto, buf []byte) []byte {
+func encodeHeaderFromProtoToBuf(proto *Proto, buf []byte) []byte {
 	packLen := _rawHeaderSize + int32(len(proto.Body))
 	binary.BigEndian.PutInt32(buf[_packOffset:], packLen)
 	binary.BigEndian.PutInt16(buf[_headerOffset:], int16(_rawHeaderSize))
@@ -67,7 +67,7 @@ func codeProtoHeader(proto *Proto, buf []byte) []byte {
 }
 
 // header解码：把buf的头信息，解码到proto的头
-func unCodeProtoHeader(proto *Proto, buf []byte) (ProtoPack, error) {
+func decodeHeaderFromBufToProto(proto *Proto, buf []byte) (ProtoPack, error) {
 	var header ProtoPack
 	if len(buf) < _rawHeaderSize {
 		return header, ErrProtoHeaderLen

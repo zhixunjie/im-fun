@@ -15,7 +15,7 @@ func (proto *Proto) ReadTCP(reader *bufio.Reader) (err error) {
 		return err
 	}
 	// proto header
-	pack, err := unCodeProtoHeader(proto, buf)
+	pack, err := decodeHeaderFromBufToProto(proto, buf)
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func (proto *Proto) WriteTCP(writer *bufio.Writer) (err error) {
 	}
 	// proto header
 	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
-	buf = codeProtoHeader(proto, buf)
+	buf = encodeHeaderFromProtoToBuf(proto, buf)
 	_, err = writer.Write(buf)
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func (proto *Proto) WriteTCPHeart(writer *bufio.Writer, online int32) (err error
 	// proto header
 	packLen := _rawHeaderSize + _heartSize
 	buf := make([]byte, packLen) // TODO try to reduce GC
-	buf = codeProtoHeader(proto, buf)
+	buf = encodeHeaderFromProtoToBuf(proto, buf)
 
 	// proto body
 	binary.BigEndian.PutInt32(buf[_heartOffset:], online)

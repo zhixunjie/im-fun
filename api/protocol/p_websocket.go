@@ -14,7 +14,7 @@ func (proto *Proto) ReadWs(conn *websocket.Conn) (err error) {
 		return err
 	}
 	// proto header
-	pack, err := unCodeProtoHeader(proto, buf)
+	pack, err := decodeHeaderFromBufToProto(proto, buf)
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (proto *Proto) WriteWs(conn *websocket.Conn) (err error) {
 	// websocket payload
 	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
 	// proto header
-	buf = codeProtoHeader(proto, buf)
+	buf = encodeHeaderFromProtoToBuf(proto, buf)
 	err = conn.WritePayload(buf)
 	if err != nil {
 		return err
@@ -74,10 +74,10 @@ func (proto *Proto) WriteWsHeart(conn *websocket.Conn, online int32) (err error)
 	// websocket payload
 	buf := make([]byte, payloadLen) // TODO try to reduce GC
 	// proto header
-	buf = codeProtoHeader(proto, buf)
+	buf = encodeHeaderFromProtoToBuf(proto, buf)
 	// proto body
 	binary.BigEndian.PutInt32(buf[_heartOffset:], online)
-	err = conn.WritePayload(codeProtoHeader(proto, buf))
+	err = conn.WritePayload(encodeHeaderFromProtoToBuf(proto, buf))
 	if err != nil {
 		return err
 	}

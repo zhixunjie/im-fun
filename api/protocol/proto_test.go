@@ -13,8 +13,8 @@ func TestEncodeAndDecode(t *testing.T) {
 		Body: []byte("i am jason"),
 	}
 	buf := make([]byte, _rawHeaderSize)
-	codeProtoHeader(proto, buf)
+	encodeHeaderFromProtoToBuf(proto, buf)
 
 	var proto1 Proto
-	fmt.Println(unCodeProtoHeader(&proto1, buf))
+	fmt.Println(decodeHeaderFromBufToProto(&proto1, buf))
 }
