@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/zhixunjie/im-fun/internal/logic/apigrpc"
-	"github.com/zhixunjie/im-fun/internal/logic/apihttp"
+	logicGrpc "github.com/zhixunjie/im-fun/internal/logic/api/grpc"
+	logicHttp "github.com/zhixunjie/im-fun/internal/logic/api/http"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/internal/logic/service"
 	"github.com/zhixunjie/im-fun/pkg/log"
@@ -20,9 +20,9 @@ func main() {
 	// init service
 	svc := service.New(conf.Conf)
 	// init HTTP server
-	httpSrv := apihttp.New(conf.Conf, svc)
+	httpSrv := logicHttp.New(conf.Conf, svc)
 	// init GRPC server
-	rpcSrv := apigrpc.New(conf.Conf.RPC.Server, svc)
+	rpcSrv := logicGrpc.New(conf.Conf.RPC.Server, svc)
 
 	// signal
 	c := make(chan os.Signal, 1)
