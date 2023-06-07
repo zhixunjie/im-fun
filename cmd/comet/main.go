@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/comet"
+	commetgrpc "github.com/zhixunjie/im-fun/internal/comet/api/grpc"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
-	"github.com/zhixunjie/im-fun/internal/comet/grpc"
 	"github.com/zhixunjie/im-fun/pkg/log"
 	"math/rand"
 	"net"
@@ -44,7 +44,7 @@ func main() {
 		panic(err)
 	}
 	// init GRPC server
-	rpcSrv := grpc.New(srv, conf.Conf.RPC.Server)
+	rpcSrv := commetgrpc.New(srv, conf.Conf.RPC.Server)
 
 	// signal
 	c := make(chan os.Signal, 1)
