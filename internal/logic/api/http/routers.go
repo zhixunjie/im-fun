@@ -14,8 +14,8 @@ func (s *Server) SetupRouter() {
 	}
 
 	// push
-	router.POST("/push/user/keys", s.pushUserKeys) // 发送给指定的用户key
-	router.POST("/push/user/ids", s.pushUserIds)   // 发送给指定的用户id
-	router.POST("/push/user/room", s.pushUserRoom) // 广播给房间的所有用户
-	router.POST("/push/user/all", s.pushUserAll)   // 广播给所有用户
+	router.POST("/push/user/keys", s.sendToUserKeys) // 发送给指定的用户key
+	router.POST("/push/user/ids", s.sendToUserIds)   // 发送给指定的用户id
+	router.POST("/push/user/room", s.sendToRoom)     // 广播给房间的所有用户
+	router.POST("/push/user/all", s.sendToAll)       // 广播给所有用户
 }

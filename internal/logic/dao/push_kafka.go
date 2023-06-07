@@ -8,7 +8,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func (d *Dao) KafkaPushKeys(serverId string, userKeys []string, subId int32, msg []byte) (err error) {
+func (d *Dao) KafkaSendToUserKeys(serverId string, userKeys []string, subId int32, msg []byte) (err error) {
 	protoMsg := &pb.PushMsg{
 		Type:     pb.PushMsg_UserKeys,
 		SubId:    subId,
@@ -29,7 +29,7 @@ func (d *Dao) KafkaPushKeys(serverId string, userKeys []string, subId int32, msg
 	return err
 }
 
-func (d *Dao) KafkaPushRoom(req *request.PushUserRoomReq) (err error) {
+func (d *Dao) KafkaSendToRoom(req *request.SendToRoomReq) (err error) {
 	protoMsg := &pb.PushMsg{
 		Type:   pb.PushMsg_UserRoom,
 		SubId:  req.SubId,
@@ -49,7 +49,7 @@ func (d *Dao) KafkaPushRoom(req *request.PushUserRoomReq) (err error) {
 	return err
 }
 
-func (d *Dao) KafkaPushAll(req *request.PushUserAllReq) (err error) {
+func (d *Dao) KafkaSendToAll(req *request.SendToAllReq) (err error) {
 	protoMsg := &pb.PushMsg{
 		Type:  pb.PushMsg_UserAll,
 		SubId: req.SubId,

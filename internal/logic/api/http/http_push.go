@@ -8,9 +8,9 @@ import (
 	"net/http"
 )
 
-func (s *Server) pushUserKeys(ctx *gin.Context) {
+func (s *Server) sendToUserKeys(ctx *gin.Context) {
 	// request
-	var req request.PushUserKeysReq
+	var req request.SendToUserKeysReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.JsonError(ctx, err)
 		return
@@ -27,7 +27,7 @@ func (s *Server) pushUserKeys(ctx *gin.Context) {
 	}
 
 	// service
-	err := s.svc.PushUserKeys(ctx, &req)
+	err := s.svc.SendToUserKeys(ctx, &req)
 	if err != nil {
 		response.JsonError(ctx, err)
 		return
@@ -39,9 +39,9 @@ func (s *Server) pushUserKeys(ctx *gin.Context) {
 	return
 }
 
-func (s *Server) pushUserIds(ctx *gin.Context) {
+func (s *Server) sendToUserIds(ctx *gin.Context) {
 	// request
-	var req request.PushUserIdsReq
+	var req request.SendToUserIdsReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.JsonError(ctx, err)
 		return
@@ -58,7 +58,7 @@ func (s *Server) pushUserIds(ctx *gin.Context) {
 	}
 
 	// service
-	err := s.svc.PushUserIds(ctx, &req)
+	err := s.svc.SendToUserIds(ctx, &req)
 	if err != nil {
 		response.JsonError(ctx, err)
 		return
@@ -70,9 +70,9 @@ func (s *Server) pushUserIds(ctx *gin.Context) {
 	return
 }
 
-func (s *Server) pushUserRoom(ctx *gin.Context) {
+func (s *Server) sendToRoom(ctx *gin.Context) {
 	// request
-	var req request.PushUserRoomReq
+	var req request.SendToRoomReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.JsonError(ctx, err)
 		return
@@ -93,7 +93,7 @@ func (s *Server) pushUserRoom(ctx *gin.Context) {
 	}
 
 	// service
-	err := s.svc.PushUserRoom(ctx, &req)
+	err := s.svc.SendToRoom(ctx, &req)
 	if err != nil {
 		response.JsonError(ctx, err)
 		return
@@ -105,9 +105,9 @@ func (s *Server) pushUserRoom(ctx *gin.Context) {
 	return
 }
 
-func (s *Server) pushUserAll(ctx *gin.Context) {
+func (s *Server) sendToAll(ctx *gin.Context) {
 	// request
-	var req request.PushUserAllReq
+	var req request.SendToAllReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.JsonError(ctx, err)
 		return
@@ -124,7 +124,7 @@ func (s *Server) pushUserAll(ctx *gin.Context) {
 	}
 
 	// service
-	err := s.svc.PushUserAll(ctx, &req)
+	err := s.svc.SendToAll(ctx, &req)
 	if err != nil {
 		response.JsonError(ctx, err)
 		return

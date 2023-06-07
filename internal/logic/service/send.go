@@ -6,8 +6,8 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/model/request"
 )
 
-// PushUserKeys 发送消息（by kafka）
-func (svc *Service) PushUserKeys(ctx context.Context, req *request.PushUserKeysReq) error {
+// SendToUserKeys 发送消息（by kafka）
+func (svc *Service) SendToUserKeys(ctx context.Context, req *request.SendToUserKeysReq) error {
 	logHead := "SendToUsers|"
 	res, err := svc.dao.SessionGetByUserKeys(ctx, req.UserKeys)
 	if err != nil {
@@ -24,7 +24,7 @@ func (svc *Service) PushUserKeys(ctx context.Context, req *request.PushUserKeysR
 
 	// 同一台机器的userKey一次性发送
 	for serverId := range serverIdMap {
-		err = svc.dao.KafkaPushKeys(serverId, serverIdMap[serverId], req.SubId, []byte(req.Message))
+		err = svc.dao.KafkaSendToUserKeys(serverId, serverIdMap[serverId], req.SubId, []byte(req.Message))
 		if err != nil {
 			logrus.Errorf(logHead+"err=%v", err)
 		}
@@ -33,9 +33,9 @@ func (svc *Service) PushUserKeys(ctx context.Context, req *request.PushUserKeysR
 	return nil
 }
 
-// PushUserIds 发送消息（by kafka）
-func (svc *Service) PushUserIds(ctx context.Context, req *request.PushUserIdsReq) error {
-	logHead := "PushUserIds|"
+// SendToUserIds 发送消息（by kafka）
+func (svc *Service) SendToUserIds(ctx context.Context, req *request.SendToUserIdsReq) error {
+	logHead := "SendToUserIds|"
 	res, err := svc.dao.SessionGetByUserIds(ctx, req.UserIds)
 	if err != nil {
 		logrus.Errorf(logHead+"res=%v, err=%v", res, err)
@@ -50,7 +50,7 @@ func (svc *Service) PushUserIds(ctx context.Context, req *request.PushUserIdsReq
 
 	// 同一台机器的userKey一次性发送
 	for serverId := range serverIdMap {
-		err = svc.dao.KafkaPushKeys(serverId, serverIdMap[serverId], req.SubId, req.Message)
+		err = svc.dao.KafkaSendToUserKeys(serverId, serverIdMap[serverId], req.SubId, req.Message)
 		if err != nil {
 			logrus.Errorf(logHead+"err=%v", err)
 		}
@@ -59,10 +59,10 @@ func (svc *Service) PushUserIds(ctx context.Context, req *request.PushUserIdsReq
 	return nil
 }
 
-// PushUserRoom 发送消息（by kafka）
-func (svc *Service) PushUserRoom(ctx context.Context, req *request.PushUserRoomReq) error {
-	logHead := "BroadcastRoom|"
-	err := svc.dao.KafkaPushRoom(req)
+// SendToRoom 发送消息（by kafka）
+func (svc *Service) SendToRoom(ctx context.Context, req *request.SendToRoomReq) error {
+	logHead := "SendToRoom|"
+	err := svc.dao.KafkaSendToRoom(req)
 	if err != nil {
 		logrus.Errorf(logHead+"err=%v", err)
 		return err
@@ -70,10 +70,10 @@ func (svc *Service) PushUserRoom(ctx context.Context, req *request.PushUserRoomR
 	return nil
 }
 
-// PushUserAll 发送消息
-func (svc *Service) PushUserAll(ctx context.Context, req *request.PushUserAllReq) error {
+// SendToAll 发送消息（by kafka）
+func (svc *Service) SendToAll(ctx context.Context, req *request.SendToAllReq) error {
 	logHead := "SendToAll|"
-	err := svc.dao.KafkaPushAll(req)
+	err := svc.dao.KafkaSendToAll(req)
 	if err != nil {
 		logrus.Errorf(logHead+"err=%v", err)
 		return err
