@@ -9,8 +9,8 @@ import (
 )
 
 func (d *Dao) KafkaSendToUserKeys(serverId string, userKeys []string, subId int32, msg []byte) (err error) {
-	protoMsg := &pb.PushMsg{
-		Type:     pb.PushMsg_UserKeys,
+	protoMsg := &pb.KafkaSendMsg{
+		Type:     pb.KafkaSendMsg_UserKeys,
 		SubId:    subId,
 		ServerId: serverId,
 		UserKeys: userKeys,
@@ -30,8 +30,8 @@ func (d *Dao) KafkaSendToUserKeys(serverId string, userKeys []string, subId int3
 }
 
 func (d *Dao) KafkaSendToRoom(req *request.SendToRoomReq) (err error) {
-	protoMsg := &pb.PushMsg{
-		Type:   pb.PushMsg_UserRoom,
+	protoMsg := &pb.KafkaSendMsg{
+		Type:   pb.KafkaSendMsg_UserRoom,
 		SubId:  req.SubId,
 		RoomId: utils.EncodeRoomKey(req.RoomType, req.RoomId),
 		Msg:    req.Message,
@@ -50,8 +50,8 @@ func (d *Dao) KafkaSendToRoom(req *request.SendToRoomReq) (err error) {
 }
 
 func (d *Dao) KafkaSendToAll(req *request.SendToAllReq) (err error) {
-	protoMsg := &pb.PushMsg{
-		Type:  pb.PushMsg_UserAll,
+	protoMsg := &pb.KafkaSendMsg{
+		Type:  pb.KafkaSendMsg_UserAll,
 		SubId: req.SubId,
 		Speed: req.Speed,
 		Msg:   req.Message,

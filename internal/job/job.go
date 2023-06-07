@@ -54,7 +54,7 @@ func (job *Job) Consume(msg *sarama.ConsumerMessage) {
 	var err error
 
 	// Unmarshal msg
-	message := new(pb.PushMsg)
+	message := new(pb.KafkaSendMsg)
 	if err = proto.Unmarshal(msg.Value, message); err != nil {
 		logrus.Errorf(logHead+"err=%v", err)
 		return
@@ -62,11 +62,11 @@ func (job *Job) Consume(msg *sarama.ConsumerMessage) {
 
 	// deal msg
 	switch message.Type {
-	case pb.PushMsg_UserKeys:
+	case pb.KafkaSendMsg_UserKeys:
 		err = job.SendToUserKeys(message.SubId, message.ServerId, message.UserKeys, message.Msg)
-	case pb.PushMsg_UserRoom:
+	case pb.KafkaSendMsg_UserRoom:
 		err = job.CreateOrGetRoom(message.RoomId).Send(message.Msg)
-	case pb.PushMsg_UserAll:
+	case pb.KafkaSendMsg_UserAll:
 		//err = job.broadcast(message.SubId, message.Msg, message.Speed)
 	default:
 		err = fmt.Errorf("unknown push type: %s", message.Type)

@@ -6,7 +6,7 @@ option go_package = "github.com/zhixunjie/im-fun/api/logic;logic";
 
 import "protocol/protocol.proto";
 
-message PushMsg {
+message KafkaSendMsg {
   enum Type {
     UserKeys = 0;
     UserRoom = 1;
