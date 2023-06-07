@@ -6,12 +6,12 @@ import (
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"time"
 
-	"github.com/zhixunjie/im-fun/api/logic"
+	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
 )
 
 func (s *Server) Connect(ctx context.Context, ch *channel.Channel, token string) (heartbeat time.Duration, err error) {
-	reply, err := s.rpcClient.Connect(ctx, &logic.ConnectReq{
+	reply, err := s.rpcClient.Connect(ctx, &pb.ConnectReq{
 		ServerId: s.serverId,
 		UserId:   ch.UserInfo.UserId,
 		UserKey:  ch.UserInfo.UserKey,
@@ -26,7 +26,7 @@ func (s *Server) Connect(ctx context.Context, ch *channel.Channel, token string)
 }
 
 func (s *Server) Disconnect(ctx context.Context, ch *channel.Channel) (err error) {
-	_, err = s.rpcClient.Disconnect(ctx, &logic.DisconnectReq{
+	_, err = s.rpcClient.Disconnect(ctx, &pb.DisconnectReq{
 		ServerId: s.serverId,
 		UserId:   ch.UserInfo.UserId,
 		UserKey:  ch.UserInfo.UserKey,
@@ -35,7 +35,7 @@ func (s *Server) Disconnect(ctx context.Context, ch *channel.Channel) (err error
 }
 
 func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err error) {
-	_, err = s.rpcClient.Heartbeat(ctx, &logic.HeartbeatReq{
+	_, err = s.rpcClient.Heartbeat(ctx, &pb.HeartbeatReq{
 		UserId:  userInfo.UserId,
 		UserKey: userInfo.UserKey,
 	})
@@ -56,7 +56,7 @@ func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err
 
 // Receive receive a message.
 func (s *Server) Receive(ctx context.Context, ch *channel.Channel, p *protocol.Proto) (err error) {
-	_, err = s.rpcClient.Receive(ctx, &logic.ReceiveReq{UserId: ch.UserInfo.UserId, Proto: p})
+	_, err = s.rpcClient.Receive(ctx, &pb.ReceiveReq{UserId: ch.UserInfo.UserId, Proto: p})
 	return
 }
 

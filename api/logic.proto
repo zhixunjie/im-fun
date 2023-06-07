@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package imfun.logic;
 
-option go_package = "github.com/zhixunjie/im-fun/api/logic;logic";
+option go_package = "github.com/zhixunjie/im-fun/api/pb;pb";
 
-import "protocol/protocol.proto";
+import "protocol.proto";
 
 message KafkaSendMsg {
   enum Type {

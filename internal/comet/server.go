@@ -3,7 +3,7 @@ package comet
 import (
 	"context"
 	"github.com/zhenjl/cityhash"
-	"github.com/zhixunjie/im-fun/api/logic"
+	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -24,7 +24,7 @@ type Server struct {
 	buckets     []*Bucket    // bucket 数组
 	bucketTotal uint32       // bucket总数
 
-	rpcClient logic.LogicClient
+	rpcClient pb.LogicClient
 }
 
 // NewServer returns a new Server.
@@ -76,7 +76,7 @@ const (
 	grpcBackoffMaxDelay       = time.Second * 3
 )
 
-func newLogicClient(conf *conf.RPCClient) logic.LogicClient {
+func newLogicClient(conf *conf.RPCClient) pb.LogicClient {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	conn, err := grpc.DialContext(ctx, "127.0.0.1:12670",
@@ -96,5 +96,5 @@ func newLogicClient(conf *conf.RPCClient) logic.LogicClient {
 	if err != nil {
 		panic(err)
 	}
-	return logic.NewLogicClient(conn)
+	return pb.NewLogicClient(conn)
 }

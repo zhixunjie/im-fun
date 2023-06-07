@@ -4,24 +4,24 @@ import (
 	"context"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"github.com/zhixunjie/im-fun/api/comet"
+	pb "github.com/zhixunjie/im-fun/api/pb"
 	"sync/atomic"
 	"time"
 )
 
-func (c *Comet) SendToUserKeys(arg *comet.SendToUserKeysReq) (err error) {
+func (c *Comet) SendToUserKeys(arg *pb.SendToUserKeysReq) (err error) {
 	idx := atomic.AddUint64(&c.pushChanNum, 1) % c.routineNum
 	c.chUserKeys[idx] <- arg
 	return
 }
 
-func (c *Comet) SendToRoom(arg *comet.SendToRoomReq) (err error) {
+func (c *Comet) SendToRoom(arg *pb.SendToRoomReq) (err error) {
 	idx := atomic.AddUint64(&c.roomChanNum, 1) % c.routineNum
 	c.chRoom[idx] <- arg
 	return
 }
 
-func (c *Comet) SendToAll(arg *comet.SendToAllReq) (err error) {
+func (c *Comet) SendToAll(arg *pb.SendToAllReq) (err error) {
 	c.chAll <- arg
 	return
 }

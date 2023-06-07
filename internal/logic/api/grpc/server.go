@@ -8,7 +8,7 @@ import (
 	"net"
 	"time"
 
-	pb "github.com/zhixunjie/im-fun/api/logic"
+	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 
 	"google.golang.org/grpc"

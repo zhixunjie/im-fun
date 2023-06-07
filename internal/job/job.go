@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/sirupsen/logrus"
-	pb "github.com/zhixunjie/im-fun/api/logic"
+	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/job/conf"
 	"github.com/zhixunjie/im-fun/pkg/kafka"
 	"google.golang.org/protobuf/proto"

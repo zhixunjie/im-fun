@@ -2,7 +2,7 @@ package job
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/zhixunjie/im-fun/api/comet"
+	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/pkg/buffer"
 )
@@ -23,7 +23,7 @@ func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, 
 
 	// push to comet
 	if cm, ok := job.allComet[serverId]; ok {
-		params := comet.SendToUserKeysReq{
+		params := pb.SendToUserKeysReq{
 			UserKeys: userKeys,
 			Proto:    proto,
 			SubId:    subId,
@@ -49,7 +49,7 @@ func (job *Job) SendToRoom(subId int32, roomId string, batchMessage []byte) (err
 
 	// push to every comet
 	for serverId, cm := range job.allComet {
-		params := comet.SendToRoomReq{
+		params := pb.SendToRoomReq{
 			RoomId: roomId,
 			Proto:  proto,
 		}
@@ -74,7 +74,7 @@ func (job *Job) SendToAll(subId int32, speed int32, message []byte) (err error) 
 	// push to every comet
 	speed = speed / int32(len(job.allComet))
 	for serverId, cm := range job.allComet {
-		params := comet.SendToAllReq{
+		params := pb.SendToAllReq{
 			Proto: proto,
 			SubId: subId,
 			Speed: speed,

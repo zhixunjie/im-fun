@@ -2,7 +2,7 @@ package job
 
 import (
 	"context"
-	"github.com/zhixunjie/im-fun/api/comet"
+	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/job/conf"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -16,25 +16,25 @@ type Comet struct {
 	cancel context.CancelFunc
 
 	serverId  string
-	rpcClient comet.CometClient
+	rpcClient pb.CometClient
 
 	pushChanNum uint64
 	roomChanNum uint64
 	routineNum  uint64
 
 	// send msg
-	chUserKeys []chan *comet.SendToUserKeysReq // send msg to some user
-	chRoom     []chan *comet.SendToRoomReq     // send msg to the room
-	chAll      chan *comet.SendToAllReq        // send msg to all user
+	chUserKeys []chan *pb.SendToUserKeysReq // send msg to some user
+	chRoom     []chan *pb.SendToRoomReq     // send msg to the room
+	chAll      chan *pb.SendToAllReq        // send msg to all user
 }
 
 func NewComet(serverId string, c *conf.Comet) (*Comet, error) {
 	routineNum := c.RoutineNum
 	cmt := &Comet{
 		serverId:   serverId,
-		chUserKeys: make([]chan *comet.SendToUserKeysReq, routineNum),
-		chRoom:     make([]chan *comet.SendToRoomReq, routineNum),
-		chAll:      make(chan *comet.SendToAllReq, routineNum),
+		chUserKeys: make([]chan *pb.SendToUserKeysReq, routineNum),
+		chRoom:     make([]chan *pb.SendToRoomReq, routineNum),
+		chAll:      make(chan *pb.SendToAllReq, routineNum),
 		routineNum: uint64(routineNum),
 	}
 
@@ -48,8 +48,8 @@ func NewComet(serverId string, c *conf.Comet) (*Comet, error) {
 	// creat channel and routine
 	cmt.ctx, cmt.cancel = context.WithCancel(context.Background())
 	for i := 0; i < routineNum; i++ {
-		cmt.chUserKeys[i] = make(chan *comet.SendToUserKeysReq, c.ChanNum)
-		cmt.chRoom[i] = make(chan *comet.SendToRoomReq, c.ChanNum)
+		cmt.chUserKeys[i] = make(chan *pb.SendToUserKeysReq, c.ChanNum)
+		cmt.chRoom[i] = make(chan *pb.SendToRoomReq, c.ChanNum)
 		go cmt.Process(i)
 	}
 	return cmt, nil
@@ -70,7 +70,7 @@ const (
 	grpcInitialConnWindowSize = 1 << 24
 )
 
-func newCometClient(addr string) (comet.CometClient, error) {
+func newCometClient(addr string) (pb.CometClient, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	conn, err := grpc.DialContext(ctx, addr,
@@ -91,5 +91,5 @@ func newCometClient(addr string) (comet.CometClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	return comet.NewCometClient(conn), err
+	return pb.NewCometClient(conn), err
 }

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"github.com/sirupsen/logrus"
-	pb "github.com/zhixunjie/im-fun/api/logic"
+	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
 )
 

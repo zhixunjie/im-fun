@@ -7,7 +7,7 @@ import (
 	"net"
 	"time"
 
-	pb "github.com/zhixunjie/im-fun/api/comet"
+	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/internal/comet/errors"
 
