@@ -7,31 +7,31 @@ option go_package = "github.com/zhixunjie/im-fun/api/comet;comet";
 import "protocol/protocol.proto";
 
 // users
-message PushUserKeysReq {
+message SendToUserKeysReq {
   repeated string userKeys = 1;
   imfun.protocol.Proto proto = 2;
   int32 subId = 3;
 }
 
-message PushUserKeysReply {}
+message SendToUserKeysReply {}
 
 // all users
-message PushUserAllReq{
+message SendToAllReq{
   imfun.protocol.Proto proto = 1;
   int32 subId = 2;
   int32 speed = 3;
 }
 
-message PushUserAllReply{}
+message SendToAllReply{}
 
 // room users
-message PushUserRoomReq {
+message SendToRoomReq {
   string roomId = 1;
   imfun.protocol.Proto proto = 2;
   int32 subId = 3;
 }
 
-message PushUserRoomReply{}
+message SendToRoomReply{}
 
 // room's
 message GetAllRoomIdReq{}
@@ -42,11 +42,11 @@ message GetAllRoomIdReply {
 
 service Comet {
   // push by user keys
-  rpc PushUserKeys(PushUserKeysReq) returns (PushUserKeysReply);
+  rpc SendToUserKeys(SendToUserKeysReq) returns (SendToUserKeysReply);
   // push by room's user
-  rpc PushUserRoom(PushUserRoomReq) returns (PushUserRoomReply);
+  rpc SendToRoom(SendToRoomReq) returns (SendToRoomReply);
   // push by every user
-  rpc PushUserAll(PushUserAllReq) returns (PushUserAllReply);
+  rpc SendToAll(SendToAllReq) returns (SendToAllReply);
   // get all rooms
   rpc GetAllRoomId(GetAllRoomIdReq) returns (GetAllRoomIdReply);
 }

@@ -23,11 +23,11 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CometClient interface {
 	// push by user keys
-	PushUserKeys(ctx context.Context, in *PushUserKeysReq, opts ...grpc.CallOption) (*PushUserKeysReply, error)
+	SendToUserKeys(ctx context.Context, in *SendToUserKeysReq, opts ...grpc.CallOption) (*SendToUserKeysReply, error)
 	// push by room's user
-	PushUserRoom(ctx context.Context, in *PushUserRoomReq, opts ...grpc.CallOption) (*PushUserRoomReply, error)
+	SendToRoom(ctx context.Context, in *SendToRoomReq, opts ...grpc.CallOption) (*SendToRoomReply, error)
 	// push by every user
-	PushUserAll(ctx context.Context, in *PushUserAllReq, opts ...grpc.CallOption) (*PushUserAllReply, error)
+	SendToAll(ctx context.Context, in *SendToAllReq, opts ...grpc.CallOption) (*SendToAllReply, error)
 	// get all rooms
 	GetAllRoomId(ctx context.Context, in *GetAllRoomIdReq, opts ...grpc.CallOption) (*GetAllRoomIdReply, error)
 }
@@ -40,27 +40,27 @@ func NewCometClient(cc grpc.ClientConnInterface) CometClient {
 	return &cometClient{cc}
 }
 
-func (c *cometClient) PushUserKeys(ctx context.Context, in *PushUserKeysReq, opts ...grpc.CallOption) (*PushUserKeysReply, error) {
-	out := new(PushUserKeysReply)
-	err := c.cc.Invoke(ctx, "/imfun.comet.Comet/PushUserKeys", in, out, opts...)
+func (c *cometClient) SendToUserKeys(ctx context.Context, in *SendToUserKeysReq, opts ...grpc.CallOption) (*SendToUserKeysReply, error) {
+	out := new(SendToUserKeysReply)
+	err := c.cc.Invoke(ctx, "/imfun.comet.Comet/SendToUserKeys", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *cometClient) PushUserRoom(ctx context.Context, in *PushUserRoomReq, opts ...grpc.CallOption) (*PushUserRoomReply, error) {
-	out := new(PushUserRoomReply)
-	err := c.cc.Invoke(ctx, "/imfun.comet.Comet/PushUserRoom", in, out, opts...)
+func (c *cometClient) SendToRoom(ctx context.Context, in *SendToRoomReq, opts ...grpc.CallOption) (*SendToRoomReply, error) {
+	out := new(SendToRoomReply)
+	err := c.cc.Invoke(ctx, "/imfun.comet.Comet/SendToRoom", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *cometClient) PushUserAll(ctx context.Context, in *PushUserAllReq, opts ...grpc.CallOption) (*PushUserAllReply, error) {
-	out := new(PushUserAllReply)
-	err := c.cc.Invoke(ctx, "/imfun.comet.Comet/PushUserAll", in, out, opts...)
+func (c *cometClient) SendToAll(ctx context.Context, in *SendToAllReq, opts ...grpc.CallOption) (*SendToAllReply, error) {
+	out := new(SendToAllReply)
+	err := c.cc.Invoke(ctx, "/imfun.comet.Comet/SendToAll", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -81,11 +81,11 @@ func (c *cometClient) GetAllRoomId(ctx context.Context, in *GetAllRoomIdReq, opt
 // for forward compatibility
 type CometServer interface {
 	// push by user keys
-	PushUserKeys(context.Context, *PushUserKeysReq) (*PushUserKeysReply, error)
+	SendToUserKeys(context.Context, *SendToUserKeysReq) (*SendToUserKeysReply, error)
 	// push by room's user
-	PushUserRoom(context.Context, *PushUserRoomReq) (*PushUserRoomReply, error)
+	SendToRoom(context.Context, *SendToRoomReq) (*SendToRoomReply, error)
 	// push by every user
-	PushUserAll(context.Context, *PushUserAllReq) (*PushUserAllReply, error)
+	SendToAll(context.Context, *SendToAllReq) (*SendToAllReply, error)
 	// get all rooms
 	GetAllRoomId(context.Context, *GetAllRoomIdReq) (*GetAllRoomIdReply, error)
 	mustEmbedUnimplementedCometServer()
@@ -95,14 +95,14 @@ type CometServer interface {
 type UnimplementedCometServer struct {
 }
 
-func (UnimplementedCometServer) PushUserKeys(context.Context, *PushUserKeysReq) (*PushUserKeysReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PushUserKeys not implemented")
+func (UnimplementedCometServer) SendToUserKeys(context.Context, *SendToUserKeysReq) (*SendToUserKeysReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendToUserKeys not implemented")
 }
-func (UnimplementedCometServer) PushUserRoom(context.Context, *PushUserRoomReq) (*PushUserRoomReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PushUserRoom not implemented")
+func (UnimplementedCometServer) SendToRoom(context.Context, *SendToRoomReq) (*SendToRoomReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendToRoom not implemented")
 }
-func (UnimplementedCometServer) PushUserAll(context.Context, *PushUserAllReq) (*PushUserAllReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PushUserAll not implemented")
+func (UnimplementedCometServer) SendToAll(context.Context, *SendToAllReq) (*SendToAllReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendToAll not implemented")
 }
 func (UnimplementedCometServer) GetAllRoomId(context.Context, *GetAllRoomIdReq) (*GetAllRoomIdReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllRoomId not implemented")
@@ -120,56 +120,56 @@ func RegisterCometServer(s grpc.ServiceRegistrar, srv CometServer) {
 	s.RegisterService(&Comet_ServiceDesc, srv)
 }
 
-func _Comet_PushUserKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PushUserKeysReq)
+func _Comet_SendToUserKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendToUserKeysReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CometServer).PushUserKeys(ctx, in)
+		return srv.(CometServer).SendToUserKeys(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/imfun.comet.Comet/PushUserKeys",
+		FullMethod: "/imfun.comet.Comet/SendToUserKeys",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CometServer).PushUserKeys(ctx, req.(*PushUserKeysReq))
+		return srv.(CometServer).SendToUserKeys(ctx, req.(*SendToUserKeysReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Comet_PushUserRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PushUserRoomReq)
+func _Comet_SendToRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendToRoomReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CometServer).PushUserRoom(ctx, in)
+		return srv.(CometServer).SendToRoom(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/imfun.comet.Comet/PushUserRoom",
+		FullMethod: "/imfun.comet.Comet/SendToRoom",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CometServer).PushUserRoom(ctx, req.(*PushUserRoomReq))
+		return srv.(CometServer).SendToRoom(ctx, req.(*SendToRoomReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Comet_PushUserAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PushUserAllReq)
+func _Comet_SendToAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendToAllReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CometServer).PushUserAll(ctx, in)
+		return srv.(CometServer).SendToAll(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/imfun.comet.Comet/PushUserAll",
+		FullMethod: "/imfun.comet.Comet/SendToAll",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CometServer).PushUserAll(ctx, req.(*PushUserAllReq))
+		return srv.(CometServer).SendToAll(ctx, req.(*SendToAllReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -200,16 +200,16 @@ var Comet_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*CometServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "PushUserKeys",
-			Handler:    _Comet_PushUserKeys_Handler,
+			MethodName: "SendToUserKeys",
+			Handler:    _Comet_SendToUserKeys_Handler,
 		},
 		{
-			MethodName: "PushUserRoom",
-			Handler:    _Comet_PushUserRoom_Handler,
+			MethodName: "SendToRoom",
+			Handler:    _Comet_SendToRoom_Handler,
 		},
 		{
-			MethodName: "PushUserAll",
-			Handler:    _Comet_PushUserAll_Handler,
+			MethodName: "SendToAll",
+			Handler:    _Comet_SendToAll_Handler,
 		},
 		{
 			MethodName: "GetAllRoomId",

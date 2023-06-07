@@ -121,7 +121,7 @@ func (t *Timer) Del(td *TimerData) {
 	t.lock.Unlock()
 }
 
-// PushToAllChan pushes the element x onto the heap. The complexity is
+// pushes the element x onto the heap. The complexity is
 // O(log(n)) where n = h.Len().
 func (t *Timer) add(td *TimerData) {
 	var d time.Duration

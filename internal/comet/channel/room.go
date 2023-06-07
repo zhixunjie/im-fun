@@ -54,8 +54,8 @@ func (r *Room) DelChannel(ch *Channel) {
 	r.rwLock.Unlock()
 }
 
-// PushToAllChan 把proto推送到房间中的所有Channel
-func (r *Room) PushToAllChan(proto *protocol.Proto) {
+// SendToAllChan 把proto推送到房间中的所有Channel
+func (r *Room) SendToAllChan(proto *protocol.Proto) {
 	r.rwLock.RLock()
 	// if chan full，discard it
 	for ch := r.next; ch != nil; ch = ch.Next {

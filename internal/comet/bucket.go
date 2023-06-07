@@ -15,8 +15,8 @@ type Bucket struct {
 
 	// room
 	routineCounter uint64
-	rooms          map[string]*channel.Room   // map: RoomId => Room
-	routines       []chan *pb.PushUserRoomReq // deal with proto to room
+	rooms          map[string]*channel.Room // map: RoomId => Room
+	routines       []chan *pb.SendToRoomReq // deal with proto to room
 
 	ipCount map[string]int32
 }
@@ -26,13 +26,13 @@ func NewBucket(conf *conf.Bucket) *Bucket {
 		conf:     conf,
 		chs:      make(map[string]*channel.Channel, conf.Channel),
 		rooms:    make(map[string]*channel.Room, conf.Room),
-		routines: make([]chan *pb.PushUserRoomReq, conf.RoutineAmount),
+		routines: make([]chan *pb.SendToRoomReq, conf.RoutineAmount),
 		ipCount:  make(map[string]int32),
 	}
 
 	// init routines：处理房间的广播事件
 	for i := uint64(0); i < conf.RoutineAmount; i++ {
-		b.routines[i] = make(chan *pb.PushUserRoomReq, conf.RoutineSize)
+		b.routines[i] = make(chan *pb.SendToRoomReq, conf.RoutineSize)
 		go b.ProcessProtoToRoom(b.routines[i])
 	}
 	return b

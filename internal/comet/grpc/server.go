@@ -45,8 +45,8 @@ type server struct {
 
 var _ pb.CometServer = &server{}
 
-// PushUserKeys 发送消息到 UserKey 数组
-func (s *server) PushUserKeys(ctx context.Context, req *pb.PushUserKeysReq) (reply *pb.PushUserKeysReply, err error) {
+// SendToUserKeys 发送消息到 UserKey 数组
+func (s *server) SendToUserKeys(ctx context.Context, req *pb.SendToUserKeysReq) (reply *pb.SendToUserKeysReply, err error) {
 	if len(req.UserKeys) == 0 || req.Proto == nil {
 		return nil, errors.ErrParamsNotAllow
 	}
@@ -58,20 +58,20 @@ func (s *server) PushUserKeys(ctx context.Context, req *pb.PushUserKeysReq) (rep
 			}
 		}
 	}
-	return &pb.PushUserKeysReply{}, nil
+	return &pb.SendToUserKeysReply{}, nil
 }
 
-// PushUserAll 广播消息到所有的用户（所有bucket的所有channel）
-func (s *server) PushUserAll(ctx context.Context, req *pb.PushUserAllReq) (*pb.PushUserAllReply, error) {
+// SendToAll 广播消息到所有的用户（所有bucket的所有channel）
+func (s *server) SendToAll(ctx context.Context, req *pb.SendToAllReq) (*pb.SendToAllReply, error) {
 	if req.Proto == nil {
 		return nil, errors.ErrParamsNotAllow
 	}
 	comet.BroadcastToAllBucket(s.srv, req.GetProto(), int(req.Speed))
-	return &pb.PushUserAllReply{}, nil
+	return &pb.SendToAllReply{}, nil
 }
 
-// PushUserRoom 发送消息到指定房间
-func (s *server) PushUserRoom(ctx context.Context, req *pb.PushUserRoomReq) (*pb.PushUserRoomReply, error) {
+// SendToRoom 发送消息到指定房间
+func (s *server) SendToRoom(ctx context.Context, req *pb.SendToRoomReq) (*pb.SendToRoomReply, error) {
 	if req.Proto == nil || req.RoomId == "" {
 		return nil, errors.ErrParamsNotAllow
 	}
@@ -79,7 +79,7 @@ func (s *server) PushUserRoom(ctx context.Context, req *pb.PushUserRoomReq) (*pb
 	for _, bucket := range s.srv.Buckets() {
 		bucket.BroadcastRoom(req)
 	}
-	return &pb.PushUserRoomReply{}, nil
+	return &pb.SendToRoomReply{}, nil
 }
 
 // GetAllRoomId 获取所有在线人数大于0的房间
