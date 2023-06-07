@@ -23,12 +23,12 @@ func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, 
 
 	// push to comet
 	if cm, ok := job.allComet[serverId]; ok {
-		params := comet.PushUserKeysReq{
+		params := comet.SendToUserKeysReq{
 			UserKeys: userKeys,
 			Proto:    proto,
 			SubId:    subId,
 		}
-		if err = cm.PushUserKeys(&params); err != nil {
+		if err = cm.SendToUserKeys(&params); err != nil {
 			logrus.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
 		}
 	}
@@ -49,11 +49,11 @@ func (job *Job) SendToRoom(subId int32, roomId string, batchMessage []byte) (err
 
 	// push to every comet
 	for serverId, cm := range job.allComet {
-		params := comet.PushUserRoomReq{
+		params := comet.SendToRoomReq{
 			RoomId: roomId,
 			Proto:  proto,
 		}
-		if err = cm.PushUserRoom(&params); err != nil {
+		if err = cm.SendToRoom(&params); err != nil {
 			logrus.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
 		}
 	}
@@ -74,12 +74,12 @@ func (job *Job) SendToAll(subId int32, speed int32, message []byte) (err error) 
 	// push to every comet
 	speed = speed / int32(len(job.allComet))
 	for serverId, cm := range job.allComet {
-		params := comet.PushUserAllReq{
+		params := comet.SendToAllReq{
 			Proto: proto,
 			SubId: subId,
 			Speed: speed,
 		}
-		if err = cm.PushUserAll(&params); err != nil {
+		if err = cm.SendToAll(&params); err != nil {
 			logrus.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
 		}
 	}

@@ -9,20 +9,20 @@ import (
 	"time"
 )
 
-func (c *Comet) PushUserKeys(arg *comet.PushUserKeysReq) (err error) {
+func (c *Comet) SendToUserKeys(arg *comet.SendToUserKeysReq) (err error) {
 	idx := atomic.AddUint64(&c.pushChanNum, 1) % c.routineNum
-	c.userKeysChan[idx] <- arg
+	c.chUserKeys[idx] <- arg
 	return
 }
 
-func (c *Comet) PushUserRoom(arg *comet.PushUserRoomReq) (err error) {
+func (c *Comet) SendToRoom(arg *comet.SendToRoomReq) (err error) {
 	idx := atomic.AddUint64(&c.roomChanNum, 1) % c.routineNum
-	c.userRoomChan[idx] <- arg
+	c.chRoom[idx] <- arg
 	return
 }
 
-func (c *Comet) PushUserAll(arg *comet.PushUserAllReq) (err error) {
-	c.userAllChan <- arg
+func (c *Comet) SendToAll(arg *comet.SendToAllReq) (err error) {
+	c.chAll <- arg
 	return
 }
 
@@ -34,20 +34,20 @@ func (c *Comet) Process(i int) {
 		select {
 		case <-c.ctx.Done():
 			return
-		case msg := <-c.userKeysChan[i]:
-			_, err := c.rpcClient.PushUserKeys(context.Background(), msg)
+		case msg := <-c.chUserKeys[i]:
+			_, err := c.rpcClient.SendToUserKeys(context.Background(), msg)
 			if err != nil {
 				logrus.Errorf(logHead+"conf.rpcClient.SendToUsers(%s),serverId=%s,error=%v",
 					msg, c.serverId, err)
 			}
-		case msg := <-c.userRoomChan[i]:
-			_, err := c.rpcClient.PushUserRoom(context.Background(), msg)
+		case msg := <-c.chRoom[i]:
+			_, err := c.rpcClient.SendToRoom(context.Background(), msg)
 			if err != nil {
 				logrus.Errorf(logHead+"conf.rpcClient.BroadcastRoom(%s),serverId=%s,error=%v",
 					msg, c.serverId, err)
 			}
-		case msg := <-c.userAllChan:
-			_, err := c.rpcClient.PushUserAll(context.Background(), msg)
+		case msg := <-c.chAll:
+			_, err := c.rpcClient.SendToAll(context.Background(), msg)
 			if err != nil {
 				logrus.Errorf(logHead+"conf.rpcClient.Broadcast(%s),serverId=%s,error=%v",
 					msg, c.serverId, err)
@@ -58,9 +58,9 @@ func (c *Comet) Process(i int) {
 
 func (c *Comet) Close() (err error) {
 	finish := make(chan bool)
-	closePushChan := c.userKeysChan
-	closeRoomChan := c.userRoomChan
-	closeBroadcastChan := c.userAllChan
+	closePushChan := c.chUserKeys
+	closeRoomChan := c.chRoom
+	closeBroadcastChan := c.chAll
 
 	go func() {
 		for {

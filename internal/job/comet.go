@@ -23,19 +23,19 @@ type Comet struct {
 	routineNum  uint64
 
 	// send msg
-	userKeysChan []chan *comet.PushUserKeysReq // send msg to some user
-	userRoomChan []chan *comet.PushUserRoomReq // send msg to the room
-	userAllChan  chan *comet.PushUserAllReq    // send msg to all user
+	chUserKeys []chan *comet.SendToUserKeysReq // send msg to some user
+	chRoom     []chan *comet.SendToRoomReq     // send msg to the room
+	chAll      chan *comet.SendToAllReq        // send msg to all user
 }
 
 func NewComet(serverId string, c *conf.Comet) (*Comet, error) {
 	routineNum := c.RoutineNum
 	cmt := &Comet{
-		serverId:     serverId,
-		userKeysChan: make([]chan *comet.PushUserKeysReq, routineNum),
-		userRoomChan: make([]chan *comet.PushUserRoomReq, routineNum),
-		userAllChan:  make(chan *comet.PushUserAllReq, routineNum),
-		routineNum:   uint64(routineNum),
+		serverId:   serverId,
+		chUserKeys: make([]chan *comet.SendToUserKeysReq, routineNum),
+		chRoom:     make([]chan *comet.SendToRoomReq, routineNum),
+		chAll:      make(chan *comet.SendToAllReq, routineNum),
+		routineNum: uint64(routineNum),
 	}
 
 	// create rpc client
@@ -48,8 +48,8 @@ func NewComet(serverId string, c *conf.Comet) (*Comet, error) {
 	// creat channel and routine
 	cmt.ctx, cmt.cancel = context.WithCancel(context.Background())
 	for i := 0; i < routineNum; i++ {
-		cmt.userKeysChan[i] = make(chan *comet.PushUserKeysReq, c.ChanNum)
-		cmt.userRoomChan[i] = make(chan *comet.PushUserRoomReq, c.ChanNum)
+		cmt.chUserKeys[i] = make(chan *comet.SendToUserKeysReq, c.ChanNum)
+		cmt.chRoom[i] = make(chan *comet.SendToRoomReq, c.ChanNum)
 		go cmt.Process(i)
 	}
 	return cmt, nil

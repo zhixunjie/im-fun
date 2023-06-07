@@ -67,7 +67,7 @@ func (job *Job) Consume(msg *sarama.ConsumerMessage) {
 	case pb.KafkaSendMsg_UserRoom:
 		err = job.CreateOrGetRoom(message.RoomId).Send(message.Msg)
 	case pb.KafkaSendMsg_UserAll:
-		//err = job.broadcast(message.SubId, message.Msg, message.Speed)
+		err = job.SendToAll(message.SubId, message.Speed, message.Msg)
 	default:
 		err = fmt.Errorf("unknown push type: %s", message.Type)
 	}
