@@ -92,11 +92,11 @@ func (r *Room) Receive(batch int, duration time.Duration) {
 		timer.Reset(timerDuration)
 	}
 end:
-	r.job.delRoom(r.id)
+	r.job.DelRoom(r.id)
 	logrus.Infof(logHead + "delete room")
 }
 
-func (job *Job) delRoom(roomId string) {
+func (job *Job) DelRoom(roomId string) {
 	job.rwMutex.Lock()
 	delete(job.rooms, roomId)
 	job.rwMutex.Unlock()
