@@ -12,17 +12,20 @@ import (
 // Logic -> Job -> Comet
 
 type Comet struct {
-	serverId     string
-	rpcClient    comet.CometClient
-	userKeysChan []chan *comet.PushUserKeysReq // push to some user
-	userRoomChan []chan *comet.PushUserRoomReq // push to the room
-	userAllChan  chan *comet.PushUserAllReq    // push to all user
-	pushChanNum  uint64
-	roomChanNum  uint64
-	routineNum   uint64
-
 	ctx    context.Context
 	cancel context.CancelFunc
+
+	serverId  string
+	rpcClient comet.CometClient
+
+	pushChanNum uint64
+	roomChanNum uint64
+	routineNum  uint64
+
+	// send msg
+	userKeysChan []chan *comet.PushUserKeysReq // send msg to some user
+	userRoomChan []chan *comet.PushUserRoomReq // send msg to the room
+	userAllChan  chan *comet.PushUserAllReq    // send msg to all user
 }
 
 func NewComet(serverId string, c *conf.Comet) (*Comet, error) {

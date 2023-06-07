@@ -7,19 +7,19 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/buffer"
 )
 
-func (job *Job) PushUserKeys(subId int32, serverId string, userKeys []string, message []byte) (err error) {
-	logHead := "PushUserKeys|"
+func (job *Job) SendToUsers(subId int32, serverId string, userKeys []string, message []byte) (err error) {
+	logHead := "SendToUsers|"
 
 	// write to proto body（proto的body里面嵌套proto）
-	// 这样写的好处见：Job.PushUserRoom
+	// 这样写的好处见：Job.SendRoom
 	proto := &protocol.Proto{
 		Ver:  protocol.ProtoVersion,
 		Op:   int32(protocol.OpBatchMsg),
 		Body: message,
 	}
-	batchMessage := buffer.NewWriterSize(len(message) + 64)
-	proto.WriteTo(batchMessage)
-	proto.Body = batchMessage.Buffer()
+	writer := buffer.NewWriterSize(len(message) + 64)
+	proto.WriteTo(writer)
+	proto.Body = writer.Buffer()
 
 	// push to comet
 	if cm, ok := job.allComet[serverId]; ok {
@@ -29,14 +29,14 @@ func (job *Job) PushUserKeys(subId int32, serverId string, userKeys []string, me
 			SubId:    subId,
 		}
 		if err = cm.PushUserKeys(&params); err != nil {
-			logrus.Errorf(logHead+"PushToChannel err=%v,serverId=%v,params=%+v", err, serverId, params)
+			logrus.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
 		}
 	}
 	return
 }
 
-func (job *Job) PushUserRoom(subId int32, roomId string, batchMessage []byte) (err error) {
-	logHead := "PushUserRoom|"
+func (job *Job) SendRoom(subId int32, roomId string, batchMessage []byte) (err error) {
+	logHead := "SendRoom|"
 
 	// write to proto batchMessage（proto的body里面嵌套proto）
 	// - 通过嵌套的proto，使得Body里面能够存放多条的Proto（即：批量发送Proto）
@@ -54,7 +54,7 @@ func (job *Job) PushUserRoom(subId int32, roomId string, batchMessage []byte) (e
 			Proto:  proto,
 		}
 		if err = cm.PushUserRoom(&params); err != nil {
-			logrus.Errorf(logHead+"PushToChannel err=%v,serverId=%v,params=%+v", err, serverId, params)
+			logrus.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
 		}
 	}
 	return
@@ -80,7 +80,7 @@ func (job *Job) PushUserAll(subId int32, speed int32, message []byte) (err error
 			Speed: speed,
 		}
 		if err = cm.PushUserAll(&params); err != nil {
-			logrus.Errorf(logHead+"PushToChannel err=%v,serverId=%v,params=%+v", err, serverId, params)
+			logrus.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
 		}
 	}
 	return

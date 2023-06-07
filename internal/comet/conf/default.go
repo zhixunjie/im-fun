@@ -58,12 +58,12 @@ func DefaultConnect() *Connect {
 			Bind: []string{":3102"},
 		},
 		BufferOptions: &buffer.Options{
-			ReadPoolOption: buffer.PoolOptions{
+			ReadPool: buffer.PoolOptions{
 				PoolNum:  10,
 				BatchNum: 1024,
 				BufSize:  8192,
 			},
-			WritePoolOption: buffer.PoolOptions{
+			WritePool: buffer.PoolOptions{
 				PoolNum:  10,
 				BatchNum: 1024,
 				BufSize:  8192,

@@ -42,9 +42,8 @@ type Discovery struct {
 }
 
 type Room struct {
-	Batch         int              `yaml:"batch"`
-	TimerDuration newtime.Duration `yaml:"timerDuration"`
-	Idle          newtime.Duration `yaml:"idle"`
+	Batch    int              `yaml:"batch"`
+	Duration newtime.Duration `yaml:"duration"`
 }
 
 type Comet struct {

@@ -15,7 +15,7 @@ type RoundOptions struct {
 // Round used for connection round-robin get a reader/writer/timer for split big lock.
 type Round struct {
 	Timers     []time.Timer
-	BufferPool buffer.PoolHash
+	BufferPool buffer.Hash
 
 	options RoundOptions
 }
@@ -34,7 +34,7 @@ func NewRound(c *conf.Config) (round *Round) {
 		round.Timers[i].Init(round.options.TimerSize)
 	}
 	// make buffer pool
-	round.BufferPool = buffer.NewPoolHash(c.Connect.BufferOptions)
+	round.BufferPool = buffer.NewHash(c.Connect.BufferOptions)
 	return
 }
 

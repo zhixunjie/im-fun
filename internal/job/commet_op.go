@@ -37,7 +37,7 @@ func (c *Comet) Process(i int) {
 		case msg := <-c.userKeysChan[i]:
 			_, err := c.rpcClient.PushUserKeys(context.Background(), msg)
 			if err != nil {
-				logrus.Errorf(logHead+"conf.rpcClient.PushUserKeys(%s),serverId=%s,error=%v",
+				logrus.Errorf(logHead+"conf.rpcClient.SendToUsers(%s),serverId=%s,error=%v",
 					msg, c.serverId, err)
 			}
 		case msg := <-c.userRoomChan[i]:
