@@ -8,7 +8,7 @@ import (
 
 // SendToUserKeys 发送消息（by kafka）
 func (svc *Service) SendToUserKeys(ctx context.Context, req *request.SendToUserKeysReq) error {
-	logHead := "SendToUsers|"
+	logHead := "SendToUserKeys|"
 	res, err := svc.dao.SessionGetByUserKeys(ctx, req.UserKeys)
 	if err != nil {
 		logrus.Errorf(logHead+"res=%v, err=%v", res, err)

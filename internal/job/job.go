@@ -63,7 +63,7 @@ func (job *Job) Consume(msg *sarama.ConsumerMessage) {
 	// deal msg
 	switch message.Type {
 	case pb.PushMsg_UserKeys:
-		err = job.SendToUsers(message.SubId, message.ServerId, message.UserKeys, message.Msg)
+		err = job.SendToUserKeys(message.SubId, message.ServerId, message.UserKeys, message.Msg)
 	case pb.PushMsg_UserRoom:
 		err = job.CreateOrGetRoom(message.RoomId).Send(message.Msg)
 	case pb.PushMsg_UserAll:

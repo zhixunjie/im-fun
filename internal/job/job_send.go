@@ -7,8 +7,8 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/buffer"
 )
 
-func (job *Job) SendToUsers(subId int32, serverId string, userKeys []string, message []byte) (err error) {
-	logHead := "SendToUsers|"
+func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, message []byte) (err error) {
+	logHead := "SendToUserKeys|"
 
 	// write to proto body（proto的body里面嵌套proto）
 	// 这样写的好处见：Job.SendToRoom
