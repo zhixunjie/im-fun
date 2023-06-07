@@ -29,10 +29,9 @@ func New(conf *conf.Config) *Job {
 	}
 
 	// make consumer
-	fn := func(msg *sarama.ConsumerMessage) {
+	tmp, err := kafka.NewConsumerGroup(&conf.Kafka[0], func(msg *sarama.ConsumerMessage) {
 		job.Consume(msg)
-	}
-	tmp, err := kafka.NewConsumerGroup(&conf.Kafka[0], fn)
+	})
 	if err != nil {
 		panic(err)
 	}
