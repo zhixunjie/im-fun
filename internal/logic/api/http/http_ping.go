@@ -1,4 +1,4 @@
-package apihttp
+package http
 
 import (
 	"github.com/gin-gonic/gin"
@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) pingHandler(ctx *gin.Context) {
+func (s *Server) ping(ctx *gin.Context) {
 	// request
 	var req request.PingReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {

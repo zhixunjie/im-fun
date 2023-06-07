@@ -1,4 +1,4 @@
-package apihttp
+package http
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) sendHandler(ctx *gin.Context) {
+func (s *Server) send(ctx *gin.Context) {
 	// request
 	var req request.SendMsgReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -32,7 +32,7 @@ func (s *Server) sendHandler(ctx *gin.Context) {
 	return
 }
 
-func (s *Server) fetchHandler(ctx *gin.Context) {
+func (s *Server) fetch(ctx *gin.Context) {
 	// request
 	var req request.PingReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {

@@ -1,4 +1,4 @@
-package apihttp
+package http
 
 import (
 	"context"
