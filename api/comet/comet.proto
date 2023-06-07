@@ -41,11 +41,11 @@ message GetAllRoomIdReply {
 }
 
 service Comet {
-  // push by user keys
+  // send msg with user keys
   rpc SendToUserKeys(SendToUserKeysReq) returns (SendToUserKeysReply);
-  // push by room's user
+  // send msg with room's user
   rpc SendToRoom(SendToRoomReq) returns (SendToRoomReply);
-  // push by every user
+  // send msg with every user
   rpc SendToAll(SendToAllReq) returns (SendToAllReply);
   // get all rooms
   rpc GetAllRoomId(GetAllRoomIdReq) returns (GetAllRoomIdReply);
