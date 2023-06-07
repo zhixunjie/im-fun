@@ -2,10 +2,12 @@ package buffer
 
 import "sync"
 
+// PoolSync：使用sync包编写的BufferPool
 // 优点：代码更加简洁
 // 缺点：分配方式不够高效，发现Buffer不足时，只会一个个去New
 
-// PoolSync A Buffer Pool based on sync.Pool
+// PoolSync
+// A BufferPool based on sync.Pool
 type PoolSync struct {
 	pool sync.Pool
 }

@@ -1,15 +1,6 @@
 package buffer
 
-type Options struct {
-	ReadPoolOption  PoolOptions `yaml:"readPoolOption"`
-	WritePoolOption PoolOptions `yaml:"writePoolOption"`
-}
-
-type PoolOptions struct {
-	PoolNum  int `yaml:"poolNum"`  // 池子的个数
-	BatchNum int `yaml:"batchNum"` // 池子创建Buffer时批量创建的个数
-	BufSize  int `yaml:"bufSize"`  // 每个Buffer的字节数
-}
+// 利用Hash算法，均摊池子的请求流量
 
 type PoolHash struct {
 	Readers []Pool
@@ -47,4 +38,15 @@ func (pool *PoolHash) ReaderPool(rn int) *Pool {
 // WriterPool get a writer memory buffer pool.
 func (pool *PoolHash) WriterPool(rn int) *Pool {
 	return &(pool.Writers[rn%pool.options.WritePoolOption.PoolNum])
+}
+
+type Options struct {
+	ReadPoolOption  PoolOptions `yaml:"readPoolOption"`
+	WritePoolOption PoolOptions `yaml:"writePoolOption"`
+}
+
+type PoolOptions struct {
+	PoolNum  int `yaml:"poolNum"`  // 池子的个数
+	BatchNum int `yaml:"batchNum"` // 池子创建Buffer时批量创建的个数
+	BufSize  int `yaml:"bufSize"`  // 每个Buffer的字节数
 }

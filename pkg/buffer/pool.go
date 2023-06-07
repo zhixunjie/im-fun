@@ -4,8 +4,8 @@ import "sync"
 
 // TODO try sth lock free，like: sync.Pool
 
-// Pool is a buffer pool.
-// Thread-Safe Pool
+// Pool：自己编写的BufferPool
+
 type Pool struct {
 	lock     sync.Mutex
 	free     *Buffer // check this detail in BatchNew
@@ -49,6 +49,7 @@ func (pool *Pool) Get() (b *Buffer) {
 	}
 	pool.free = b.next
 	pool.lock.Unlock()
+	
 	return
 }
 
