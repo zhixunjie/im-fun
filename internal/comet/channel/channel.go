@@ -6,7 +6,7 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
 )
 
-// Channel used by message pusher send msg to write goroutine.
+// Channel 每一个Channel代表一个长连接
 type Channel struct {
 	// The Room that Channel(User) is In
 	Room   *Room
