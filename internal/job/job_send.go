@@ -11,7 +11,7 @@ func (job *Job) SendToUsers(subId int32, serverId string, userKeys []string, mes
 	logHead := "SendToUsers|"
 
 	// write to proto body（proto的body里面嵌套proto）
-	// 这样写的好处见：Job.SendRoom
+	// 这样写的好处见：Job.SendToRoom
 	proto := &protocol.Proto{
 		Ver:  protocol.ProtoVersion,
 		Op:   int32(protocol.OpBatchMsg),
@@ -35,8 +35,8 @@ func (job *Job) SendToUsers(subId int32, serverId string, userKeys []string, mes
 	return
 }
 
-func (job *Job) SendRoom(subId int32, roomId string, batchMessage []byte) (err error) {
-	logHead := "SendRoom|"
+func (job *Job) SendToRoom(subId int32, roomId string, batchMessage []byte) (err error) {
+	logHead := "SendToRoom|"
 
 	// write to proto batchMessage（proto的body里面嵌套proto）
 	// - 通过嵌套的proto，使得Body里面能够存放多条的Proto（即：批量发送Proto）
@@ -60,8 +60,8 @@ func (job *Job) SendRoom(subId int32, roomId string, batchMessage []byte) (err e
 	return
 }
 
-func (job *Job) PushUserAll(subId int32, speed int32, message []byte) (err error) {
-	logHead := "PushUserAll|"
+func (job *Job) SendToAll(subId int32, speed int32, message []byte) (err error) {
+	logHead := "SendToAll|"
 
 	// write to proto body（proto的body里面嵌套proto）
 	// 通过嵌套的proto，使得Body里面能够存放多条的Proto（即：批量发送Proto）

@@ -86,7 +86,7 @@ func (r *Room) Receive(batch int, duration time.Duration) {
 		if len(content) == 0 {
 			continue
 		}
-		_ = r.job.SendRoom(0, r.id, content)
+		_ = r.job.SendToRoom(0, r.id, content)
 		n = 0
 		writer.Reset()
 		timer.Reset(timerDuration)

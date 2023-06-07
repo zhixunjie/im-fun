@@ -72,7 +72,7 @@ func (svc *Service) PushUserRoom(ctx context.Context, req *request.PushUserRoomR
 
 // PushUserAll 发送消息
 func (svc *Service) PushUserAll(ctx context.Context, req *request.PushUserAllReq) error {
-	logHead := "PushUserAll|"
+	logHead := "SendToAll|"
 	err := svc.dao.KafkaPushAll(req)
 	if err != nil {
 		logrus.Errorf(logHead+"err=%v", err)
