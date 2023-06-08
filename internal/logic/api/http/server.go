@@ -41,7 +41,7 @@ func New(conf *conf.Config, svc *service.Service) *Server {
 	srv.httpServer = httpServer
 
 	// begin to listen
-	logrus.Infof("HTTP server is listening：%v\n", addr)
+	logrus.Infof("HTTP server is listening：%v", addr)
 	go func() {
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logrus.Fatalf("ListenAndServe,err=%v", err)

@@ -34,7 +34,7 @@ func New(conf *conf.RPCServer, svc *service.Service) *grpc.Server {
 		panic(err)
 	}
 	// begin to listen
-	logrus.Infof("GRPC server is listening %v：%v\n", conf.Network, conf.Addr)
+	logrus.Infof("GRPC server is listening %v：%v", conf.Network, conf.Addr)
 	go func() {
 		if err = srv.Serve(listener); err != nil {
 			panic(err)

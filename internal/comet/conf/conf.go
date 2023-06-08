@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/pkg/buffer"
 	newtime "github.com/zhixunjie/im-fun/pkg/time"
@@ -26,7 +25,8 @@ func InitConfig() (err error) {
 		logrus.Errorf("err=%v", err)
 		return err
 	}
-	fmt.Printf("config=%+v\n", Conf)
+	logrus.Infof("config=%+v\n", Conf)
+	
 	return nil
 }
 
