@@ -14,9 +14,11 @@ func (svc *Service) Connect(ctx context.Context, req *pb.ConnectReq) (hb int64, 
 	// set return
 	hb = int64(svc.conf.Node.Heartbeat) * int64(svc.conf.Node.HeartbeatMax)
 	if err = svc.dao.SessionBinding(ctx, req.UserId, req.UserKey, req.ServerId); err != nil {
-		logrus.Errorf(logHead+"SessionBinding error=%v,UserId=%v,UserKey=%v", err, req.UserId, req.UserKey)
+		logrus.Errorf(logHead+"fail,SessionBinding error=%v,UserId=%v,UserKey=%v", err, req.UserId, req.UserKey)
+		return
 	}
-	logrus.Infof(logHead+"success error=%v,UserId=%v,UserKey=%v", err, req.UserId, req.UserKey)
+
+	logrus.Infof(logHead+"success,UserId=%v,UserKey=%v", req.UserId, req.UserKey)
 	return
 }
 
@@ -24,10 +26,10 @@ func (svc *Service) Connect(ctx context.Context, req *pb.ConnectReq) (hb int64, 
 func (svc *Service) Disconnect(c context.Context, req *pb.DisconnectReq) (has bool, err error) {
 	logHead := "Disconnect|"
 	if has, err = svc.dao.SessionDel(c, req.UserId, req.UserKey, req.ServerId); err != nil {
-		logrus.Errorf(logHead+"SessionDel error=%v,UserId=%v,UserKey=%v", err, req.UserId, req.UserKey)
+		logrus.Errorf(logHead+"fail,SessionDel error=%v,UserId=%v,UserKey=%v", err, req.UserId, req.UserKey)
 		return
 	}
-	logrus.Infof(logHead+"Disconnect success error=%v,UserId=%v,UserKey=%v", err, req.UserId, req.UserKey)
+	logrus.Infof(logHead+"success,UserId=%v,UserKey=%v", req.UserId, req.UserKey)
 	return
 }
 
