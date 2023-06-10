@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package bufio implements buffered I/O. It wraps an io.ReaderPool or io.WriterPool
+// Package bufio implements buffered I/O. It wraps an io.Reader or io.Writer
 // object, creating another object (Reader or Writer) that also implements
 // the interface but provides buffering and some help for textual I/O.
 package bufio
@@ -28,7 +28,7 @@ var (
 
 // Buffered input.
 
-// Reader implements buffering for an io.ReaderPool object.
+// Reader implements buffering for an io.Reader object.
 type Reader struct {
 	buf          []byte
 	rd           io.Reader // reader provided by the client
@@ -42,10 +42,10 @@ const minReadBufferSize = 16
 const maxConsecutiveEmptyReads = 100
 
 // NewReaderSize returns a new Reader whose buffer has at least the specified
-// size. If the argument io.ReaderPool is already a Reader with large enough
+// size. If the argument io.Reader is already a Reader with large enough
 // size, it returns the underlying Reader.
 func NewReaderSize(rd io.Reader, size int) *Reader {
-	// Is it already a ReaderPool?
+	// Is it already a Reader?
 	b, ok := rd.(*Reader)
 	if ok && len(b.buf) >= size {
 		return b
@@ -165,7 +165,7 @@ func (b *Reader) Peek(n int) ([]byte, error) {
 //
 // If Discard skips fewer than n bytes, it also returns an error.
 // If 0 <= n <= b.Buffered(), Discard is guaranteed to succeed without
-// reading from the underlying io.ReaderPool.
+// reading from the underlying io.Reader.
 func (b *Reader) Discard(n int) (discarded int, err error) {
 	if n < 0 {
 		return 0, ErrNegativeCount
@@ -401,7 +401,7 @@ func (b *Reader) ReadLine() (line []byte, isPrefix bool, err error) {
 	if err == ErrBufferFull {
 		// Handle the case where "\r\n" straddles the buffer.
 		if len(line) > 0 && line[len(line)-1] == '\r' {
-			// PutChannel the '\r' back on buf and drop it from line.
+			// Put the '\r' back on buf and drop it from line.
 			// Let the next call to ReadLine check for "\r\n".
 			if b.r == 0 {
 				// should be unreachable
@@ -563,12 +563,12 @@ func (b *Reader) writeBuf(w io.Writer) (int64, error) {
 
 // buffered output
 
-// Writer implements buffering for an io.WriterPool object.
+// Writer implements buffering for an io.Writer object.
 // If an error occurs writing to a Writer, no more data will be
 // accepted and all subsequent writes, and Flush, will return the error.
 // After all data has been written, the client should call the
 // Flush method to guarantee all data has been forwarded to
-// the underlying io.WriterPool.
+// the underlying io.Writer.
 type Writer struct {
 	err error
 	buf []byte
@@ -577,10 +577,10 @@ type Writer struct {
 }
 
 // NewWriterSize returns a new Writer whose buffer has at least the specified
-// size. If the argument io.WriterPool is already a Writer with large enough
+// size. If the argument io.Writer is already a Writer with large enough
 // size, it returns the underlying Writer.
 func NewWriterSize(w io.Writer, size int) *Writer {
-	// Is it already a WriterPool?
+	// Is it already a Writer?
 	b, ok := w.(*Writer)
 	if ok && len(b.buf) >= size {
 		return b
@@ -595,7 +595,7 @@ func NewWriterSize(w io.Writer, size int) *Writer {
 }
 
 // NewWriter returns a new Writer whose buffer has the default size.
-// If the argument io.WriterPool is already a Writer with large enough buffer size,
+// If the argument io.Writer is already a Writer with large enough buffer size,
 // it returns the underlying Writer.
 func NewWriter(w io.Writer) *Writer {
 	return NewWriterSize(w, defaultBufSize)
@@ -617,7 +617,7 @@ func (b *Writer) Reset(w io.Writer) {
 	b.wr = w
 }
 
-// Flush writes any buffered data to the underlying io.WriterPool.
+// Flush writes any buffered data to the underlying io.Writer.
 func (b *Writer) Flush() error {
 	if b.err != nil {
 		return b.err
@@ -811,58 +811,3 @@ type ReadWriter struct {
 func NewReadWriter(r *Reader, w *Writer) *ReadWriter {
 	return &ReadWriter{r, w}
 }
-
-// change by jason
-// change by jason
-// change by jason
-// change by jason
-
-// ResetBuffer reset reader & underlying byte array
-func (b *Reader) ResetBuffer(r io.Reader, buf []byte) {
-	b.reset(buf, r)
-}
-
-func (b *Reader) ReadBytesN(buf []byte) error {
-	_, err := io.ReadFull(b, buf)
-
-	return err
-}
-
-// TODO 待实现
-// Pop 直接返回Reader的缓冲区（返回n个字节）
-// func (b *ReaderPool) Pop(n int) ([]byte, error) {
-// 	d, err := b.Peek(n)
-// 	if err == nil {
-// 		b.r += n
-// 		return d, err
-// 	}
-// 	return nil, err
-// }
-
-// ResetBuffer reset writer & underlying byte array
-func (b *Writer) ResetBuffer(w io.Writer, buf []byte) {
-	b.buf = buf
-	b.err = nil
-	b.n = 0
-	b.wr = w
-}
-
-// TODO 待实现
-// Peak 直接返回Writer的缓冲区（返回n个字节）
-// func (b *WriterPool) Peak(n int) ([]byte, error) {
-// 	if n < 0 {
-// 		return nil, ErrNegativeCount
-// 	}
-// 	if n > len(b.buf) {
-// 		return nil, ErrBufferFull
-// 	}
-// 	for b.Available() < n && b.err == nil {
-// 		b.flush()
-// 	}
-// 	if b.err != nil {
-// 		return nil, b.err
-// 	}
-// 	d := b.buf[b.n : b.n+n]
-// 	b.n += n
-// 	return d, nil
-// }
