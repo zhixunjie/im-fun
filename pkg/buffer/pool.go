@@ -2,9 +2,8 @@ package buffer
 
 import "sync"
 
-// TODO try sth lock free，like: sync.Pool
-
 // Pool：自己编写的BufferPool
+// TODO try sth lock free，like: sync.Pool
 
 type Pool struct {
 	lock     sync.Mutex
@@ -49,7 +48,7 @@ func (pool *Pool) Get() (b *Buffer) {
 	}
 	pool.free = b.next
 	pool.lock.Unlock()
-	
+
 	return
 }
 
