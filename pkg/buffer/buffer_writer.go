@@ -1,6 +1,6 @@
 package buffer
 
-// BufferWriter：申请一大段内存，然后向内存执行写入/重置/Peek等操作
+// BufferWriter：申请一段内存，可以向内存执行各类的操作：向内存执行写入/重置/Peek等操作
 // - 每次写入后，都会增加n的值。如果写入时，发现buffer的空间不足，则调用grow自动对buffer进行扩容。
 
 type BufferWriter struct {

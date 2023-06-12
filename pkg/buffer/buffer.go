@@ -1,7 +1,7 @@
 package buffer
 
-// 缓冲区
-// - 每个缓冲区代表一段指定大小的内存，类似于 bytes.Buffer
+// Buffer：缓冲区，参考：bytes.Buffer
+// - 每个缓冲区代表一段指定大小的内存
 // - 缓冲区与缓冲区之间，使用链表连接在一起
 
 type Buffer struct {
