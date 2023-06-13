@@ -19,7 +19,7 @@ func (b *Reader) ReadBytesN(buf []byte) error {
 }
 
 // Pop 直接返回Reader的用户缓冲区的n个字节
-// Pop returns the next n bytes with advancing the reader. The bytes stop
+// returns the next n bytes with advancing the reader. The bytes stop
 // being valid at the next read call. If Pop returns fewer than n bytes, it
 // also returns an error explaining why the read is short. The error is
 // ErrBufferFull if n is larger than b's buffer size.
@@ -42,22 +42,25 @@ func (b *Writer) ResetBuffer(w io.Writer, buf []byte) {
 	b.wr = w
 }
 
-// TODO 待实现
-// Peak 直接返回Writer的缓冲区（返回n个字节）
-// func (b *WriterPool) Peak(n int) ([]byte, error) {
-// 	if n < 0 {
-// 		return nil, ErrNegativeCount
-// 	}
-// 	if n > len(b.buf) {
-// 		return nil, ErrBufferFull
-// 	}
-// 	for b.Available() < n && b.err == nil {
-// 		b.flush()
-// 	}
-// 	if b.err != nil {
-// 		return nil, b.err
-// 	}
-// 	d := b.buf[b.n : b.n+n]
-// 	b.n += n
-// 	return d, nil
-// }
+// Peek 直接返回Writer的用户缓冲区的n个字节
+// returns the next n bytes with advancing the writer. The bytes stop
+// being used at the next write call. If Peek returns fewer than n bytes, it
+// also returns an error explaining why the read is short. The error is
+// ErrBufferFull if n is larger than b's buffer size.
+func (b *Writer) Peek(n int) ([]byte, error) {
+	if n < 0 {
+		return nil, ErrNegativeCount
+	}
+	if n > len(b.buf) {
+		return nil, ErrBufferFull
+	}
+	for b.Available() < n && b.err == nil {
+		b.Flush()
+	}
+	if b.err != nil {
+		return nil, b.err
+	}
+	d := b.buf[b.n : b.n+n]
+	b.n += n
+	return d, nil
+}
