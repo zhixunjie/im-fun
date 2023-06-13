@@ -3,10 +3,10 @@ package job
 import (
 	"fmt"
 	"github.com/Shopify/sarama"
-	"github.com/sirupsen/logrus"
 	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/job/conf"
 	"github.com/zhixunjie/im-fun/pkg/kafka"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"google.golang.org/protobuf/proto"
 	"os"
 	"sync"
@@ -56,7 +56,7 @@ func (job *Job) Consume(msg *sarama.ConsumerMessage) {
 	// Unmarshal msg
 	message := new(pb.KafkaSendMsg)
 	if err = proto.Unmarshal(msg.Value, message); err != nil {
-		logrus.Errorf(logHead+"err=%v", err)
+		logging.Errorf(logHead+"err=%v", err)
 		return
 	}
 
@@ -72,6 +72,6 @@ func (job *Job) Consume(msg *sarama.ConsumerMessage) {
 		err = fmt.Errorf("unknown send type: %s", message.Type)
 	}
 	if err != nil {
-		logrus.Errorf(logHead+"err=%v", err)
+		logging.Errorf(logHead+"err=%v", err)
 	}
 }

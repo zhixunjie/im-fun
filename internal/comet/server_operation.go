@@ -2,8 +2,8 @@ package comet
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"time"
 
 	pb "github.com/zhixunjie/im-fun/api/pb"
@@ -73,7 +73,7 @@ func (s *Server) Operate(ctx context.Context, proto *protocol.Proto, ch *channel
 		//}
 	case protocol.OpChangeRoom: // 客户端房间切换
 		if err := bucket.ChangeRoom(string(proto.Body), ch); err != nil {
-			logrus.Errorf("bucket.ChangeRoom(%s) error(%v)", proto.Body, err)
+			logging.Errorf("bucket.ChangeRoom(%s) error(%v)", proto.Body, err)
 		}
 		proto.Op = int32(protocol.OpChangeRoomReply)
 	case protocol.OpSub: // 客户端-添加订阅消息
@@ -83,7 +83,7 @@ func (s *Server) Operate(ctx context.Context, proto *protocol.Proto, ch *channel
 	default: // 客户端-收到其他消息（直接转到logic进行处理）
 		// TBD
 		if err := s.Receive(ctx, ch, proto); err != nil {
-			logrus.Errorf("UserInfo=%+v,op=%v,err=%v", ch.UserInfo, proto.Op, err)
+			logging.Errorf("UserInfo=%+v,op=%v,err=%v", ch.UserInfo, proto.Op, err)
 		}
 		proto.Body = nil
 	}

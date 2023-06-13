@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"encoding/binary"
-	"github.com/sirupsen/logrus"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
 // WriteMessage
@@ -74,7 +74,7 @@ func (c *Conn) WritePayload(b []byte) (err error) {
 	if len(b) > 0 {
 		_, err = c.writer.Write(b)
 		if err != nil {
-			logrus.Errorf("Write err=%v", err)
+			logging.Errorf("Write err=%v", err)
 			return
 		}
 	}

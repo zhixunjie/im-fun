@@ -2,11 +2,11 @@ package comet
 
 import (
 	"errors"
-	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"net"
 )
 
@@ -41,7 +41,7 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, writerPool *bytes.Pool, writeBuf
 				goto fail
 			}
 		default:
-			logrus.Errorf(logHead + "unknown proto")
+			logging.Errorf(logHead + "unknown proto")
 			goto fail
 		}
 		if err = writer.Flush(); err != nil {
@@ -50,7 +50,7 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, writerPool *bytes.Pool, writeBuf
 	}
 fail: // TODO 子协程的结束，需要通知到主协程（否则主协程不会结束）
 	if err != nil {
-		logrus.Errorf(logHead+"UserInfo=%+v,err=%v", ch.UserInfo, err)
+		logging.Errorf(logHead+"UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}
 	_ = conn.Close()
 	writerPool.Put(writeBuf)
@@ -64,7 +64,7 @@ func protoReady(ch *channel.Channel, writer *bufio.Writer) error {
 		// 1. read proto from client
 		proto, err = ch.ProtoAllocator.GetProtoCanRead()
 		if err != nil {
-			logrus.Errorf("GetProtoCanRead err=%v", err)
+			logging.Errorf("GetProtoCanRead err=%v", err)
 			return ErrNotAndProtoToRead
 		}
 		// 2. deal proto
@@ -74,13 +74,13 @@ func protoReady(ch *channel.Channel, writer *bufio.Writer) error {
 				online = ch.Room.OnlineNum()
 			}
 			if err = proto.WriteTCPHeart(writer, online); err != nil {
-				logrus.Errorf("WriteTCPHeart err=%v", err)
+				logging.Errorf("WriteTCPHeart err=%v", err)
 				return ErrTCPWriteError
 			}
 		default:
 			// write msg to client
 			if err = proto.WriteTCP(writer); err != nil {
-				logrus.Errorf("WriteTCP err=%v", err)
+				logging.Errorf("WriteTCP err=%v", err)
 				return ErrTCPWriteError
 			}
 		}

@@ -1,10 +1,10 @@
 package job
 
 import (
-	"github.com/sirupsen/logrus"
 	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
 func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, message []byte) (err error) {
@@ -29,7 +29,7 @@ func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, 
 			SubId:    subId,
 		}
 		if err = cm.SendToUserKeys(&params); err != nil {
-			logrus.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
+			logging.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
 		}
 	}
 	return
@@ -54,7 +54,7 @@ func (job *Job) SendToRoom(subId int32, roomId string, batchMessage []byte) (err
 			Proto:  proto,
 		}
 		if err = cm.SendToRoom(&params); err != nil {
-			logrus.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
+			logging.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
 		}
 	}
 	return
@@ -80,7 +80,7 @@ func (job *Job) SendToAll(subId int32, speed int32, message []byte) (err error) 
 			Speed: speed,
 		}
 		if err = cm.SendToAll(&params); err != nil {
-			logrus.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
+			logging.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
 		}
 	}
 	return

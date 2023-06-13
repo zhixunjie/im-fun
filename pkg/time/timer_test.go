@@ -1,10 +1,9 @@
 package time
 
 import (
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"testing"
 	"time"
-
-	log "github.com/golang/glog"
 )
 
 func TestTimer(t *testing.T) {
@@ -15,7 +14,7 @@ func TestTimer(t *testing.T) {
 	}
 	printTimer(timer)
 	for i := 0; i < 100; i++ {
-		log.Infof("td: %s, %s, %d", tds[i].Key, tds[i].ExpireString(), tds[i].index)
+		logging.Infof("td: %s, %s, %d", tds[i].Key, tds[i].ExpireString(), tds[i].index)
 		timer.Del(tds[i])
 	}
 	printTimer(timer)
@@ -35,9 +34,9 @@ func TestTimer(t *testing.T) {
 }
 
 func printTimer(timer *Timer) {
-	log.Infof("----------timers: %d ----------", len(timer.timers))
+	logging.Infof("----------timers: %d ----------", len(timer.timers))
 	for i := 0; i < len(timer.timers); i++ {
-		log.Infof("timer: %s, %s, index: %d", timer.timers[i].Key, timer.timers[i].ExpireString(), timer.timers[i].index)
+		logging.Infof("timer: %s, %s, index: %d", timer.timers[i].Key, timer.timers[i].ExpireString(), timer.timers[i].index)
 	}
-	log.Infof("--------------------")
+	logging.Infof("--------------------")
 }

@@ -3,7 +3,7 @@ package dao
 import (
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"time"
 )
 
@@ -34,18 +34,18 @@ func (d *Dao) SessionBinding(ctx context.Context, userId int64, userKey, serverI
 	if userId > 0 {
 		k1 := keyHashUserId(userId)
 		if err = mem.HSet(ctx, k1, userKey, serverId).Err(); err != nil {
-			logrus.Errorf("mem.HSet(%d,%s,%s) error(%v)", userId, userKey, serverId, err)
+			logging.Errorf("mem.HSet(%d,%s,%s) error(%v)", userId, userKey, serverId, err)
 			return
 		}
 		if err = mem.Expire(ctx, k1, KeyExpire*time.Second).Err(); err != nil {
-			logrus.Errorf("mem.Expire(%d,%s,%s) error(%v)", userId, userKey, serverId, err)
+			logging.Errorf("mem.Expire(%d,%s,%s) error(%v)", userId, userKey, serverId, err)
 			return
 		}
 	}
 	// set string
 	{
 		if err = mem.SetEX(ctx, keyStringUserKey(userKey), serverId, KeyExpire*time.Second).Err(); err != nil {
-			logrus.Errorf("mem.SetEX(%d,%s,%s) error(%v)", userId, serverId, userKey, err)
+			logging.Errorf("mem.SetEX(%d,%s,%s) error(%v)", userId, serverId, userKey, err)
 			return
 		}
 	}
@@ -59,13 +59,13 @@ func (d *Dao) SessionDel(ctx context.Context, userId int64, userKey, serverId st
 	// delete hash
 	if userId > 0 {
 		if err = mem.HDel(ctx, keyHashUserId(userId), userKey).Err(); err != nil {
-			logrus.Errorf("mem.HDel(%d,%s,%s) error(%v)", userId, serverId, userKey, err)
+			logging.Errorf("mem.HDel(%d,%s,%s) error(%v)", userId, serverId, userKey, err)
 			return
 		}
 	}
 	// delete string
 	if err = mem.Del(ctx, keyStringUserKey(userKey)).Err(); err != nil {
-		logrus.Errorf("mem.Del(%d,%s,%s) error(%v)", userId, serverId, userKey, err)
+		logging.Errorf("mem.Del(%d,%s,%s) error(%v)", userId, serverId, userKey, err)
 		return
 	}
 

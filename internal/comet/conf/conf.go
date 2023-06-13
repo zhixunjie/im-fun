@@ -1,8 +1,8 @@
 package conf
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	newtime "github.com/zhixunjie/im-fun/pkg/time"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -15,18 +15,18 @@ func InitConfig() (err error) {
 	Conf = defaultConfig()
 	bytes, err := ioutil.ReadFile("cmd/comet/comet.yaml")
 	if err != nil {
-		logrus.Errorf("err=%v", err)
+		logging.Errorf("err=%v", err)
 		return err
 	}
 
 	// begin to unmarshal
 	err = yaml.Unmarshal(bytes, &Conf)
 	if err != nil {
-		logrus.Errorf("err=%v", err)
+		logging.Errorf("err=%v", err)
 		return err
 	}
-	logrus.Infof("config=%+v\n", Conf)
-	
+	logging.Infof("config=%+v\n", Conf)
+
 	return nil
 }
 
@@ -85,7 +85,7 @@ type Env struct {
 }
 
 type Connect struct {
-	TCP           *TCP            `yaml:"tcp"`
+	TCP           *TCP           `yaml:"tcp"`
 	Websocket     *Websocket     `yaml:"websocket"`
 	BufferOptions *bytes.Options `yaml:"bufferOptions"`
 }

@@ -2,7 +2,7 @@ package kafka
 
 import (
 	"github.com/Shopify/sarama"
-	"github.com/sirupsen/logrus"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
 type SyncProducer struct {
@@ -17,7 +17,7 @@ func NewSyncProducer(conf *ProducerConf) (SyncProducer, error) {
 	}
 	producer, err := sarama.NewSyncProducer(conf.Brokers, getProducerConfig())
 	if err != nil {
-		logrus.Errorf("NewSyncProducer,err=%v,conf=%+v", err, p.conf)
+		logging.Errorf("NewSyncProducer,err=%v,conf=%+v", err, p.conf)
 		return p, err
 	}
 	p.producer = producer
@@ -33,11 +33,11 @@ func (p *SyncProducer) SendStringMessage(topic, value string) error {
 	}
 	partition, offset, err := p.producer.SendMessage(message)
 	if err != nil {
-		logrus.Errorf("send kafka msg failed(%v),partition:%d offset:%d msg:%+v\n",
+		logging.Errorf("send kafka msg failed(%v),partition:%d offset:%d msg:%+v\n",
 			err, partition, offset, message)
 		return err
 	}
-	logrus.Infof("send kafka msg success,partition:%d offset:%d msg:%+v\n",
+	logging.Infof("send kafka msg success,partition:%d offset:%d msg:%+v\n",
 		partition, offset, message)
 
 	return nil
@@ -51,11 +51,11 @@ func (p *SyncProducer) SendByteMessage(topic string, value []byte) error {
 	}
 	partition, offset, err := p.producer.SendMessage(message)
 	if err != nil {
-		logrus.Errorf("send kafka msg failed(%v),partition:%d offset:%d msg:%+v\n",
+		logging.Errorf("send kafka msg failed(%v),partition:%d offset:%d msg:%+v\n",
 			err, partition, offset, message)
 		return err
 	}
-	logrus.Infof("send kafka msg success,partition:%d offset:%d msg:%+v\n",
+	logging.Infof("send kafka msg success,partition:%d offset:%d msg:%+v\n",
 		partition, offset, message)
 
 	return nil
@@ -64,11 +64,11 @@ func (p *SyncProducer) SendByteMessage(topic string, value []byte) error {
 func (p *SyncProducer) SendProducerMessage(msg *sarama.ProducerMessage) error {
 	partition, offset, err := p.producer.SendMessage(msg)
 	if err != nil {
-		logrus.Errorf("send kafka msg failed(%v),partition:%d offset:%d msg:%+v\n",
+		logging.Errorf("send kafka msg failed(%v),partition:%d offset:%d msg:%+v\n",
 			err, partition, offset, msg)
 		return err
 	}
-	logrus.Infof("send kafka msg success,partition:%d offset:%d msg:%+v\n",
+	logging.Infof("send kafka msg success,partition:%d offset:%d msg:%+v\n",
 		partition, offset, msg)
 
 	return nil
@@ -76,7 +76,7 @@ func (p *SyncProducer) SendProducerMessage(msg *sarama.ProducerMessage) error {
 
 func (p *SyncProducer) Close() {
 	if err := p.producer.Close(); err != nil {
-		logrus.Errorf("Close error：err=%v", err)
+		logging.Errorf("Close error：err=%v", err)
 		return
 	}
 }

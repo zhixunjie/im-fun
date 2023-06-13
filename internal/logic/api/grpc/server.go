@@ -3,8 +3,8 @@ package grpc
 import (
 	"context"
 	"errors"
-	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/logic/service"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"net"
 	"time"
 
@@ -34,7 +34,7 @@ func New(conf *conf.RPCServer, svc *service.Service) *grpc.Server {
 		panic(err)
 	}
 	// begin to listen
-	logrus.Infof("GRPC server is listening %v：%v", conf.Network, conf.Addr)
+	logging.Infof("GRPC server is listening %v：%v", conf.Network, conf.Addr)
 	go func() {
 		if err = srv.Serve(listener); err != nil {
 			panic(err)
@@ -52,15 +52,15 @@ var _ pb.LogicServer = &server{}
 
 func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (*pb.ConnectReply, error) {
 	if req.UserId == 0 {
-		logrus.Errorf("UserId not allow,token=%+v", req.GetToken())
+		logging.Errorf("UserId not allow,token=%+v", req.GetToken())
 		return &pb.ConnectReply{}, errors.New("req.UserId not allow")
 	}
 	if req.UserKey == "" {
-		logrus.Errorf("UserKey not allow,token=%+v", req.GetToken())
+		logging.Errorf("UserKey not allow,token=%+v", req.GetToken())
 		return &pb.ConnectReply{}, errors.New("req.UserKey not allow")
 	}
 	if req.Token == "" {
-		logrus.Errorf("Token not allow,token=%+v", req.GetToken())
+		logging.Errorf("Token not allow,token=%+v", req.GetToken())
 		return &pb.ConnectReply{}, errors.New("req.Token not allow")
 	}
 

@@ -3,11 +3,11 @@ package comet
 import (
 	"context"
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	newtimer "github.com/zhixunjie/im-fun/pkg/time"
 	"io"
 	"math"
@@ -21,14 +21,14 @@ func InitTCP(server *Server, accept int) (listener *net.TCPListener, err error) 
 	addrs := conf.Conf.Connect.TCP.Bind
 	for _, bind := range addrs {
 		if addr, err = net.ResolveTCPAddr("tcp", bind); err != nil {
-			logrus.Errorf("TCP ResolveTCPAddr(bind=%v) err=%v", bind, err)
+			logging.Errorf("TCP ResolveTCPAddr(bind=%v) err=%v", bind, err)
 			return
 		}
 		if listener, err = net.ListenTCP("tcp", addr); err != nil {
-			logrus.Errorf("TCP ListenTCP(bind=%v) err=%v", bind, err)
+			logging.Errorf("TCP ListenTCP(bind=%v) err=%v", bind, err)
 			return
 		}
-		logrus.Infof("TCP server is listening：%s", bind)
+		logging.Infof("TCP server is listening：%s", bind)
 		// 启动N个协程，每个协程开启后进行accept（需要使用REUSE解决惊群问题）
 		for i := 0; i < accept; i++ {
 			// TODO 使用协程池进行管理
@@ -46,19 +46,19 @@ func acceptTCP(server *Server, listener *net.TCPListener) {
 	for {
 		if conn, err = listener.AcceptTCP(); err != nil {
 			// if listener close then return
-			logrus.Errorf("listener.Accept(%s) error=%v", listener.Addr().String(), err)
+			logging.Errorf("listener.Accept(%s) error=%v", listener.Addr().String(), err)
 			return
 		}
 		if err = conn.SetKeepAlive(server.conf.Connect.TCP.Keepalive); err != nil {
-			logrus.Errorf("conn.SetKeepAlive() error=%v", err)
+			logging.Errorf("conn.SetKeepAlive() error=%v", err)
 			return
 		}
 		if err = conn.SetReadBuffer(server.conf.Connect.TCP.Rcvbuf); err != nil {
-			logrus.Errorf("conn.SetReadBuffer() error=%v", err)
+			logging.Errorf("conn.SetReadBuffer() error=%v", err)
 			return
 		}
 		if err = conn.SetWriteBuffer(server.conf.Connect.TCP.Sndbuf); err != nil {
-			logrus.Errorf("conn.SetWriteBuffer() error=%v", err)
+			logging.Errorf("conn.SetWriteBuffer() error=%v", err)
 			return
 		}
 		go serveTCPInit(server, conn, r)
@@ -75,7 +75,7 @@ func serveTCPInit(s *Server, conn *net.TCPConn, r int) {
 		rp = s.round.BufferPool.ReaderPool(r)
 		wp = s.round.BufferPool.WriterPool(r)
 	)
-	logrus.Infof("connect success,lAddr=%v,RemoteAddr=%v",
+	logging.Infof("connect success,lAddr=%v,RemoteAddr=%v",
 		conn.LocalAddr().String(), conn.RemoteAddr().String())
 	s.serveTCP(conn, rp, wp, tr)
 }
@@ -107,7 +107,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 	// TODO 暂时把timer关闭，感觉有点问题
 	//trd = timerPool.Add(time.Duration(s.conf.Protocol.HandshakeTimeout), func() {
 	//	conn.Close()
-	//	logrus.Errorf("TCP handshake timeout UserInfo=%+v,addr=%v,step=%v,hb=%v",
+	//	logging.Errorf("TCP handshake timeout UserInfo=%+v,addr=%v,step=%v,hb=%v",
 	//		ch.UserInfo, conn.RemoteAddr().String(), step, hb)
 	//})
 
@@ -123,14 +123,14 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 		proto, err = ch.ProtoAllocator.GetProtoCanWrite()
 		if err != nil {
 			release()
-			logrus.Errorf("GetProtoCanWrite err=%v,UserInfo=%v,step=%v,hb=%v", err, ch.UserInfo, step, hb)
+			logging.Errorf("GetProtoCanWrite err=%v,UserInfo=%v,step=%v,hb=%v", err, ch.UserInfo, step, hb)
 			return
 		}
 		// auth（check token）
 		hb, err = s.authTCP(ctx, ch, proto)
 		if err != nil {
 			release()
-			logrus.Errorf("authTCP err=%v,UserInfo=%v", err, ch.UserInfo)
+			logging.Errorf("authTCP err=%v,UserInfo=%v", err, ch.UserInfo)
 			return
 		}
 		// set bucket
@@ -138,7 +138,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 		err = bucket.Put(ch)
 		if err != nil {
 			release()
-			logrus.Errorf("AllocBucket err=%v,UserInfo=%v", err, ch.UserInfo)
+			logging.Errorf("AllocBucket err=%v,UserInfo=%v", err, ch.UserInfo)
 			return
 		}
 	}
@@ -173,7 +173,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 	}
 fail:
 	if err != nil && err != io.EOF && !strings.Contains(err.Error(), "closed") {
-		logrus.Errorf("UserInfo=%v sth has happened,err=%v", ch.UserInfo, err)
+		logging.Errorf("UserInfo=%v sth has happened,err=%v", ch.UserInfo, err)
 	}
 	// 回收相关资源
 	bucket.DelChannel(ch)
@@ -182,7 +182,7 @@ fail:
 	ch.Close()
 	_ = conn.Close()
 	if err = s.Disconnect(ctx, ch); err != nil {
-		logrus.Errorf("Disconnect UserInfo=%+v,err=%v", ch.UserInfo, err)
+		logging.Errorf("Disconnect UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}
 }
 
@@ -198,7 +198,7 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 		if protocol.Operation(proto.Op) == protocol.OpAuth {
 			break
 		} else {
-			logrus.Errorf("tcp request operation(%d) not auth", proto.Op)
+			logging.Errorf("tcp request operation(%d) not auth", proto.Op)
 		}
 	}
 
@@ -210,7 +210,7 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 		Token    string `json:"token"`
 	}
 	if err = json.Unmarshal(proto.Body, &params); err != nil {
-		logrus.Errorf("Unmarshal body=%v,err=%v", proto.Body, err)
+		logging.Errorf("Unmarshal body=%v,err=%v", proto.Body, err)
 		return
 	}
 
@@ -220,7 +220,7 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 	ch.UserInfo.RoomId = params.RoomId
 	ch.UserInfo.Platform = params.Platform
 	if hb, err = s.Connect(ctx, ch, params.Token); err != nil {
-		logrus.Errorf("Connect UserInfo=%v, err=%v", ch.UserInfo, err)
+		logging.Errorf("Connect UserInfo=%v, err=%v", ch.UserInfo, err)
 		return
 	}
 
@@ -228,7 +228,7 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 	proto.Op = int32(protocol.OpAuthReply)
 	proto.Body = nil
 	if err = proto.WriteTCP(writer); err != nil {
-		logrus.Errorf("WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)
+		logging.Errorf("WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)
 		return
 	}
 	err = writer.Flush()

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	pb "github.com/zhixunjie/im-fun/api/pb"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"sync/atomic"
 	"time"
 )
@@ -37,19 +38,19 @@ func (c *Comet) Process(i int) {
 		case msg := <-c.chUserKeys[i]:
 			_, err := c.rpcClient.SendToUserKeys(context.Background(), msg)
 			if err != nil {
-				logrus.Errorf(logHead+"conf.rpcClient.SendToUsers(%s),serverId=%s,error=%v",
+				logging.Errorf(logHead+"conf.rpcClient.SendToUsers(%s),serverId=%s,error=%v",
 					msg, c.serverId, err)
 			}
 		case msg := <-c.chRoom[i]:
 			_, err := c.rpcClient.SendToRoom(context.Background(), msg)
 			if err != nil {
-				logrus.Errorf(logHead+"conf.rpcClient.BroadcastRoom(%s),serverId=%s,error=%v",
+				logging.Errorf(logHead+"conf.rpcClient.BroadcastRoom(%s),serverId=%s,error=%v",
 					msg, c.serverId, err)
 			}
 		case msg := <-c.chAll:
 			_, err := c.rpcClient.SendToAll(context.Background(), msg)
 			if err != nil {
-				logrus.Errorf(logHead+"conf.rpcClient.Broadcast(%s),serverId=%s,error=%v",
+				logging.Errorf(logHead+"conf.rpcClient.Broadcast(%s),serverId=%s,error=%v",
 					msg, c.serverId, err)
 			}
 		}

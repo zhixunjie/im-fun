@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/logic/model/request"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
 // SendToUserKeys 发送消息（by kafka）
@@ -11,7 +11,7 @@ func (svc *Service) SendToUserKeys(ctx context.Context, req *request.SendToUserK
 	logHead := "SendToUserKeys|"
 	res, err := svc.dao.SessionGetByUserKeys(ctx, req.UserKeys)
 	if err != nil {
-		logrus.Errorf(logHead+"res=%v, err=%v", res, err)
+		logging.Errorf(logHead+"res=%v, err=%v", res, err)
 		return err
 	}
 
@@ -26,7 +26,7 @@ func (svc *Service) SendToUserKeys(ctx context.Context, req *request.SendToUserK
 	for serverId := range serverIdMap {
 		err = svc.dao.KafkaSendToUserKeys(serverId, serverIdMap[serverId], req.SubId, []byte(req.Message))
 		if err != nil {
-			logrus.Errorf(logHead+"err=%v", err)
+			logging.Errorf(logHead+"err=%v", err)
 		}
 	}
 
@@ -38,7 +38,7 @@ func (svc *Service) SendToUserIds(ctx context.Context, req *request.SendToUserId
 	logHead := "SendToUserIds|"
 	res, err := svc.dao.SessionGetByUserIds(ctx, req.UserIds)
 	if err != nil {
-		logrus.Errorf(logHead+"res=%v, err=%v", res, err)
+		logging.Errorf(logHead+"res=%v, err=%v", res, err)
 		return err
 	}
 
@@ -52,7 +52,7 @@ func (svc *Service) SendToUserIds(ctx context.Context, req *request.SendToUserId
 	for serverId := range serverIdMap {
 		err = svc.dao.KafkaSendToUserKeys(serverId, serverIdMap[serverId], req.SubId, req.Message)
 		if err != nil {
-			logrus.Errorf(logHead+"err=%v", err)
+			logging.Errorf(logHead+"err=%v", err)
 		}
 	}
 
@@ -64,7 +64,7 @@ func (svc *Service) SendToRoom(ctx context.Context, req *request.SendToRoomReq) 
 	logHead := "SendToRoom|"
 	err := svc.dao.KafkaSendToRoom(req)
 	if err != nil {
-		logrus.Errorf(logHead+"err=%v", err)
+		logging.Errorf(logHead+"err=%v", err)
 		return err
 	}
 	return nil
@@ -75,7 +75,7 @@ func (svc *Service) SendToAll(ctx context.Context, req *request.SendToAllReq) er
 	logHead := "SendToAll|"
 	err := svc.dao.KafkaSendToAll(req)
 	if err != nil {
-		logrus.Errorf(logHead+"err=%v", err)
+		logging.Errorf(logHead+"err=%v", err)
 		return err
 	}
 	return nil

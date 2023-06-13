@@ -2,8 +2,8 @@ package grpc
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/comet"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"net"
 	"time"
 
@@ -29,7 +29,7 @@ func New(s *comet.Server, conf *conf.RPCServer) *grpc.Server {
 		panic(err)
 	}
 	// begin to listen
-	logrus.Infof("GRPC server is listening %v：%v", conf.Network, conf.Addr)
+	logging.Infof("GRPC server is listening %v：%v", conf.Network, conf.Addr)
 	go func() {
 		if err = srv.Serve(listener); err != nil {
 			panic(err)

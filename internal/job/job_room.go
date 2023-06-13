@@ -3,10 +3,10 @@ package job
 import (
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/job/conf"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"time"
 )
 
@@ -62,17 +62,17 @@ func (r *Room) Receive(batch int, duration time.Duration) {
 	var n int
 	var proto *protocol.Proto
 
-	logrus.Infof(logHead + "new room")
+	logging.Infof(logHead + "new room")
 	for {
 		select {
 		// 策略1：每个一段时间发送一次群消息
 		case <-ticker.C:
-			logrus.Infof(logHead + "ticker.C")
+			logging.Infof(logHead + "ticker.C")
 			break
 		// 策略2：累积到一定数目后发送一次群消息
 		case proto = <-r.proto:
 			if proto != nil {
-				logrus.Infof(logHead+"get proto=%v,n=%v", proto, n)
+				logging.Infof(logHead+"get proto=%v,n=%v", proto, n)
 				proto.WriteTo(writer)
 				if n++; n >= batch {
 					break
@@ -93,7 +93,7 @@ func (r *Room) Receive(batch int, duration time.Duration) {
 	}
 end:
 	r.job.DelRoom(r.id)
-	logrus.Infof(logHead + "delete room")
+	logging.Infof(logHead + "delete room")
 }
 
 func (job *Job) DelRoom(roomId string) {
@@ -113,9 +113,9 @@ func (job *Job) CreateOrGetRoom(roomId string) *Room {
 			job.rooms[roomId] = room
 		}
 		job.rwMutex.Unlock()
-		logrus.Infof("create a room=%s,active=%d", roomId, len(job.rooms))
+		logging.Infof("create a room=%s,active=%d", roomId, len(job.rooms))
 	} else {
-		logrus.Infof("get a room=%s,active=%d", roomId, len(job.rooms))
+		logging.Infof("get a room=%s,active=%d", roomId, len(job.rooms))
 	}
 	return room
 }

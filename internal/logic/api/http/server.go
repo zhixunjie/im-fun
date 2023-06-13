@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/internal/logic/service"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"net/http"
 	"time"
 )
@@ -41,7 +42,7 @@ func New(conf *conf.Config, svc *service.Service) *Server {
 	srv.httpServer = httpServer
 
 	// begin to listen
-	logrus.Infof("HTTP server is listening：%v", addr)
+	logging.Infof("HTTP server is listening：%v", addr)
 	go func() {
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logrus.Fatalf("ListenAndServe,err=%v", err)
@@ -58,5 +59,5 @@ func (s *Server) Close() {
 	if err := s.httpServer.Shutdown(ctx); err != nil {
 		logrus.Fatalf("Server Shutdown Failed:%+v", err)
 	}
-	logrus.Infof("Server Exited Properly")
+	logging.Infof("Server Exited Properly")
 }

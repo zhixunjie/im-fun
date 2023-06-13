@@ -1,12 +1,11 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
 	logicGrpc "github.com/zhixunjie/im-fun/internal/logic/api/grpc"
 	logicHttp "github.com/zhixunjie/im-fun/internal/logic/api/http"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/internal/logic/service"
-	"github.com/zhixunjie/im-fun/pkg/log"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/perf"
 	"os"
 	"os/signal"
@@ -17,7 +16,7 @@ func main() {
 	// init pprof
 	perf.InitPProf("127.0.0.1:6062")
 	// init log
-	log.InitLogConfig()
+	logging.InitLogConfig()
 	// init config
 	if err := conf.InitConfig(); err != nil {
 		panic(err)
@@ -34,7 +33,7 @@ func main() {
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
 	for {
 		s := <-c
-		logrus.Infof("get a signal %s", s.String())
+		logging.Infof("get a signal %s", s.String())
 		switch s {
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
 			httpSrv.Close()

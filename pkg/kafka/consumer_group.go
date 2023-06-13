@@ -3,7 +3,7 @@ package kafka
 import (
 	"context"
 	"github.com/Shopify/sarama"
-	"github.com/sirupsen/logrus"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
 type ConsumerGroup struct {
@@ -20,7 +20,7 @@ func NewConsumerGroup(conf *ConsumerGroupConf, fn Callback) (*ConsumerGroup, err
 	// 设置消费组的信息
 	consumerGroup, err := sarama.NewConsumerGroup(conf.Brokers, conf.GroupId, GetConsumerGroupConfig())
 	if err != nil {
-		logrus.Errorf("NewConsumerGroup,err=%v,conf=%+v", err, conf)
+		logging.Errorf("NewConsumerGroup,err=%v,conf=%+v", err, conf)
 		return cg, err
 	}
 	cg.consumerGroup = consumerGroup
@@ -29,7 +29,7 @@ func NewConsumerGroup(conf *ConsumerGroupConf, fn Callback) (*ConsumerGroup, err
 	go func() {
 		var newErr error
 		for newErr = range consumerGroup.Errors() {
-			logrus.Errorf("consumerGroup.Errors,err=%v,conf=%+v", newErr, conf)
+			logging.Errorf("consumerGroup.Errors,err=%v,conf=%+v", newErr, conf)
 		}
 	}()
 
@@ -41,10 +41,10 @@ func NewConsumerGroup(conf *ConsumerGroupConf, fn Callback) (*ConsumerGroup, err
 		var newErr error
 		for {
 			//fmt.Println("waiting for message......")
-			logrus.Infof(logHead+"conf=%+v,waiting for message......", conf)
+			logging.Infof(logHead+"conf=%+v,waiting for message......", conf)
 			newErr = consumerGroup.Consume(ctx, topics, handler)
 			if newErr != nil {
-				logrus.Errorf(logHead+"err=%v,conf=%+v", err, conf)
+				logging.Errorf(logHead+"err=%v,conf=%+v", err, conf)
 				return
 			}
 		}
@@ -54,7 +54,7 @@ func NewConsumerGroup(conf *ConsumerGroupConf, fn Callback) (*ConsumerGroup, err
 
 func (c *ConsumerGroup) Close() {
 	if err := c.consumerGroup.Close(); err != nil {
-		logrus.Errorf("Close error：err=%v,conf=%+v", err, c.conf)
+		logging.Errorf("Close error：err=%v,conf=%+v", err, c.conf)
 		return
 	}
 }
@@ -74,11 +74,11 @@ func (consumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
 }
 func (h consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for msg := range claim.Messages() {
-		logrus.Infof("Message topic:%q partition:%d offset:%d", msg.Topic, msg.Partition, msg.Offset)
+		logging.Infof("Message topic:%q partition:%d offset:%d", msg.Topic, msg.Partition, msg.Offset)
 		func() {
 			defer func() {
 				if err := recover(); err != nil {
-					logrus.Errorf("ConsumeClaim recover err=%v", err)
+					logging.Errorf("ConsumeClaim recover err=%v", err)
 				}
 			}()
 			h.fn(msg)

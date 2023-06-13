@@ -4,8 +4,8 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"errors"
-	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"io"
 	"strings"
 )
@@ -39,7 +39,7 @@ func Upgrade(closer io.ReadWriteCloser, rr *bufio.Reader, wr *bufio.Writer, req 
 	_, _ = wr.WriteString("Sec-WebSocket-Accept: " + computeAcceptKey(challengeKey) + "\r\n\r\n")
 	// _, _ = wr.WriteString("Sec-WebSocket-Protocol: " + computeAcceptKey(challengeKey) + "\r\n\r\n")
 	if err = wr.Flush(); err != nil {
-		logrus.Errorf("Flush err=%v", err)
+		logging.Errorf("Flush err=%v", err)
 		return nil, err
 	}
 

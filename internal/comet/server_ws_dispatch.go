@@ -2,10 +2,10 @@ package comet
 
 import (
 	"errors"
-	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 )
 
@@ -33,7 +33,7 @@ func (s *Server) dispatchWebSocket(wsConn *websocket.Conn, writerPool *bytes.Poo
 				goto fail
 			}
 		default:
-			logrus.Errorf(logHead + "unknown proto")
+			logging.Errorf(logHead + "unknown proto")
 			goto fail
 		}
 		if err = wsConn.Flush(); err != nil {
@@ -42,7 +42,7 @@ func (s *Server) dispatchWebSocket(wsConn *websocket.Conn, writerPool *bytes.Poo
 	}
 fail: // TODO 子协程的结束，需要通知到主协程（否则主协程不会结束）
 	if err != nil {
-		logrus.Errorf(logHead+"UserInfo=%+v,err=%v", ch.UserInfo, err)
+		logging.Errorf(logHead+"UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}
 	_ = wsConn.Close()
 	writerPool.Put(writeBuf)
@@ -56,7 +56,7 @@ func protoReadyWebsocket(ch *channel.Channel, wsConn *websocket.Conn) error {
 		// 1. read proto from client
 		proto, err = ch.ProtoAllocator.GetProtoCanRead()
 		if err != nil {
-			logrus.Errorf("GetProtoCanRead err=%v", err)
+			logging.Errorf("GetProtoCanRead err=%v", err)
 			return ErrNotAndProtoToRead
 		}
 		// 2. deal proto
@@ -66,13 +66,13 @@ func protoReadyWebsocket(ch *channel.Channel, wsConn *websocket.Conn) error {
 				online = ch.Room.OnlineNum()
 			}
 			if err = proto.WriteWsHeart(wsConn, online); err != nil {
-				logrus.Errorf("WriteTCPHeart err=%v", err)
+				logging.Errorf("WriteTCPHeart err=%v", err)
 				return ErrTCPWriteError
 			}
 		default:
 			// 3. write msg to client
 			if err = proto.WriteWs(wsConn); err != nil {
-				logrus.Errorf("WriteTCP err=%v", err)
+				logging.Errorf("WriteTCP err=%v", err)
 				return ErrTCPWriteError
 			}
 		}

@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
 // ReadMessage 读取整个消息
@@ -45,7 +45,7 @@ func (c *Conn) ReadMessage() (payload []byte, err error) {
 			return payload, err
 		default:
 			err = fmt.Errorf("unknown frame")
-			logrus.Errorf("err=%v,isFin=%t,opCode=%d", err, isFin, opCode)
+			logging.Errorf("err=%v,isFin=%t,opCode=%d", err, isFin, opCode)
 			return payload, err
 		}
 		if n > continuationFrameMaxRead {
@@ -108,7 +108,7 @@ func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 	case lenVal == 126:
 		// 2) If 126, the following 2 bytes interpreted as a 16-bit unsigned integer are the payload length.
 		if readerBuffer, err = c.reader.Pop(2); err != nil {
-			logrus.Errorf("Pop(2) readerBuffer err=%v", err)
+			logging.Errorf("Pop(2) readerBuffer err=%v", err)
 			return
 		}
 		payloadLen = int64(binary.BigEndian.Uint16(readerBuffer))
@@ -116,13 +116,13 @@ func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 		// 3)  If 127, the following 8 bytes interpreted as a 64-bit unsigned integer
 		// (the most significant bit MUST be 0) are the payload length.
 		if readerBuffer, err = c.reader.Pop(8); err != nil {
-			logrus.Errorf("Pop(8) readerBuffer err=%v", err)
+			logging.Errorf("Pop(8) readerBuffer err=%v", err)
 			return
 		}
 		payloadLen = int64(binary.BigEndian.Uint16(readerBuffer))
 	}
 	if payloadLen < 0 {
-		logrus.Errorf("payloadLen not allow")
+		logging.Errorf("payloadLen not allow")
 		return
 	}
 
@@ -132,7 +132,7 @@ func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 	var maskKey []byte
 	if masked {
 		if maskKey, err = c.reader.Pop(4); err != nil {
-			logrus.Errorf("Pop(4) maskKey err=%v", err)
+			logging.Errorf("Pop(4) maskKey err=%v", err)
 			return
 		}
 		if c.maskKey == nil {
@@ -144,7 +144,7 @@ func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 	// https://datatracker.ietf.org/doc/html/rfc6455#section-5.3
 	if payloadLen > 0 {
 		if payload, err = c.reader.Pop(int(payloadLen)); err != nil {
-			logrus.Errorf("Pop(%v) payload err=%v", payloadLen, err)
+			logging.Errorf("Pop(%v) payload err=%v", payloadLen, err)
 			return
 		}
 		if masked {

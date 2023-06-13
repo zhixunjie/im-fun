@@ -1,11 +1,10 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/comet"
 	commetgrpc "github.com/zhixunjie/im-fun/internal/comet/api/grpc"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
-	"github.com/zhixunjie/im-fun/pkg/log"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/perf"
 	"math/rand"
 	"net"
@@ -20,7 +19,7 @@ func main() {
 	// init pprof
 	perf.InitPProf("127.0.0.1:6060")
 	// init log
-	log.InitLogConfig()
+	logging.InitLogConfig()
 
 	// init config
 	var err error
@@ -49,7 +48,7 @@ func main() {
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
 	for {
 		s := <-c
-		logrus.Infof("get signal %s", s.String())
+		logging.Infof("get signal %s", s.String())
 		switch s {
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
 			rpcSrv.GracefulStop()
