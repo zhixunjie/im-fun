@@ -24,7 +24,7 @@ func InitConfig() (err error) {
 		logging.Errorf("err=%v", err)
 		return err
 	}
-	logging.Infof("config=%+v\n", Conf)
+	logging.Infof("config=%+v", Conf)
 
 	return nil
 }
