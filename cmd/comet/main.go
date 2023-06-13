@@ -1,16 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/internal/comet"
 	commetgrpc "github.com/zhixunjie/im-fun/internal/comet/api/grpc"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/log"
+	"github.com/zhixunjie/im-fun/pkg/perf"
 	"math/rand"
 	"net"
-	"net/http"
-	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"runtime"
@@ -19,17 +17,17 @@ import (
 )
 
 func main() {
-	// 启动pprof的HTTP服务器
-	go func() {
-		fmt.Println("start pprof HTTP Server")
-		_ = http.ListenAndServe("127.0.0.1:6060", nil)
-	}()
-
+	// init pprof
+	perf.InitPProf("127.0.0.1:6060")
+	// init log
 	log.InitLogConfig()
+
+	// init config
 	var err error
 	if err = conf.InitConfig(); err != nil {
 		panic(err)
 	}
+	// init common
 	InitCommon()
 	// init server
 	srv := comet.NewServer(conf.Conf)

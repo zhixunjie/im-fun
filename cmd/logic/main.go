@@ -7,13 +7,18 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/internal/logic/service"
 	"github.com/zhixunjie/im-fun/pkg/log"
+	"github.com/zhixunjie/im-fun/pkg/perf"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
+	// init pprof
+	perf.InitPProf("127.0.0.1:6062")
+	// init log
 	log.InitLogConfig()
+	// init config
 	if err := conf.InitConfig(); err != nil {
 		panic(err)
 	}
