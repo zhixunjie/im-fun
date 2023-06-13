@@ -81,7 +81,6 @@ func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 
 	// //////////////////////////
 	// 2. get second byte(8bit)
-	readerBuffer := make([]byte, 8) // TODO try to reduce gc
 	var secondByte byte
 	secondByte, err = c.reader.ReadByte()
 	if err != nil {
@@ -101,27 +100,26 @@ func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 	lenVal := int64(secondByte & payloadLength)
 
 	// 4. get payload length（）
+	var readerBuffer []byte
 	switch {
 	case lenVal < 126:
 		// 1) if 0-125, that is the payload length
 		payloadLen = lenVal
 	case lenVal == 126:
 		// 2) If 126, the following 2 bytes interpreted as a 16-bit unsigned integer are the payload length.
-		err = c.reader.ReadBytesN(readerBuffer[:2])
-		if err != nil {
-			logrus.Errorf("ReadBytesN err=%v", err)
+		if readerBuffer, err = c.reader.Pop(2); err != nil {
+			logrus.Errorf("Pop(2) readerBuffer err=%v", err)
 			return
 		}
-		payloadLen = int64(binary.BigEndian.Uint16(readerBuffer[:2]))
+		payloadLen = int64(binary.BigEndian.Uint16(readerBuffer))
 	case lenVal == 127:
 		// 3)  If 127, the following 8 bytes interpreted as a 64-bit unsigned integer
 		// (the most significant bit MUST be 0) are the payload length.
-		err = c.reader.ReadBytesN(readerBuffer[:8])
-		if err != nil {
-			logrus.Errorf("ReadBytesN err=%v", err)
+		if readerBuffer, err = c.reader.Pop(8); err != nil {
+			logrus.Errorf("Pop(8) readerBuffer err=%v", err)
 			return
 		}
-		payloadLen = int64(binary.BigEndian.Uint64(readerBuffer[:8]))
+		payloadLen = int64(binary.BigEndian.Uint16(readerBuffer))
 	}
 	if payloadLen < 0 {
 		logrus.Errorf("payloadLen not allow")
@@ -131,11 +129,10 @@ func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 	// 3. read bit: masked key
 	// All frames sent from the client to the server are masked by a 32-bit value that is contained within the frame.
 	// masked key is used to masked payload
+	var maskKey []byte
 	if masked {
-		maskKey := make([]byte, 4) // TODO try to reduce gc
-		err = c.reader.ReadBytesN(maskKey)
-		if err != nil {
-			logrus.Errorf("ReadBytesN err=%v", err)
+		if maskKey, err = c.reader.Pop(4); err != nil {
+			logrus.Errorf("Pop(4) maskKey err=%v", err)
 			return
 		}
 		if c.maskKey == nil {
@@ -146,10 +143,8 @@ func (c *Conn) readFrame() (isFin bool, opCode int, payload []byte, err error) {
 	// 4. read payload（finally，OMG）
 	// https://datatracker.ietf.org/doc/html/rfc6455#section-5.3
 	if payloadLen > 0 {
-		payload = make([]byte, payloadLen) // TODO try to reduce gc
-		err = c.reader.ReadBytesN(payload)
-		if err != nil {
-			logrus.Errorf("ReadBytesN err=%v", err)
+		if payload, err = c.reader.Pop(int(payloadLen)); err != nil {
+			logrus.Errorf("Pop(%v) payload err=%v", payloadLen, err)
 			return
 		}
 		if masked {

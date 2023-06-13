@@ -9,11 +9,13 @@ import (
 
 // ReadTCP read a proto from TCP reader.
 func (proto *Proto) ReadTCP(reader *bufio.Reader) (err error) {
-	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
-	err = reader.ReadBytesN(buf)
-	if err != nil {
-		return err
+	var buf []byte
+
+	// read n bytes
+	if buf, err = reader.Pop(_rawHeaderSize); err != nil {
+		return
 	}
+
 	// proto header
 	pack, err := decodeHeaderFromBufToProto(proto, buf)
 	if err != nil {
@@ -21,11 +23,7 @@ func (proto *Proto) ReadTCP(reader *bufio.Reader) (err error) {
 	}
 	// proto body
 	if pack.BodyLen > 0 {
-		proto.Body = make([]byte, pack.BodyLen) // TODO try to reduce GC
-		err = reader.ReadBytesN(proto.Body)
-		if err != nil {
-			return err
-		}
+		proto.Body, err = reader.Pop(int(pack.BodyLen))
 	} else {
 		proto.Body = nil
 	}
