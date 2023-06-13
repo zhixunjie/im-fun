@@ -94,10 +94,10 @@ func (s *Server) serveWebSocket(conn *net.TCPConn, readerPool, writerPool *bytes
 	var ch = channel.NewChannel(s.conf)
 	// set reader
 	var rb = readerPool.Get()
-	ch.Reader.ResetBuffer(conn, rb.Bytes())
+	ch.Reader.SetFdAndResetBuffer(conn, rb.Bytes())
 	// set writer
 	var wb = writerPool.Get()
-	ch.Writer.ResetBuffer(conn, wb.Bytes())
+	ch.Writer.SetFdAndResetBuffer(conn, wb.Bytes())
 	// set user ip
 	ch.UserInfo.IP, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
 	ctx, cancel := context.WithCancel(context.Background())

@@ -80,17 +80,19 @@ func (b *Reader) ReadBytesN(buf []byte) error {
 }
 ~~~
 
-2、重置底层Reader对象，以及对底层对象读写操作（Read/Write系统调用）时用到的用户缓冲区。
+**2、SetFdAndResetBuffer()：**设置**底层IO对象(fd)**，然后设置**底层IO对象**在读写操作（Read/Write系统调用）时用到的用户缓冲区。
 
-- 优化：通过Reset + Buffer Pool，能够在长期运行的程序中大大减少GC的发生。
-- 以下的代码，针对Reader和Writer都实现了Reset操作。
+- 优化：通过SetFdAndResetBuffer + Buffer Pool，能够在每条TCP链接中重复使用缓冲池子中的内存，从而使得长期运行的程序中大大减少GC的发生。
+- 以下的代码，针对Reader和Writer都实现了SetFdAndResetBuffer操作。
 
 ~~~go
-func (b *Reader) ResetBuffer(r io.Reader, buf []byte) {
+// SetFdAndResetBuffer reset reader & underlying byte array
+func (b *Reader) SetFdAndResetBuffer(r io.Reader, buf []byte) {
 	b.reset(buf, r)
 }
 
-func (b *Writer) ResetBuffer(w io.Writer, buf []byte) {
+// SetFdAndResetBuffer reset writer & underlying byte array
+func (b *Writer) SetFdAndResetBuffer(w io.Writer, buf []byte) {
 	b.buf = buf
 	b.err = nil
 	b.n = 0
@@ -154,6 +156,7 @@ reader：
 func (b *Reader) ReadLine() (line []byte, isPrefix bool, err error)    // 读取一行数据
 func (b *Reader) ReadByte() (byte, error)                              // 读取一个字节
 func (b *Reader) ReadBytesN(buf []byte)                                // 写入len(p)个字节
+func (b *Reader) SetFdAndResetBuffer(r io.Reader, buf []byte)
 func (b *Reader) Pop(n int) ([]byte, error) 
 ~~~
 
@@ -163,5 +166,6 @@ writer：
 func (b *Writer) WriteByte(c byte) error               // 写入一个字节
 func (b *Writer) Write(p []byte) (nn int, err error)   // 写入len(p)个字节
 func (b *Writer) Peek(n int) ([]byte, error)
+func (b *Writer) SetFdAndResetBuffer(w io.Writer, buf []byte)
 ~~~
 

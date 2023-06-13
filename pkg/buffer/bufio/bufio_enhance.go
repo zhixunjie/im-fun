@@ -6,8 +6,8 @@ import "io"
 
 // Reader
 
-// ResetBuffer reset reader & underlying byte array
-func (b *Reader) ResetBuffer(r io.Reader, buf []byte) {
+// SetFdAndResetBuffer reset reader & underlying byte array
+func (b *Reader) SetFdAndResetBuffer(r io.Reader, buf []byte) {
 	b.reset(buf, r)
 }
 
@@ -34,8 +34,8 @@ func (b *Reader) Pop(n int) ([]byte, error) {
 
 // Writer
 
-// ResetBuffer reset writer & underlying byte array
-func (b *Writer) ResetBuffer(w io.Writer, buf []byte) {
+// SetFdAndResetBuffer reset writer & underlying byte array
+func (b *Writer) SetFdAndResetBuffer(w io.Writer, buf []byte) {
 	b.buf = buf
 	b.err = nil
 	b.n = 0
