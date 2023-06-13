@@ -37,8 +37,8 @@ Sec-WebSocket-Protocol: chat
 RFC：
 
 - https://datatracker.ietf.org/doc/html/rfc6455
-- https://datatracker.ietf.org/doc/html/rfc6455#section-5.2 frame
 - https://datatracker.ietf.org/doc/html/rfc6455#section-1.3 upgrade
+- https://datatracker.ietf.org/doc/html/rfc6455#section-5.2 frame
 
 **我的实现：**
 
@@ -78,10 +78,13 @@ RFC：
 
 > 用于参考 or 直接拿来用
 
-- [nhooyr](research/websocket库_nhooyr.md)
-- [gorilla](research/websocket库_gorilla.md)
+- [nhooyr](research/websocket库_nhooyr.md) 比较新的包，star 不多。
+- [gorilla](research/websocket库_gorilla.md)  历史悠久，star 比较多。
+
+---
 
 对比说明：
 
-- 推荐使用nhooyr，比较容易看懂！！！
-- gorilla属于比较旧的包，目前已经不再维护，作者给出的原因是该类库已经足够稳定，并且没有更多改进的空间了。
+- gorilla属于比较旧的包，目前已经不再维护，[作者给出的原因](https://github.com/gorilla#gorilla-toolkit)是该类库已经足够稳定，并且没有更多改进的空间了。
+- 无论是[gorilla](https://github.com/gorilla/websocket/blob/master/examples/echo/server.go)，还是[nhooyr](https://github.com/nhooyr/websocket)，使用时都是基于net/http做上层的封装。
+- **结论**：推荐使用nhooyr，比较容易看懂，但是！！！如果追求更全面的功能，可以看看gorilla。
