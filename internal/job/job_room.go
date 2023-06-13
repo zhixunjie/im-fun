@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/job/conf"
-	"github.com/zhixunjie/im-fun/pkg/buffer"
+	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
 	"time"
 )
 
@@ -58,7 +58,7 @@ func (r *Room) Receive(batch int, duration time.Duration) {
 	timer := time.NewTicker(timerDuration)
 	defer timer.Stop()
 
-	var writer = buffer.NewWriterSize(int(protocol.MaxBodySize))
+	var writer = bytes.NewWriterSize(int(protocol.MaxBodySize))
 	var n int
 	var proto *protocol.Proto
 

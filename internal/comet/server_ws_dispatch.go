@@ -5,13 +5,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
-	"github.com/zhixunjie/im-fun/pkg/buffer"
+	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 )
 
 // dispatchWebSocket deal any proto send to signal channel（Just like a state machine）
 // 可能出现的消息：SendReady（client message） or service job
-func (s *Server) dispatchWebSocket(wsConn *websocket.Conn, writerPool *buffer.Pool, writeBuf *buffer.Buffer, ch *channel.Channel) {
+func (s *Server) dispatchWebSocket(wsConn *websocket.Conn, writerPool *bytes.Pool, writeBuf *bytes.Buffer, ch *channel.Channel) {
 	var err error
 	for {
 		// wait message from signal channel（if not, it will block here）

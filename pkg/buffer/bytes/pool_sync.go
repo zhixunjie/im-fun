@@ -1,6 +1,8 @@
-package buffer
+package bytes
 
-import "sync"
+import (
+	"sync"
+)
 
 // PoolSync：使用sync包编写的BufferPool
 // 优点：代码更加简洁

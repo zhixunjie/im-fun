@@ -1,10 +1,12 @@
 package protocol
 
-import "github.com/zhixunjie/im-fun/pkg/buffer"
+import (
+	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
+)
 
 // WriteTo
 // write a proto to writer
-func (proto *Proto) WriteTo(writer *buffer.BufferWriter) {
+func (proto *Proto) WriteTo(writer *bytes.BufferWriter) {
 	buf := writer.Peek(_rawHeaderSize)
 
 	// encode proto's header to buffer

@@ -2,7 +2,7 @@ package comet
 
 import (
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
-	"github.com/zhixunjie/im-fun/pkg/buffer"
+	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
 	"github.com/zhixunjie/im-fun/pkg/time"
 )
 
@@ -15,7 +15,7 @@ type RoundOptions struct {
 // Round used for connection round-robin get a reader/writer/timer for split big lock.
 type Round struct {
 	Timers     []time.Timer
-	BufferPool buffer.Hash
+	BufferPool bytes.Hash
 
 	options RoundOptions
 }
@@ -34,7 +34,7 @@ func NewRound(c *conf.Config) (round *Round) {
 		round.Timers[i].Init(round.options.TimerSize)
 	}
 	// make buffer pool
-	round.BufferPool = buffer.NewHash(c.Connect.BufferOptions)
+	round.BufferPool = bytes.NewHash(c.Connect.BufferOptions)
 	return
 }
 

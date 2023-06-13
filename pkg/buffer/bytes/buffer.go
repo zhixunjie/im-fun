@@ -1,4 +1,4 @@
-package buffer
+package bytes
 
 // Buffer：缓冲区，参考：bytes.Buffer
 // - 每个缓冲区代表一段指定大小的内存

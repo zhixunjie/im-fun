@@ -7,7 +7,7 @@ import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
-	"github.com/zhixunjie/im-fun/pkg/buffer"
+	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
 	newtimer "github.com/zhixunjie/im-fun/pkg/time"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 	"io"
@@ -82,7 +82,7 @@ func serveWebSocketInit(s *Server, conn *net.TCPConn, r int) {
 }
 
 // serveTCP serve a tcp connection.
-func (s *Server) serveWebSocket(conn *net.TCPConn, readerPool, writerPool *buffer.Pool, timerPool *newtimer.Timer) {
+func (s *Server) serveWebSocket(conn *net.TCPConn, readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) {
 	var (
 		err    error
 		proto  *protocol.Proto

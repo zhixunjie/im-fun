@@ -4,7 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
-	"github.com/zhixunjie/im-fun/pkg/buffer"
+	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
 )
 
 func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, message []byte) (err error) {
@@ -17,7 +17,7 @@ func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, 
 		Op:   int32(protocol.OpBatchMsg),
 		Body: message,
 	}
-	writer := buffer.NewWriterSize(len(message) + 64)
+	writer := bytes.NewWriterSize(len(message) + 64)
 	proto.WriteTo(writer)
 	proto.Body = writer.Buffer()
 

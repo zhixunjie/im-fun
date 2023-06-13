@@ -2,7 +2,7 @@ package conf
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/zhixunjie/im-fun/pkg/buffer"
+	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
 	newtime "github.com/zhixunjie/im-fun/pkg/time"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -86,8 +86,8 @@ type Env struct {
 
 type Connect struct {
 	TCP           *TCP            `yaml:"tcp"`
-	Websocket     *Websocket      `yaml:"websocket"`
-	BufferOptions *buffer.Options `yaml:"bufferOptions"`
+	Websocket     *Websocket     `yaml:"websocket"`
+	BufferOptions *bytes.Options `yaml:"bufferOptions"`
 }
 type RPC struct {
 	Server *RPCServer `yaml:"server"`

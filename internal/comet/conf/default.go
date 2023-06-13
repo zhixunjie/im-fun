@@ -1,7 +1,7 @@
 package conf
 
 import (
-	"github.com/zhixunjie/im-fun/pkg/buffer"
+	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
 	newtime "github.com/zhixunjie/im-fun/pkg/time"
 	"os"
 	"strconv"
@@ -57,13 +57,13 @@ func DefaultConnect() *Connect {
 		Websocket: &Websocket{
 			Bind: []string{":3102"},
 		},
-		BufferOptions: &buffer.Options{
-			ReadPool: buffer.PoolOptions{
+		BufferOptions: &bytes.Options{
+			ReadPool: bytes.PoolOptions{
 				PoolNum:  10,
 				BatchNum: 1024,
 				BufSize:  8192,
 			},
-			WritePool: buffer.PoolOptions{
+			WritePool: bytes.PoolOptions{
 				PoolNum:  10,
 				BatchNum: 1024,
 				BufSize:  8192,

@@ -1,6 +1,8 @@
-package buffer
+package bytes
 
-import "sync"
+import (
+	"sync"
+)
 
 // Pool：自己编写的BufferPool
 // TODO try sth lock free，like: sync.Pool

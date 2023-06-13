@@ -1,4 +1,4 @@
-package buffer
+package bytes
 
 // 利用Hash算法，均摊池子的请求流量
 
