@@ -34,10 +34,6 @@ Sec-WebSocket-Protocol: chat
 
 # 2. 服务端
 
-第三方API：
-
-- https://pkg.go.dev/nhooyr.io/websocket
-
 RFC：
 
 - https://datatracker.ietf.org/doc/html/rfc6455
@@ -48,12 +44,7 @@ RFC：
 
 - https://github.com/zhixunjie/im-fun/tree/master/pkg/websocket
 
-**第三方库：**可以用于参考
-
-- [nhooyr.md](research/nhooyr.md)
-- https://github.com/gorilla/websocket 已经archived，不再维护！！！
-
----
+## 2.1 功能清单
 
 **需要实现的功能：**
 
@@ -83,3 +74,14 @@ RFC：
 +---------------------------------------------------------------+
 ~~~
 
+## 2.2 第三方库
+
+> 用于参考 or 直接拿来用
+
+- [nhooyr](research/websocket库_nhooyr.md)
+- [gorilla](research/websocket库_gorilla.md)
+
+对比说明：
+
+- 推荐使用nhooyr，比较容易看懂！！！
+- gorilla属于比较旧的包，目前已经不再维护，作者给出的原因是该类库已经足够稳定，并且没有更多改进的空间了。

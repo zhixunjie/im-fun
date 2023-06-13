@@ -1,6 +1,7 @@
 > 记录用于实现参考的关键方法
 
 - https://github.com/nhooyr/websocket
+- https://pkg.go.dev/nhooyr.io/websocket
 
 upgrade：
 
