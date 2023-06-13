@@ -6,6 +6,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/pkg/kafka"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"time"
@@ -92,16 +93,16 @@ func CreateRedisPool(addr, password string) *redis.Client {
 		// 钩子函数
 		// 仅当客户端执行命令时需要从连接池获取连接时，如果连接池需要新建连接时则会调用此钩子函数
 		OnConnect: func(ctx context.Context, conn *redis.Conn) error {
-			fmt.Printf("conn=%v\n", conn)
+			logging.Infof("conn=%v", conn)
 			return nil
 		},
 	})
 
 	// ping pong
 	pong, err := client.Ping(context.Background()).Result()
-	fmt.Println("PING Result：", pong, err) // Output: PONG <nil>
+	logging.Infof("PING Result：", pong, err) // Output: PONG <nil>
 	if pong != "PONG" {
-		fmt.Printf("NewClient res=%v,err=%v\n", pong, err)
+		logging.Errorf("NewClient res=%v,err=%v", pong, err)
 	}
 
 	return client

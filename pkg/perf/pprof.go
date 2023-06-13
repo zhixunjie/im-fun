@@ -1,7 +1,7 @@
 package perf
 
 import (
-	"fmt"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"net/http"
 	_ "net/http/pprof"
 )
@@ -9,7 +9,7 @@ import (
 func InitPProf(addr string) {
 	// 启动pprof的HTTP服务器
 	go func() {
-		fmt.Println("start pprof HTTP Server")
+		logging.Infof("start pprof HTTP Server")
 		_ = http.ListenAndServe(addr, nil)
 	}()
 }
