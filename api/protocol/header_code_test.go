@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestEncodeAndDecode(t *testing.T) {
+func TestHeaderEncodeAndDecode(t *testing.T) {
 	var proto = &Proto{
 		Ver:  ProtoVersion,
 		Op:   int32(OpAuth),
@@ -16,5 +16,6 @@ func TestEncodeAndDecode(t *testing.T) {
 	encodeHeaderFromProtoToBuf(proto, buf)
 
 	var proto1 Proto
-	fmt.Println(decodeHeaderFromBufToProto(&proto1, buf))
+	r1, r2 := decodeHeaderFromBufToProto(&proto1, buf)
+	fmt.Printf("%+v,err=%v\n", r1, r2)
 }

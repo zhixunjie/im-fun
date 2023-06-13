@@ -55,15 +55,13 @@ type ProtoPack struct {
 }
 
 // header编码：把proto的头信息，编码写入到buf的头
-func encodeHeaderFromProtoToBuf(proto *Proto, buf []byte) []byte {
+func encodeHeaderFromProtoToBuf(proto *Proto, buf []byte) {
 	packLen := _rawHeaderSize + int32(len(proto.Body))
 	binary.BigEndian.PutInt32(buf[_packOffset:], packLen)
 	binary.BigEndian.PutInt16(buf[_headerOffset:], int16(_rawHeaderSize))
 	binary.BigEndian.PutInt16(buf[_verOffset:], int16(proto.Ver))
 	binary.BigEndian.PutInt32(buf[_opOffset:], proto.Op)
 	binary.BigEndian.PutInt32(buf[_seqOffset:], proto.Seq)
-
-	return buf
 }
 
 // header解码：把buf的头信息，解码到proto的头

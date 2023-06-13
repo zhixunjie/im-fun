@@ -10,7 +10,7 @@ func (proto *Proto) WriteTo(writer *bytes.BufferWriter) {
 	buf := writer.Peek(_rawHeaderSize)
 
 	// encode proto's header to buffer
-	buf = encodeHeaderFromProtoToBuf(proto, buf)
+	encodeHeaderFromProtoToBuf(proto, buf)
 
 	// proto body
 	if proto.Body != nil {

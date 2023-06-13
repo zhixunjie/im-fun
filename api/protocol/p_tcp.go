@@ -36,36 +36,40 @@ func (proto *Proto) WriteTCP(writer *bufio.Writer) (err error) {
 	if proto.Op == int32(OpBatchMsg) {
 		_, err = writer.Write(proto.Body)
 		return
-	}
-	// proto header
-	buf := make([]byte, _rawHeaderSize) // TODO try to reduce GC
-	buf = encodeHeaderFromProtoToBuf(proto, buf)
-	_, err = writer.Write(buf)
-	if err != nil {
-		return err
-	}
-	// proto body
-	if proto.Body != nil {
-		_, err = writer.Write(proto.Body)
-		if err != nil {
-			return err
+	} else {
+		// Peek：只需要把header的内存区peek出来即可
+		var buf []byte
+		if buf, err = writer.Peek(_rawHeaderSize); err != nil {
+			return
+		}
+
+		// 1. proto header
+		encodeHeaderFromProtoToBuf(proto, buf)
+		// 2. proto body
+		if proto.Body != nil {
+			_, err = writer.Write(proto.Body)
+			if err != nil {
+				return err
+			}
 		}
 	}
+
 	return nil
 }
 
 // WriteTCPHeart write TCP heartbeat with room online.
 func (proto *Proto) WriteTCPHeart(writer *bufio.Writer, online int32) (err error) {
-	// proto header
+	// Peek：一次性把整个数据包的内存区都Peek出来
+	var buf []byte
 	packLen := _rawHeaderSize + _heartSize
-	buf := make([]byte, packLen) // TODO try to reduce GC
-	buf = encodeHeaderFromProtoToBuf(proto, buf)
-
-	// proto body
-	binary.BigEndian.PutInt32(buf[_heartOffset:], online)
-	_, err = writer.Write(buf)
-	if err != nil {
-		return err
+	if buf, err = writer.Peek(packLen); err != nil {
+		return
 	}
+
+	// 1. proto header
+	encodeHeaderFromProtoToBuf(proto, buf)
+	// 2. proto body
+	binary.BigEndian.PutInt32(buf[_heartOffset:], online)
+
 	return nil
 }

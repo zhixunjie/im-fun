@@ -67,7 +67,7 @@ type Writer struct {
 
 > 源码来源：Go 1.18.10，这里为其reader和writer作能力加强
 
-1、读取N个字节（bytes）：**read N bytes**
+**1、Reader.ReadBytesN()**：读取N个字节（bytes）。
 
 - 虽然[Reader.read函数](https://github.com/zhixunjie/im-fun/blob/584f7ec67b1140de3dcabc2bb6a73835421d0b9b/pkg/buffer/bufio/bufio.go#L207)也能读取N个字节的数据，但是它不保证读取的字节数一定是等于N个字节，可能会小于N个字节。
 - 因此，扩展了一个函数ReadBytesN()，能够保证从Reader中一次性读取N个字节的数据。
@@ -98,7 +98,10 @@ func (b *Writer) ResetBuffer(w io.Writer, buf []byte) {
 }
 ~~~
 
-3、Reader.Pop
+**3、Reader.Pop()**：把Reader 的用户缓冲区的n个字节直接返回给用户。
+
+- 如果用户调用Reader.Read()执行读取操作时，需要先make一个byte数组，然后传入Read()函数进行读取操作。
+- 但是，如果用户调用Reader.Pop()执行读取操作时，就不再需要传入一个byte数组，直接复用Reader本身的缓冲区内存即可。
 
 ~~~go
 // Pop 直接返回Reader的用户缓冲区的n个字节
@@ -116,7 +119,7 @@ func (b *Reader) Pop(n int) ([]byte, error) {
 }
 ~~~
 
-4、Writer.Peek
+**4、Writer.Peek()**：原理跟Reader.Pop()一样。
 
 ~~~go
 // Peek 直接返回Writer的用户缓冲区的n个字节
@@ -151,6 +154,7 @@ reader：
 func (b *Reader) ReadLine() (line []byte, isPrefix bool, err error)    // 读取一行数据
 func (b *Reader) ReadByte() (byte, error)                              // 读取一个字节
 func (b *Reader) ReadBytesN(buf []byte)                                // 写入len(p)个字节
+func (b *Reader) Pop(n int) ([]byte, error) 
 ~~~
 
 writer：
@@ -158,5 +162,6 @@ writer：
 ~~~go
 func (b *Writer) WriteByte(c byte) error               // 写入一个字节
 func (b *Writer) Write(p []byte) (nn int, err error)   // 写入len(p)个字节
+func (b *Writer) Peek(n int) ([]byte, error)
 ~~~
 
