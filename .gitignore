@@ -2,5 +2,5 @@
 tmp
 examples
 *.log
-docs
+./docs/
 target
