@@ -16,10 +16,13 @@ func (s *Server) dispatchWebSocket(wsConn *websocket.Conn, writerPool *bytes.Poo
 	for {
 		// wait message from signal channel（if not, it will block here）
 		var proto = ch.Waiting()
-		switch proto {
-		case protocol.ProtoFinish: // close channel
+		switch protocol.Operation(proto.Op) {
+		case protocol.OpProtoFinish:
+			// 1. close channel
 			goto fail
-		case protocol.ProtoReady: // read msg from client
+		case protocol.OpProtoReady:
+			// 2. read msg from client
+			// 链路：client -> server -> read -> proto -> send protoReady
 			if err = protoReadyWebsocket(ch, wsConn); errors.Is(err, ErrTCPWriteError) {
 				goto fail
 			}
@@ -45,14 +48,15 @@ func protoReadyWebsocket(ch *channel.Channel, wsConn *websocket.Conn) error {
 	var online int32
 	var proto *protocol.Proto
 	for {
-		// read proto from client
+		// 1. read proto from client
 		proto, err = ch.ProtoAllocator.GetProtoCanRead()
 		if err != nil {
 			logrus.Errorf("GetProtoCanRead err=%v", err)
 			return ErrNotAndProtoToRead
 		}
-		// deal proto
-		if protocol.Operation(proto.Op) == protocol.OpHeartbeatReply {
+		// 2. deal proto
+		switch protocol.Operation(proto.Op) {
+		case protocol.OpHeartbeatReply:
 			if ch.Room != nil {
 				online = ch.Room.OnlineNum()
 			}
@@ -60,7 +64,8 @@ func protoReadyWebsocket(ch *channel.Channel, wsConn *websocket.Conn) error {
 				logrus.Errorf("WriteTCPHeart err=%v", err)
 				return ErrTCPWriteError
 			}
-		} else { // write msg to client
+		default:
+			// write msg to client
 			if err = proto.WriteWs(wsConn); err != nil {
 				logrus.Errorf("WriteTCP err=%v", err)
 				return ErrTCPWriteError

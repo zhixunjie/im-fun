@@ -5,22 +5,42 @@ package protocol
 type Operation int32
 
 const (
-	OpHandshake       = Operation(iota) // handshake
-	OpHandshakeReply                    //
-	OpHeartbeat                         // heartbeat
-	OpHeartbeatReply                    //
-	OpSendMsg                           // send message.
-	OpSendMsgReply                      //
-	OpDisconnectReply                   // disconnect reply
-	OpAuth                              // auth connect
-	OpAuthReply                         //
-	OpBatchMsg                          // batch message
-	OpProtoReady                        // proto ready
-	OpProtoFinish                       // proto finish
-	OpChangeRoom                        // change room
-	OpChangeRoomReply                   //
-	OpSub                               // subscribe message
-	OpSubReply                          //
-	OpUnsub                             // unsubscribe message
-	OpUnsubReply                        //
+	// OpHandshake handshake
+	OpHandshake = Operation(iota)
+	OpHandshakeReply
+
+	// OpHeartbeat heartbeat
+	OpHeartbeat
+	OpHeartbeatReply
+
+	// OpSendMsg send message
+	OpSendMsg
+	OpSendMsgReply
+
+	// OpDisconnectReply disconnect reply
+	OpDisconnectReply
+
+	// OpAuth auth connect
+	OpAuth
+	OpAuthReply
+
+	// OpBatchMsg batch messages / raw messages
+	OpBatchMsg
+
+	// OpProtoReady proto ready
+	OpProtoReady
+	// OpProtoFinish proto finish
+	OpProtoFinish
+
+	// OpChangeRoom change room
+	OpChangeRoom
+	OpChangeRoomReply
+
+	// OpSub subscribe message
+	OpSub
+	OpSubReply
+
+	// OpUnsub unsubscribe message
+	OpUnsub
+	OpUnsubReply
 )

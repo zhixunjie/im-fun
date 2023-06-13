@@ -24,10 +24,13 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, writerPool *bytes.Pool, writeBuf
 	for {
 		// wait any message from signal channel（if not, it will block here）
 		var proto = ch.Waiting()
-		switch proto {
-		case protocol.ProtoFinish: // close channel
+		switch protocol.Operation(proto.Op) {
+		case protocol.OpProtoFinish:
+			// 1. close channel
 			goto fail
-		case protocol.ProtoReady: // read msg from client
+		case protocol.OpProtoReady:
+			// 2. read msg from client
+			// 链路：client -> server -> read -> proto -> send protoReady
 			if err = protoReady(ch, writer); errors.Is(err, ErrTCPWriteError) {
 				goto fail
 			}
@@ -53,14 +56,15 @@ func protoReady(ch *channel.Channel, writer *bufio.Writer) error {
 	var online int32
 	var proto *protocol.Proto
 	for {
-		// read proto from client
+		// 1. read proto from client
 		proto, err = ch.ProtoAllocator.GetProtoCanRead()
 		if err != nil {
 			logrus.Errorf("GetProtoCanRead err=%v", err)
 			return ErrNotAndProtoToRead
 		}
-		// deal proto
-		if protocol.Operation(proto.Op) == protocol.OpHeartbeatReply {
+		// 2. deal proto
+		switch protocol.Operation(proto.Op) {
+		case protocol.OpHeartbeatReply:
 			if ch.Room != nil {
 				online = ch.Room.OnlineNum()
 			}
@@ -68,7 +72,8 @@ func protoReady(ch *channel.Channel, writer *bufio.Writer) error {
 				logrus.Errorf("WriteTCPHeart err=%v", err)
 				return ErrTCPWriteError
 			}
-		} else { // write msg to client
+		default:
+			// write msg to client
 			if err = proto.WriteTCP(writer); err != nil {
 				logrus.Errorf("WriteTCP err=%v", err)
 				return ErrTCPWriteError
