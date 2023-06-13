@@ -36,7 +36,7 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, writerPool *bytes.Pool, writeBuf
 				goto fail
 			}
 		case protocol.OpBatchMsg:
-			// write msg to client
+			// 3. write msg to client
 			if err = proto.WriteTCP(writer); err != nil {
 				goto fail
 			}

@@ -70,7 +70,7 @@ func protoReadyWebsocket(ch *channel.Channel, wsConn *websocket.Conn) error {
 				return ErrTCPWriteError
 			}
 		default:
-			// write msg to client
+			// 3. write msg to client
 			if err = proto.WriteWs(wsConn); err != nil {
 				logrus.Errorf("WriteTCP err=%v", err)
 				return ErrTCPWriteError
