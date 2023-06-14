@@ -12,7 +12,7 @@ var GlobalSvc *service.Service
 
 func TestMain(main *testing.M) {
 	// 加载本地文件配置
-	if err := conf.InitConfig("cmd/logic/logic.yaml"); err != nil {
+	if err := conf.InitConfig("../../../cmd/logic/logic.yaml"); err != nil {
 		panic(err)
 	}
 	GlobalSvc = service.New(conf.Conf)
