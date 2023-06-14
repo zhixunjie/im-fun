@@ -16,3 +16,7 @@ func New(conf *conf.Config) *Service {
 		dao:  dao.New(conf),
 	}
 }
+
+func (svc *Service) GetDao() *dao.Dao {
+	return svc.dao
+}
