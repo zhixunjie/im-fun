@@ -83,7 +83,7 @@ func (c *Comet) Close() (err error) {
 	case <-finish:
 		logrus.Info("close allComet finish")
 	case <-time.After(5 * time.Second):
-		err = fmt.Errorf("close allComet(server:%s push:%d room:%d broadcast:%d) timeout",
+		err = fmt.Errorf("close allComet timeout (server:%s push:%d room:%d broadcast:%d)",
 			c.serverId, len(closePushChan), len(closeRoomChan), len(closeBroadcastChan))
 	}
 	c.cancel()
