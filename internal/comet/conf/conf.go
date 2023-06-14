@@ -2,32 +2,16 @@ package conf
 
 import (
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
-	"github.com/zhixunjie/im-fun/pkg/logging"
+	"github.com/zhixunjie/im-fun/pkg/encoding/yaml"
 	newtime "github.com/zhixunjie/im-fun/pkg/time"
-	"gopkg.in/yaml.v3"
-	"io/ioutil"
 	"time"
 )
 
 var Conf *Config
 
-func InitConfig() (err error) {
+func InitConfig(path string) (err error) {
 	Conf = defaultConfig()
-	bytes, err := ioutil.ReadFile("cmd/comet/comet.yaml")
-	if err != nil {
-		logging.Errorf("err=%v", err)
-		return err
-	}
-
-	// begin to unmarshal
-	err = yaml.Unmarshal(bytes, &Conf)
-	if err != nil {
-		logging.Errorf("err=%v", err)
-		return err
-	}
-	logging.Infof("config=%+v", Conf)
-
-	return nil
+	return yaml.LoadConfig(path, Conf)
 }
 
 func defaultConfig() *Config {

@@ -16,7 +16,7 @@ func main() {
 	// init log
 	logging.InitLogConfig()
 	// init config
-	if err := conf.InitConfig(); err != nil {
+	if err := conf.InitConfig("cmd/job/job.yaml"); err != nil {
 		panic(err)
 	}
 	job := job.New(conf.Conf)

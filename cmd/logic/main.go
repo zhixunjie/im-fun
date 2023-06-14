@@ -18,7 +18,7 @@ func main() {
 	// init log
 	logging.InitLogConfig()
 	// init config
-	if err := conf.InitConfig(); err != nil {
+	if err := conf.InitConfig("cmd/logic/logic.yaml"); err != nil {
 		panic(err)
 	}
 	// init service

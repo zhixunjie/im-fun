@@ -23,7 +23,7 @@ func main() {
 
 	// init config
 	var err error
-	if err = conf.InitConfig(); err != nil {
+	if err = conf.InitConfig("cmd/comet/comet.yaml"); err != nil {
 		panic(err)
 	}
 	// init common
