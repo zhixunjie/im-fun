@@ -107,7 +107,7 @@ func (b *Bucket) Put(ch *channel.Channel) (err error) {
 	b.rwLock.Lock()
 	// close old channel
 	if oldCh := b.chs[userInfo.UserKey]; oldCh != nil {
-		oldCh.Close()
+		oldCh.SendFinish()
 	}
 	// set new channel
 	b.chs[userInfo.UserKey] = ch

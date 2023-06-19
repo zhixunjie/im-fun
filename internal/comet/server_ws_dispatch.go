@@ -4,33 +4,32 @@ import (
 	"errors"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
-	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 )
 
 // dispatchWebSocket deal any proto send to signal channel（Just like a state machine）
 // 可能出现的消息：SendReady（client message） or service job
-func (s *Server) dispatchWebSocket(wsConn *websocket.Conn, writerPool *bytes.Pool, writeBuf *bytes.Buffer, ch *channel.Channel) {
+func (s *Server) dispatchWebSocket(wsConn *websocket.Conn, ch *channel.Channel) {
 	logHead := "dispatchWebSocket|"
 	var err error
 	for {
 		// wait message from signal channel（if not, it will block here）
 		var proto = ch.Waiting()
 		switch protocol.Operation(proto.Op) {
-		case protocol.OpProtoFinish:
-			// 1. close channel
-			goto fail
 		case protocol.OpProtoReady:
-			// 2. read msg from client
+			// 1. read msg from client
 			if err = protoReadyWebsocket(ch, wsConn); errors.Is(err, ErrTCPWriteError) {
 				goto fail
 			}
 		case protocol.OpBatchMsg:
-			// write msg to client
+			// 2. write msg to client
 			if err = proto.WriteWs(wsConn); err != nil {
 				goto fail
 			}
+		case protocol.OpProtoFinish:
+			// 3. close channel
+			goto fail
 		default:
 			logging.Errorf(logHead + "unknown proto")
 			goto fail
@@ -39,12 +38,11 @@ func (s *Server) dispatchWebSocket(wsConn *websocket.Conn, writerPool *bytes.Poo
 			goto fail
 		}
 	}
-fail: // TODO 子协程的结束，需要通知到主协程（否则主协程不会结束）
+fail:
 	if err != nil {
 		logging.Errorf(logHead+"UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}
-	_ = wsConn.Close()
-	writerPool.Put(writeBuf)
+	ch.CleanPath3()
 }
 
 // 数据流：client -> comet -> read -> generate proto -> send protoReady(dispatch proto) -> deal protoReady

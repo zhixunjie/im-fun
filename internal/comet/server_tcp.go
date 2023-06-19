@@ -89,16 +89,9 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 		//lastHb = time.Now()
 	)
 	var hb time.Duration
-	var trd *newtimer.TimerData
-	var ch = channel.NewChannel(s.conf)
-	// set reader
-	var rb = readerPool.Get()
-	ch.Reader.SetFdAndResetBuffer(conn, rb.Bytes())
-	// set writer
-	var wb = writerPool.Get()
-	ch.Writer.SetFdAndResetBuffer(conn, wb.Bytes())
-	// set user ip
-	ch.UserInfo.IP, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
+	//var trd *newtimer.TimerData
+	var ch = channel.NewChannel(s.conf, conn, channel.ConnectionTypeTcp, readerPool, writerPool, timerPool)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -113,32 +106,26 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 
 	step = 1
 	{
-		release := func() {
-			readerPool.Put(rb)
-			writerPool.Put(wb)
-			timerPool.Del(trd)
-			_ = conn.Close()
-		}
 		// get a proto to write
 		proto, err = ch.ProtoAllocator.GetProtoCanWrite()
 		if err != nil {
-			release()
 			logging.Errorf("GetProtoCanWrite err=%v,UserInfo=%v,step=%v,hb=%v", err, ch.UserInfo, step, hb)
+			ch.CleanPath1()
 			return
 		}
 		// auth（check token）
 		hb, err = s.authTCP(ctx, ch, proto)
 		if err != nil {
-			release()
 			logging.Errorf("authTCP err=%v,UserInfo=%v", err, ch.UserInfo)
+			ch.CleanPath1()
 			return
 		}
 		// set bucket
 		bucket = s.AllocBucket(ch.UserInfo.UserKey)
 		err = bucket.Put(ch)
 		if err != nil {
-			release()
 			logging.Errorf("AllocBucket err=%v,UserInfo=%v", err, ch.UserInfo)
+			ch.CleanPath1()
 			return
 		}
 	}
@@ -148,7 +135,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 	//timerPool.Set(trd, hb)
 
 	// dispatch
-	go s.dispatchTCP(conn, writerPool, wb, ch)
+	go s.dispatchTCP(ch)
 
 	// loop to read client msg
 	// 数据流：client -> comet -> read -> generate proto -> send protoReady(dispatch proto)
@@ -178,10 +165,7 @@ fail:
 	}
 	// 回收相关资源
 	bucket.DelChannel(ch)
-	timerPool.Del(trd)
-	readerPool.Put(rb) // writePool's buffer will be released  in Server.dispatchTCP()
-	ch.Close()
-	_ = conn.Close()
+	ch.CleanPath2()
 	if err = s.Disconnect(ctx, ch); err != nil {
 		logging.Errorf("Disconnect UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}

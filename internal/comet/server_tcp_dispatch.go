@@ -5,9 +5,7 @@ import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
-	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-	"net"
 )
 
 var (
@@ -17,7 +15,7 @@ var (
 
 // dispatchTCP deal any proto send to signal channel（Just like a state machine）
 // 可能出现的消息：SendReady（client message） or service job
-func (s *Server) dispatchTCP(conn *net.TCPConn, writerPool *bytes.Pool, writeBuf *bytes.Buffer, ch *channel.Channel) {
+func (s *Server) dispatchTCP(ch *channel.Channel) {
 	logHead := "dispatchTCP"
 	var err error
 	writer := ch.Writer
@@ -47,12 +45,11 @@ func (s *Server) dispatchTCP(conn *net.TCPConn, writerPool *bytes.Pool, writeBuf
 			goto fail
 		}
 	}
-fail: // TODO 子协程的结束，需要通知到主协程（否则主协程不会结束）
+fail:
 	if err != nil {
 		logging.Errorf(logHead+"UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}
-	_ = conn.Close()
-	writerPool.Put(writeBuf)
+	ch.CleanPath3()
 }
 
 // 数据流：client -> comet -> read -> generate proto -> send protoReady(dispatch proto) -> deal protoReady

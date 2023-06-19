@@ -68,7 +68,7 @@ func (r *Room) Close() {
 	r.rwLock.RLock()
 	// close channel one by one in the room
 	for ch := r.next; ch != nil; ch = ch.Next {
-		ch.Close()
+		ch.SendFinish()
 	}
 	r.rwLock.RUnlock()
 }

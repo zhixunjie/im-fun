@@ -22,6 +22,6 @@ func (c *Channel) SendReady() {
 	c.signal <- protocol.ProtoReady
 }
 
-func (c *Channel) Close() {
+func (c *Channel) SendFinish() {
 	c.signal <- protocol.ProtoFinish
 }
