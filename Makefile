@@ -1,9 +1,9 @@
 # ARCH
-#ARCH="GOOS=linux GOARCH=amd64"     # build target to intel64
-ARCH="GOOS=darwin GOARCH=arm64"   # build target to m1
+ARCH=GOOS=linux GOARCH=amd64     # build target to intel64
+#ARCH=GOOS=darwin GOARCH=arm64   # build target to m1
 
 # Go parameters
-GOCMD="GO111MODULE=on go"
+GOCMD=GO111MODULE=on go
 GOBUILD=$(ARCH) $(GOCMD) build
 GOTEST=$(ARCH) $(GOCMD) test
 
