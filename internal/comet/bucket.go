@@ -31,9 +31,9 @@ func NewBucket(conf *conf.Bucket) *Bucket {
 	}
 
 	// init routines：处理房间的广播事件
-	for i := uint64(0); i < conf.RoutineAmount; i++ {
+	for i := 0; i < conf.RoutineAmount; i++ {
 		b.routines[i] = make(chan *pb.SendToRoomReq, conf.RoutineSize)
-		go b.ProcessProtoToRoom(b.routines[i])
+		go b.ProcessProtoToRoom(i)
 	}
 	return b
 }
