@@ -53,15 +53,15 @@ func (r *TcpConnReaderWriter) WriteProto(proto *Proto) (err error) {
 		_, err = writer.Write(proto.Body)
 		return
 	} else {
-		// Peek：只需要把header的内存区peek出来即可
+		// 1. Peek：只需要把header的内存区peek出来即可
 		var buf []byte
 		if buf, err = writer.Peek(_rawHeaderSize); err != nil {
 			return
 		}
 
-		// 1. 把proto的头信息，编码写入到buf的头
+		// 2. 把proto的头信息，编码写入到buf的头
 		encodeHeaderFromProtoToBuf(proto, buf)
-		// 2. 把proto的Body信息，编码写入到buf中
+		// 3. 把proto的Body信息，编码写入到buf中
 		if proto.Body != nil {
 			_, err = writer.Write(proto.Body)
 			if err != nil {
@@ -77,16 +77,16 @@ func (r *TcpConnReaderWriter) WriteProto(proto *Proto) (err error) {
 func (r *TcpConnReaderWriter) WriteProtoHeart(proto *Proto, online int32) (err error) {
 	writer := r.writer
 
-	// Peek：一次性把整个数据包的内存区都Peek出来
+	// 1. Peek：一次性把整个数据包的内存区都Peek出来
 	var buf []byte
 	packLen := _rawHeaderSize + _heartSize
 	if buf, err = writer.Peek(packLen); err != nil {
 		return
 	}
 
-	// 1. 把proto的头信息，编码写入到buf的头
+	// 2. 把proto的头信息，编码写入到buf的头
 	encodeHeaderFromProtoToBuf(proto, buf)
-	// 2. 把proto的Body信息，编码写入到buf中
+	// 3. 把proto的Body信息，编码写入到buf中
 	binary.BigEndian.PutInt32(buf[_heartOffset:], online)
 
 	return nil
@@ -115,7 +115,7 @@ func (r *WsConnReaderWriter) ReadProto(proto *Proto) (err error) {
 	if err != nil {
 		return
 	}
-	// 3. 把buf的Body放入到proto
+	// 3. 把buf的Body信息，放入到proto
 	if pack.BodyLen > 0 {
 		proto.Body = buf[pack.HeaderLen:pack.PackLen] // 从buf中切分出N个字节
 	} else {
@@ -145,9 +145,9 @@ func (r *WsConnReaderWriter) WriteProto(proto *Proto) (err error) {
 		if buf, err = conn.Peek(_rawHeaderSize); err != nil {
 			return
 		}
-		// 2.2 把buf的头信息，解码到proto的头
+		// 2.2 把proto的头信息，编码写入到buf的头
 		encodeHeaderFromProtoToBuf(proto, buf)
-		// 2.3 把buf的Body放入到proto
+		// 2.3 把proto的Body信息，编码写入到buf中
 		if proto.Body != nil {
 			err = conn.WritePayload(proto.Body)
 			if err != nil {
@@ -180,9 +180,9 @@ func (r *WsConnReaderWriter) WriteProtoHeart(proto *Proto, online int32) (err er
 		if buf, err = conn.Peek(payloadLen); err != nil {
 			return
 		}
-		// 2.2 把buf的头信息，解码到proto的头
+		// 2.2 把proto的头信息，编码写入到buf的头
 		encodeHeaderFromProtoToBuf(proto, buf)
-		// 2.3 把buf的Body放入到proto
+		// 2.3 把proto的Body信息，编码写入到buf中
 		binary.BigEndian.PutInt32(buf[_heartOffset:], online)
 	}
 
