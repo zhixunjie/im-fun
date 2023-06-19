@@ -1,7 +1,6 @@
 package comet
 
 import (
-	"errors"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
@@ -23,7 +22,7 @@ func (s *Server) dispatchWebSocket(wsConn *websocket.Conn, writerPool *bytes.Poo
 			goto fail
 		case protocol.OpProtoReady:
 			// 2. read msg from client
-			if err = protoReadyWebsocket(ch, wsConn); errors.Is(err, ErrTCPWriteError) {
+			if err = protoReadyWebsocket(ch, wsConn); err != nil {
 				goto fail
 			}
 		case protocol.OpBatchMsg:
@@ -55,9 +54,9 @@ func protoReadyWebsocket(ch *channel.Channel, wsConn *websocket.Conn) error {
 	for {
 		// 1. read proto from client
 		proto, err = ch.ProtoAllocator.GetProtoCanRead()
-		if err != nil {
-			logging.Errorf("GetProtoCanRead err=%v", err)
-			return ErrNotAndProtoToRead
+		if err != nil { // err != nil 说明没有东西可读了(not any proto to read)
+			//logging.Errorf("GetProtoCanRead err=%v", err)
+			return nil
 		}
 		// 2. deal proto
 		switch protocol.Operation(proto.Op) {
