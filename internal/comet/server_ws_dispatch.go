@@ -23,7 +23,6 @@ func (s *Server) dispatchWebSocket(wsConn *websocket.Conn, writerPool *bytes.Poo
 			goto fail
 		case protocol.OpProtoReady:
 			// 2. read msg from client
-			// 链路：client -> server -> read -> proto -> send protoReady
 			if err = protoReadyWebsocket(ch, wsConn); errors.Is(err, ErrTCPWriteError) {
 				goto fail
 			}
@@ -48,6 +47,7 @@ fail: // TODO 子协程的结束，需要通知到主协程（否则主协程不
 	writerPool.Put(writeBuf)
 }
 
+// 数据流：client -> comet -> read -> generate proto -> send protoReady(dispatch proto) -> deal protoReady
 func protoReadyWebsocket(ch *channel.Channel, wsConn *websocket.Conn) error {
 	var err error
 	var online int32

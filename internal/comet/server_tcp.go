@@ -151,6 +151,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 	go s.dispatchTCP(conn, writerPool, wb, ch)
 
 	// loop to read client msg
+	// 数据流：client -> comet -> read -> generate proto -> send protoReady(dispatch proto)
 	//hbTime := s.RandHeartbeatTime()
 	for {
 		if proto, err = ch.ProtoAllocator.GetProtoCanWrite(); err != nil {

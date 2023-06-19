@@ -62,7 +62,8 @@ func (s *Server) Receive(ctx context.Context, ch *channel.Channel, p *protocol.P
 
 func (s *Server) Operate(ctx context.Context, proto *protocol.Proto, ch *channel.Channel, bucket *Bucket) error {
 	switch protocol.Operation(proto.Op) {
-	case protocol.OpHeartbeat: // 客户端-心跳上报
+	case protocol.OpHeartbeat:
+		// 1. 客户端-心跳上报
 		proto.Op = int32(protocol.OpHeartbeatReply)
 		proto.Body = nil
 		//timerPool.Set(trd, hb)
@@ -71,14 +72,17 @@ func (s *Server) Operate(ctx context.Context, proto *protocol.Proto, ch *channel
 		//		lastHb = now
 		//	}
 		//}
-	case protocol.OpChangeRoom: // 客户端房间切换
+	case protocol.OpChangeRoom:
+		// 2. 客户端房间切换
 		if err := bucket.ChangeRoom(string(proto.Body), ch); err != nil {
 			logging.Errorf("bucket.ChangeRoom(%s) error(%v)", proto.Body, err)
 		}
 		proto.Op = int32(protocol.OpChangeRoomReply)
-	case protocol.OpSub: // 客户端-添加订阅消息
+	case protocol.OpSub:
+		// 客户端-添加订阅消息
 		// TBD
-	case protocol.OpUnsub: // 客户端-取消订阅消息
+	case protocol.OpUnsub:
+		// 客户端-取消订阅消息
 		// TBD
 	default: // 客户端-收到其他消息（直接转到logic进行处理）
 		// TBD
