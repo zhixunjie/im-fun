@@ -14,7 +14,7 @@ func (proto *Proto) ReadWs(conn *websocket.Conn) (err error) {
 		return err
 	}
 	// proto header
-	pack, err := decodeHeaderFromBufToProto(proto, buf)
+	pack, err := decodeHeaderFromBufToProto(buf, proto)
 	if err != nil {
 		return err
 	}

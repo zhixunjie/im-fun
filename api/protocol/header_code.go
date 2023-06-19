@@ -65,7 +65,7 @@ func encodeHeaderFromProtoToBuf(proto *Proto, buf []byte) {
 }
 
 // header解码：把buf的头信息，解码到proto的头
-func decodeHeaderFromBufToProto(proto *Proto, buf []byte) (ProtoPack, error) {
+func decodeHeaderFromBufToProto(buf []byte, proto *Proto) (ProtoPack, error) {
 	var header ProtoPack
 	if len(buf) < _rawHeaderSize {
 		return header, ErrProtoHeaderLen
