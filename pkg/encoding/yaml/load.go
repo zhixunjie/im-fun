@@ -16,7 +16,7 @@ func LoadConfig(path string, conf interface{}) (err error) {
 	}
 
 	// begin to unmarshal
-	err = yaml.Unmarshal(bytes, &conf)
+	err = yaml.Unmarshal(bytes, conf)
 	if err != nil {
 		logging.Errorf(logHead+"err=%v", err)
 		return err
