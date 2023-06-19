@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
+	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
 	"github.com/zhixunjie/im-fun/pkg/encoding/binary"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 )
@@ -58,7 +59,6 @@ func (r *TcpConnReaderWriter) WriteProto(proto *Proto) (err error) {
 		if buf, err = writer.Peek(_rawHeaderSize); err != nil {
 			return
 		}
-
 		// 2. 把proto的头信息，编码写入到buf的头
 		encodeHeaderFromProtoToBuf(proto, buf)
 		// 3. 把proto的Body信息，编码写入到buf中
@@ -83,7 +83,6 @@ func (r *TcpConnReaderWriter) WriteProtoHeart(proto *Proto, online int32) (err e
 	if buf, err = writer.Peek(packLen); err != nil {
 		return
 	}
-
 	// 2. 把proto的头信息，编码写入到buf的头
 	encodeHeaderFromProtoToBuf(proto, buf)
 	// 3. 把proto的Body信息，编码写入到buf中
@@ -191,4 +190,16 @@ func (r *WsConnReaderWriter) WriteProtoHeart(proto *Proto, online int32) (err er
 
 func (r *WsConnReaderWriter) Flush() error {
 	return r.conn.Flush()
+}
+
+// WriteProtoToWriter write a proto to writer
+func WriteProtoToWriter(proto *Proto, writer *bytes.BufferWriter) {
+	// 1. Peek：只需要把header的内存区peek出来即可
+	buf := writer.Peek(_rawHeaderSize)
+	// 2. 把proto的头信息，编码写入到buf的头
+	encodeHeaderFromProtoToBuf(proto, buf)
+	// 3. 把proto的Body信息，编码写入到buf中
+	if proto.Body != nil {
+		writer.Write(proto.Body)
+	}
 }
