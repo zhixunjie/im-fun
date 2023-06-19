@@ -1,6 +1,6 @@
 # protocol
-protoc --go_out=./proto --go_opt=paths=source_relative \
-    --go-grpc_out=./proto --go-grpc_opt=paths=source_relative protocol.proto
+protoc --go_out=./protocol --go_opt=paths=source_relative \
+    --go-grpc_out=./protocol --go-grpc_opt=paths=source_relative protocol.proto
 
 # logic
 protoc --go_out=./pb --go_opt=paths=source_relative \
