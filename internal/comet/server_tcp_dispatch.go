@@ -12,10 +12,10 @@ var (
 	ErrTCPWriteError     = errors.New("write err")
 )
 
-// dispatchTCP deal any proto send to signal channel（Just like a state machine）
+// dispatch deal any proto send to signal channel（Just like a state machine）
 // 可能出现的消息：SendReady（client message） or service job
-func (s *Server) dispatchTCP(ch *channel.Channel) {
-	logHead := "dispatchTCP"
+func (s *Server) dispatch(ch *channel.Channel) {
+	logHead := "dispatch"
 	var err error
 
 	for {

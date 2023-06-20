@@ -2,7 +2,6 @@ package comet
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
@@ -136,7 +135,7 @@ func (s *Server) serveWebSocket(conn *net.TCPConn, readerPool, writerPool *bytes
 	step = 1
 	{
 		// auth（check token）
-		hb, err = s.authWebsocket(ctx, ch, proto, step)
+		hb, err = s.auth(ctx, ch, proto, step)
 		if err != nil {
 			logging.Errorf("auth err=%v,UserInfo=%v,hb=%v", err, ch.UserInfo, hb)
 			ch.CleanPath1()
@@ -190,59 +189,4 @@ fail:
 	if err = s.Disconnect(ctx, ch); err != nil {
 		logging.Errorf("Disconnect UserInfo=%+v,err=%v", ch.UserInfo, err)
 	}
-}
-
-func (s *Server) authWebsocket(ctx context.Context, ch *channel.Channel, proto *protocol.Proto, step int) (hb time.Duration, err error) {
-	logHead := "authWebsocket|"
-
-	// get a proto to write
-	proto, err = ch.ProtoAllocator.GetProtoCanWrite()
-	if err != nil {
-		logging.Errorf(logHead+"GetProtoCanWrite err=%v,UserInfo=%v,step=%v,hb=%v", err, ch.UserInfo, step, hb)
-		return
-	}
-
-	// 一直读取，直到读取到的Proto的操作类型为protocol.OpAuth
-	for {
-		if err = ch.ConnReaderWriter.ReadProto(proto); err != nil {
-			return
-		}
-		if protocol.Operation(proto.Op) == protocol.OpAuth {
-			break
-		} else {
-			logging.Errorf(logHead+"tcp request operation(%d) not auth", proto.Op)
-		}
-	}
-
-	var params struct {
-		UserId   int64  `json:"user_id"`
-		UserKey  string `json:"user_key"`
-		RoomId   string `json:"room_id"`
-		Platform string `json:"platform"`
-		Token    string `json:"token"`
-	}
-	if err = json.Unmarshal(proto.Body, &params); err != nil {
-		logging.Errorf(logHead+"Unmarshal body=%s,err=%v", proto.Body, err)
-		return
-	}
-
-	// update channel
-	ch.UserInfo.UserId = params.UserId
-	ch.UserInfo.UserKey = params.UserKey
-	ch.UserInfo.RoomId = params.RoomId
-	ch.UserInfo.Platform = params.Platform
-	if hb, err = s.Connect(ctx, ch, params.Token); err != nil {
-		logging.Errorf(logHead+"Connect UserInfo=%v, err=%v", ch.UserInfo, err)
-		return
-	}
-
-	// reply to client
-	proto.Op = int32(protocol.OpAuthReply)
-	proto.Body = nil
-	if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
-		logging.Errorf(logHead+"WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)
-		return
-	}
-	err = ch.ConnReaderWriter.Flush()
-	return
 }

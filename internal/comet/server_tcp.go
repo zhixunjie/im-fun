@@ -107,7 +107,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 	step = 1
 	{
 		// auth（check token）
-		hb, err = s.authTCP(ctx, ch, proto, step)
+		hb, err = s.auth(ctx, ch, proto, step)
 		if err != nil {
 			logging.Errorf("auth err=%v,UserInfo=%v,hb=%v", err, ch.UserInfo, hb)
 			ch.CleanPath1()
@@ -128,7 +128,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 	//timerPool.Set(trd, hb)
 
 	// dispatch
-	go s.dispatchTCP(ch)
+	go s.dispatch(ch)
 
 	// loop to read client msg
 	// 数据流：client -> comet -> read -> generate proto -> send protoReady(dispatch proto)
@@ -164,8 +164,8 @@ fail:
 	}
 }
 
-func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protocol.Proto, step int) (hb time.Duration, err error) {
-	logHead := "authTCP|"
+func (s *Server) auth(ctx context.Context, ch *channel.Channel, proto *protocol.Proto, step int) (hb time.Duration, err error) {
+	logHead := "auth|"
 
 	// get a proto to write
 	proto, err = ch.ProtoAllocator.GetProtoCanWrite()
@@ -193,7 +193,7 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 		Token    string `json:"token"`
 	}
 	if err = json.Unmarshal(proto.Body, &params); err != nil {
-		logging.Errorf(logHead+"Unmarshal body=%v,err=%v", proto.Body, err)
+		logging.Errorf(logHead+"Unmarshal body=%s,err=%v", proto.Body, err)
 		return
 	}
 
