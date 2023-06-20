@@ -17,6 +17,7 @@ const opOffset = 8;
 const seqOffset = 12;
 // op
 const OpHeartbeatReply = 3
+const OpSendMsg = 4
 const OpAuth = 7
 const OpAuthReply = 8
 const OpBatchMsg = 9
@@ -123,11 +124,12 @@ class WebsocketOp {
 
     // 发送消息
     sendMessage() {
-        let msg = {
-            'type': 'php',
-            'msg': $("#msg-txt").val()
-        }
-        this.WsClient.send(JSON.stringify(msg));
+        // let msg = {
+        //     'type': 'php',
+        //     'msg': $("#msg-txt").val()
+        // }
+        // this.WsClient.send(JSON.stringify(msg));
+        this.sendMsg($("#msg-txt").val());
     }
 
     heartbeat() {
@@ -158,6 +160,20 @@ class WebsocketOp {
         headerView.setInt32(seqOffset, 1);
         this.WsClient.send(this.mergeArrayBuffer(headerBuf, bodyBuf));
         appendToDialog("client: send auth" + authInfo + ".");
+    }
+
+    // 客户端发送消息
+    sendMsg(msg) {
+        let headerBuf = new ArrayBuffer(rawHeaderLen);
+        let headerView = new DataView(headerBuf, 0);
+        let bodyBuf = this.textEncoder.encode(msg);
+        headerView.setInt32(packetOffset, rawHeaderLen + bodyBuf.byteLength);
+        headerView.setInt16(headerOffset, rawHeaderLen);
+        headerView.setInt16(verOffset, protoVersion);
+        headerView.setInt32(opOffset, OpSendMsg);
+        headerView.setInt32(seqOffset, 1);
+        this.WsClient.send(this.mergeArrayBuffer(headerBuf, bodyBuf));
+        appendToDialog("client: send msg" + msg + ".");
     }
 
     mergeArrayBuffer(ab1, ab2) {
