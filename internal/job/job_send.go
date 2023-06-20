@@ -20,7 +20,7 @@ func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, 
 		Body: message,
 	}
 	writer := bytes.NewWriterSize(len(message) + 64)
-	proto.WriteTo(writer)
+	protocol.WriteProtoToWriter(proto, writer)
 	proto.Body = writer.Buffer()
 
 	// push to comet

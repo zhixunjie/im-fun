@@ -73,7 +73,7 @@ func (r *Room) Receive(batch int, duration time.Duration) {
 		case proto = <-r.proto:
 			if proto != nil {
 				logging.Infof(logHead+"get proto=%v,n=%v", proto, n)
-				proto.WriteTo(writer)
+				protocol.WriteProtoToWriter(proto, writer)
 				if n++; n >= batch {
 					break
 				}

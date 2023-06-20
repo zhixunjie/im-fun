@@ -205,7 +205,7 @@ func (r *WsConnReaderWriter) Flush() error {
 	return r.conn.Flush()
 }
 
-// WriteProtoToWriter write a proto to writer
+// WriteProtoToWriter write a proto to writer(带有buf的writer)
 func WriteProtoToWriter(proto *Proto, writer *bytes.BufferWriter) {
 	// 1. Peek：只需要把header的内存区peek出来即可
 	buf := writer.Peek(_rawHeaderSize)
