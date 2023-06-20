@@ -16,29 +16,41 @@ import (
 	"time"
 )
 
-func InitTCP(server *Server, accept int) (listener *net.TCPListener, err error) {
+func InitTCP(server *Server, numCPU, connType int) (listener *net.TCPListener, err error) {
 	var addr *net.TCPAddr
-	addrs := conf.Conf.Connect.TCP.Bind
-	for _, bind := range addrs {
+	var addrS []string
+	var logHead string
+
+	// 同时支持TCP和WebSocket
+	if connType == channel.ConnectionTypeWebSocket {
+		addrS = conf.Conf.Connect.TCP.Bind
+		logHead = channel.GetLogHeadByConnType(connType)
+	} else {
+		addrS = conf.Conf.Connect.Websocket.Bind
+		logHead = channel.GetLogHeadByConnType(connType)
+	}
+
+	// bind address
+	for _, bind := range addrS {
 		if addr, err = net.ResolveTCPAddr("tcp", bind); err != nil {
-			logging.Errorf("TCP ResolveTCPAddr(bind=%v) err=%v", bind, err)
+			logging.Errorf(logHead+"ResolveTCPAddr(bind=%v) err=%v", bind, err)
 			return
 		}
 		if listener, err = net.ListenTCP("tcp", addr); err != nil {
-			logging.Errorf("TCP ListenTCP(bind=%v) err=%v", bind, err)
+			logging.Errorf(logHead+"ListenTCP(bind=%v) err=%v", bind, err)
 			return
 		}
-		logging.Infof("TCP server is listening：%s", bind)
+		logging.Infof(logHead+"server is listening：%s", bind)
 		// 启动N个协程，每个协程开启后进行accept（需要使用REUSE解决惊群问题）
-		for i := 0; i < accept; i++ {
+		for i := 0; i < numCPU; i++ {
 			// TODO 使用协程池进行管理
-			go acceptTCP(server, listener)
+			go acceptTCP(logHead, connType, server, listener)
 		}
 	}
 	return
 }
 
-func acceptTCP(server *Server, listener *net.TCPListener) {
+func acceptTCP(logHead string, connType int, server *Server, listener *net.TCPListener) {
 	var conn *net.TCPConn
 	var err error
 	var r int
@@ -46,42 +58,39 @@ func acceptTCP(server *Server, listener *net.TCPListener) {
 	for {
 		if conn, err = listener.AcceptTCP(); err != nil {
 			// if listener close then return
-			logging.Errorf("listener.Accept(%s) error=%v", listener.Addr().String(), err)
+			logging.Errorf(logHead+"listener.Accept(%s) error=%v", listener.Addr().String(), err)
 			return
 		}
+		// set params for the connection
 		if err = conn.SetKeepAlive(server.conf.Connect.TCP.Keepalive); err != nil {
-			logging.Errorf("conn.SetKeepAlive() error=%v", err)
+			logging.Errorf(logHead+"conn.SetKeepAlive() error=%v", err)
 			return
 		}
 		if err = conn.SetReadBuffer(server.conf.Connect.TCP.Rcvbuf); err != nil {
-			logging.Errorf("conn.SetReadBuffer() error=%v", err)
+			logging.Errorf(logHead+"conn.SetReadBuffer() error=%v", err)
 			return
 		}
 		if err = conn.SetWriteBuffer(server.conf.Connect.TCP.Sndbuf); err != nil {
-			logging.Errorf("conn.SetWriteBuffer() error=%v", err)
+			logging.Errorf(logHead+"conn.SetWriteBuffer() error=%v", err)
 			return
 		}
-		go serveTCPInit(server, conn, r)
 		if r++; r == math.MaxInt {
 			r = 0
 		}
+
+		// begin to serve
+		go func(s *Server, conn *net.TCPConn, r int) {
+			var tr = s.round.TimerPool(r)
+			var rp = s.round.BufferPool.ReaderPool(r)
+			var wp = s.round.BufferPool.WriterPool(r)
+			logging.Infof("connect success,LocalAddr=%v,RemoteAddr=%v", conn.LocalAddr().String(), conn.RemoteAddr().String())
+			s.serveTCP(logHead, conn, connType, rp, wp, tr)
+		}(server, conn, r)
 	}
 }
 
-func serveTCPInit(s *Server, conn *net.TCPConn, r int) {
-	var (
-		// timer
-		tr = s.round.TimerPool(r)
-		rp = s.round.BufferPool.ReaderPool(r)
-		wp = s.round.BufferPool.WriterPool(r)
-	)
-	logging.Infof("connect success,lAddr=%v,RemoteAddr=%v",
-		conn.LocalAddr().String(), conn.RemoteAddr().String())
-	s.serveTCP(conn, channel.ConnectionTypeTcp, rp, wp, tr)
-}
-
 // serveTCP serve a tcp connection.
-func (s *Server) serveTCP(conn *net.TCPConn,  connectionType int,readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) {
+func (s *Server) serveTCP(logHead string, conn *net.TCPConn, connType int, readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) {
 	var (
 		err    error
 		proto  *protocol.Proto
@@ -90,7 +99,7 @@ func (s *Server) serveTCP(conn *net.TCPConn,  connectionType int,readerPool, wri
 	)
 	var hb time.Duration
 	//var trd *newtimer.TimerData
-	var ch = channel.NewChannel(s.conf, conn, connectionType, readerPool, writerPool, timerPool)
+	var ch = channel.NewChannel(s.conf, conn, connType, readerPool, writerPool, timerPool)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

@@ -33,12 +33,12 @@ type Channel struct {
 }
 
 // NewChannel new a channel.
-func NewChannel(conf *conf.Config, conn *net.TCPConn, connectionType int, readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) *Channel {
+func NewChannel(conf *conf.Config, conn *net.TCPConn, connType int, readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) *Channel {
 	// init channel
 	ch := &Channel{
 		// set ConnComponent
 		ConnComponent: ConnComponent{
-			ConnType:   connectionType,
+			ConnType:   connType,
 			Conn:       conn,
 			WsConn:     nil,
 			WriterPool: writerPool,
@@ -142,6 +142,13 @@ const (
 	ConnectionTypeTcp = iota + 1
 	ConnectionTypeWebSocket
 )
+
+func GetLogHeadByConnType(connType int) string {
+	if connType == ConnectionTypeWebSocket {
+		return "WebSocket|"
+	}
+	return "TCP|"
+}
 
 // ConnComponent 每一条连接需要用到的组件
 type ConnComponent struct {
