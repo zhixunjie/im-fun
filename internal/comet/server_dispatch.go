@@ -14,8 +14,8 @@ var (
 
 // dispatch deal any proto send to signal channel（Just like a state machine）
 // 可能出现的消息：SendReady（client message） or service job
-func (s *Server) dispatch(ch *channel.Channel) {
-	logHead := "dispatch|"
+func (s *Server) dispatch(logHead string, ch *channel.Channel) {
+	logHead = logHead + "dispatch|"
 	var err error
 
 	for {
@@ -25,7 +25,7 @@ func (s *Server) dispatch(ch *channel.Channel) {
 		case protocol.OpProtoReady:
 			// case1. read msg from client
 			// 数据流：client -> comet -> read -> generate proto -> send protoReady -> protoReady
-			if err = protoReady(ch); err != nil {
+			if err = protoReady(logHead, ch); err != nil {
 				goto fail
 			}
 		case protocol.OpBatchMsg:
@@ -51,8 +51,8 @@ fail:
 	ch.CleanPath3()
 }
 
-func protoReady(ch *channel.Channel) error {
-	logHead := "protoReady|"
+func protoReady(logHead string, ch *channel.Channel) error {
+	logHead = logHead + "protoReady|"
 	var err error
 	var online int32
 	var proto *protocol.Proto

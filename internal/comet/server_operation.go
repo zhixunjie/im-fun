@@ -60,7 +60,9 @@ func (s *Server) Receive(ctx context.Context, ch *channel.Channel, p *protocol.P
 	return
 }
 
-func (s *Server) Operate(ctx context.Context, proto *protocol.Proto, ch *channel.Channel, bucket *Bucket) error {
+func (s *Server) Operate(ctx context.Context, logHead string, proto *protocol.Proto, ch *channel.Channel, bucket *Bucket) error {
+	logHead = logHead + "Operate|"
+
 	switch protocol.Operation(proto.Op) {
 	case protocol.OpHeartbeat:
 		// 1. 客户端-心跳上报
@@ -75,7 +77,7 @@ func (s *Server) Operate(ctx context.Context, proto *protocol.Proto, ch *channel
 	case protocol.OpChangeRoom:
 		// 2. 客户端房间切换
 		if err := bucket.ChangeRoom(string(proto.Body), ch); err != nil {
-			logging.Errorf("bucket.ChangeRoom(%s) error(%v)", proto.Body, err)
+			logging.Errorf(logHead+"bucket.ChangeRoom(%s) error(%v)", proto.Body, err)
 		}
 		proto.Op = int32(protocol.OpChangeRoomReply)
 	case protocol.OpSub:
@@ -87,7 +89,7 @@ func (s *Server) Operate(ctx context.Context, proto *protocol.Proto, ch *channel
 	default: // 客户端-收到其他消息（直接转到logic进行处理）
 		// TBD
 		if err := s.Receive(ctx, ch, proto); err != nil {
-			logging.Errorf("UserInfo=%+v,op=%v,err=%v", ch.UserInfo, proto.Op, err)
+			logging.Errorf(logHead+"UserInfo=%+v,op=%v,err=%v", ch.UserInfo, proto.Op, err)
 		}
 		proto.Body = nil
 	}
