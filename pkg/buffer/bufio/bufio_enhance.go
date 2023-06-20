@@ -7,6 +7,7 @@ import "io"
 // Reader
 
 // SetFdAndResetBuffer reset reader & underlying byte array
+// 底层执行IO操作的是Reader，缓冲区为buf
 func (b *Reader) SetFdAndResetBuffer(r io.Reader, buf []byte) {
 	b.reset(buf, r)
 }

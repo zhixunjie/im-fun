@@ -34,31 +34,47 @@ type Channel struct {
 
 // NewChannel new a channel.
 func NewChannel(conf *conf.Config, conn *net.TCPConn, connectionType int, readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) *Channel {
-	ch := new(Channel)
+	// init channel
+	ch := &Channel{
+		// set ConnComponent
+		ConnComponent: ConnComponent{
+			ConnType:   connectionType,
+			Conn:       conn,
+			WsConn:     nil,
+			WriterPool: writerPool,
+			ReaderPool: readerPool,
+			writeBuf:   writerPool.Get(),
+			readBuf:    readerPool.Get(),
+			TimerPool:  timerPool,
+		},
+		signal:   make(chan *protocol.Proto, conf.Protocol.ServerProtoNum),
+		UserInfo: new(UserInfo),
+	}
+
+	// set ProtoAllocator
 	ch.ProtoAllocator.Init(uint64(conf.Protocol.ClientProtoNum))
-	ch.UserInfo = new(UserInfo)
-	ch.signal = make(chan *protocol.Proto, conf.Protocol.ServerProtoNum)
-	ch.Reader = new(bufio.Reader)
-	ch.Writer = new(bufio.Writer)
-	ch.ConnReaderWriter = protocol.NewTcpConnReaderWriter(ch.Reader, ch.Writer)
 
-	// set ConnComponent
-	ch.ConnComponent.ConnType = connectionType
-	ch.ConnComponent.ReaderPool = readerPool
-	ch.ConnComponent.WriterPool = writerPool
-	ch.ConnComponent.TimerPool = timerPool
-	ch.ConnComponent.Conn = conn
-
-	// set reader's buffer
-	var rb = readerPool.Get()
-	ch.Reader.SetFdAndResetBuffer(conn, rb.Bytes())
-	// set writer's buffer
-	var wb = writerPool.Get()
-	ch.Writer.SetFdAndResetBuffer(conn, wb.Bytes())
 	// set user ip
 	ch.UserInfo.IP, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
 
+	// set reader & writer
+	reader := new(bufio.Reader)
+	writer := new(bufio.Writer)
+	// set buffer
+	// 底层执行IO操作的是conn，缓冲区为ch.readBuf.Bytes()
+	reader.SetFdAndResetBuffer(conn, ch.readBuf.Bytes())
+	writer.SetFdAndResetBuffer(conn, ch.writeBuf.Bytes())
+	// set connection's reader and writer
+	ch.Reader = reader
+	ch.Writer = writer
+	ch.ConnReaderWriter = protocol.NewTcpConnReaderWriter(reader, writer)
+
 	return ch
+}
+
+func (c *Channel) SetWebSocketConnReaderWriter(wsConn *websocket.Conn) {
+	c.ConnComponent.WsConn = wsConn
+	c.ConnReaderWriter = protocol.NewWsConnReaderWriter(wsConn)
 }
 
 func (c *Channel) CleanPath1() {

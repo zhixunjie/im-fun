@@ -22,18 +22,10 @@ type TcpConnReaderWriter struct {
 }
 
 func NewTcpConnReaderWriter(reader *bufio.Reader, writer *bufio.Writer) *TcpConnReaderWriter {
-	conn := new(TcpConnReaderWriter)
-	conn.reader = reader
-	conn.writer = writer
-	return conn
-}
-
-func (r *TcpConnReaderWriter) Reader() *bufio.Reader {
-	return r.Reader()
-}
-
-func (r *TcpConnReaderWriter) Writer() *bufio.Writer {
-	return r.Writer()
+	r := new(TcpConnReaderWriter)
+	r.reader = reader
+	r.writer = writer
+	return r
 }
 
 // ReadProto read a proto from TCP connection(reader/fd)
@@ -111,13 +103,13 @@ func (r *TcpConnReaderWriter) Flush() error {
 }
 
 type WsConnReaderWriter struct {
-	conn websocket.Conn
+	conn *websocket.Conn
 }
 
-func NewWsConnReaderWriter(conn websocket.Conn) *WsConnReaderWriter {
-	c := new(WsConnReaderWriter)
-	c.conn = conn
-	return c
+func NewWsConnReaderWriter(conn *websocket.Conn) *WsConnReaderWriter {
+	r := new(WsConnReaderWriter)
+	r.conn = conn
+	return r
 }
 
 // ReadProto read a proto from WebSocket connection(reader/fd)

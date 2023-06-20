@@ -81,6 +81,25 @@ func serveWebSocketInit(s *Server, conn *net.TCPConn, r int) {
 	s.serveWebSocket(conn, rp, wp, tr)
 }
 
+func (s *Server) upgradeToWebSocket(ctx context.Context, ch *channel.Channel) (err error) {
+	conn := ch.Conn
+
+	// read request line && upgrade（websocket独有）
+	var req *websocket.Request
+	if req, err = websocket.ReadRequest(ch.Reader); err != nil {
+		logging.Errorf("websocket.ReadRequest err=%v,UserInfo=%+v,addr=%v", err, ch.UserInfo, conn.RemoteAddr().String())
+		return
+	}
+	var wsConn *websocket.Conn
+	if wsConn, err = websocket.Upgrade(conn, ch.Reader, ch.Writer, req); err != nil {
+		logging.Errorf("websocket.Upgrade err=%v,UserInfo=%+v,addr=%v", err, ch.UserInfo, conn.RemoteAddr().String())
+		return
+	}
+	ch.SetWebSocketConnReaderWriter(wsConn)
+
+	return
+}
+
 // serveTCP serve a tcp connection.
 func (s *Server) serveWebSocket(conn *net.TCPConn, readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) {
 	var (
@@ -91,49 +110,35 @@ func (s *Server) serveWebSocket(conn *net.TCPConn, readerPool, writerPool *bytes
 	)
 	var hb time.Duration
 	//var trd *newtimer.TimerData
-	var ch = channel.NewChannel(s.conf, conn, channel.ConnectionTypeTcp, readerPool, writerPool, timerPool)
+	var ch = channel.NewChannel(s.conf, conn, channel.ConnectionTypeWebSocket, readerPool, writerPool, timerPool)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// set timer
 	var step = 0
-	// TODO 暂时把timer关闭，感觉有点问题
-	//trd = timerPool.Add(time.Duration(s.conf.Protocol.HandshakeTimeout), func() {
-	//	conn.Close()
-	//	logging.Errorf("TCP handshake timeout UserInfo=%+v,addr=%v,step=%v,hb=%v",
-	//		ch.UserInfo, conn.RemoteAddr().String(), step, hb)
-	//})
+	{
+		// set timer
+		// TODO 暂时把timer关闭，感觉有点问题
+		//trd = timerPool.Add(time.Duration(s.conf.Protocol.HandshakeTimeout), func() {
+		//	conn.Close()
+		//	logging.Errorf("TCP handshake timeout UserInfo=%+v,addr=%v,step=%v,hb=%v",
+		//		ch.UserInfo, conn.RemoteAddr().String(), step, hb)
+		//})
 
-	// read request line && upgrade（websocket独有）
-	var wsConn *websocket.Conn // websocket
-	var req *websocket.Request
-	if req, err = websocket.ReadRequest(ch.Reader); err != nil {
-		logging.Errorf("websocket.ReadRequest err=%v,UserInfo=%+v,addr=%v",
-			err, ch.UserInfo, conn.RemoteAddr().String())
-		ch.CleanPath1()
-		return
-	}
-	if wsConn, err = websocket.Upgrade(conn, ch.Reader, ch.Writer, req); err != nil {
-		logging.Errorf("websocket.Upgrade err=%v,UserInfo=%+v,addr=%v",
-			err, ch.UserInfo, conn.RemoteAddr().String())
-		ch.CleanPath1()
-		return
+		// upgrade to websocket
+		if err = s.upgradeToWebSocket(ctx, ch); err != nil {
+			logging.Errorf("upgradeToWebSocket err=%v,UserInfo=%v", err, ch.UserInfo)
+			ch.CleanPath1()
+			return
+		}
 	}
 
 	step = 1
 	{
-		// get a proto to write
-		proto, err = ch.ProtoAllocator.GetProtoCanWrite()
-		if err != nil {
-			logging.Errorf("GetProtoCanWrite err=%v,UserInfo=%v,step=%v,hb=%v", err, ch.UserInfo, step, hb)
-			ch.CleanPath1()
-			return
-		}
 		// auth（check token）
-		hb, err = s.authWebsocket(ctx, wsConn, ch, proto)
+		hb, err = s.authWebsocket(ctx, ch, proto, step)
 		if err != nil {
-			logging.Errorf("authWebsocket err=%v,UserInfo=%v", err, ch.UserInfo)
+			logging.Errorf("auth err=%v,UserInfo=%v,hb=%v", err, ch.UserInfo, hb)
 			ch.CleanPath1()
 			return
 		}
@@ -152,7 +157,7 @@ func (s *Server) serveWebSocket(conn *net.TCPConn, readerPool, writerPool *bytes
 	//timerPool.Set(trd, hb)
 
 	// dispatch
-	go s.dispatchWebSocket(wsConn, ch)
+	go s.dispatchWebSocket(ch)
 
 	// loop to read client msg
 	//hbTime := s.RandHeartbeatTime()
@@ -162,7 +167,7 @@ func (s *Server) serveWebSocket(conn *net.TCPConn, readerPool, writerPool *bytes
 		}
 		// read msg from client
 		// note：if there is no msg，it will block here
-		if err = proto.ReadWs(wsConn); err != nil {
+		if err = ch.ConnReaderWriter.ReadProto(proto); err != nil {
 			goto fail
 		}
 
@@ -187,11 +192,19 @@ fail:
 	}
 }
 
-func (s *Server) authWebsocket(ctx context.Context, wsConn *websocket.Conn, ch *channel.Channel, proto *protocol.Proto) (hb time.Duration, err error) {
+func (s *Server) authWebsocket(ctx context.Context, ch *channel.Channel, proto *protocol.Proto, step int) (hb time.Duration, err error) {
 	logHead := "authWebsocket|"
+
+	// get a proto to write
+	proto, err = ch.ProtoAllocator.GetProtoCanWrite()
+	if err != nil {
+		logging.Errorf(logHead+"GetProtoCanWrite err=%v,UserInfo=%v,step=%v,hb=%v", err, ch.UserInfo, step, hb)
+		return
+	}
+
 	// 一直读取，直到读取到的Proto的操作类型为protocol.OpAuth
 	for {
-		if err = proto.ReadWs(wsConn); err != nil {
+		if err = ch.ConnReaderWriter.ReadProto(proto); err != nil {
 			return
 		}
 		if protocol.Operation(proto.Op) == protocol.OpAuth {
@@ -226,10 +239,10 @@ func (s *Server) authWebsocket(ctx context.Context, wsConn *websocket.Conn, ch *
 	// reply to client
 	proto.Op = int32(protocol.OpAuthReply)
 	proto.Body = nil
-	if err = proto.WriteWs(wsConn); err != nil {
+	if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
 		logging.Errorf(logHead+"WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)
 		return
 	}
-	err = wsConn.Flush()
+	err = ch.ConnReaderWriter.Flush()
 	return
 }

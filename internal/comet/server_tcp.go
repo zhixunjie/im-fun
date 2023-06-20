@@ -95,8 +95,8 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// set timer
 	var step = 0
+	// set timer
 	// TODO 暂时把timer关闭，感觉有点问题
 	//trd = timerPool.Add(time.Duration(s.conf.Protocol.HandshakeTimeout), func() {
 	//	conn.Close()
@@ -109,7 +109,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 		// auth（check token）
 		hb, err = s.authTCP(ctx, ch, proto, step)
 		if err != nil {
-			logging.Errorf("authTCP err=%v,UserInfo=%v,hb=%v", err, ch.UserInfo, hb)
+			logging.Errorf("auth err=%v,UserInfo=%v,hb=%v", err, ch.UserInfo, hb)
 			ch.CleanPath1()
 			return
 		}
@@ -165,11 +165,12 @@ fail:
 }
 
 func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protocol.Proto, step int) (hb time.Duration, err error) {
+	logHead := "authTCP|"
+
 	// get a proto to write
 	proto, err = ch.ProtoAllocator.GetProtoCanWrite()
 	if err != nil {
-		logging.Errorf("GetProtoCanWrite err=%v,UserInfo=%v,step=%v,hb=%v", err, ch.UserInfo, step, hb)
-		ch.CleanPath1()
+		logging.Errorf(logHead+"GetProtoCanWrite err=%v,UserInfo=%v,step=%v,hb=%v", err, ch.UserInfo, step, hb)
 		return
 	}
 	// 一直读取，直到读取到的Proto的操作类型为protocol.OpAuth
@@ -180,7 +181,7 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 		if protocol.Operation(proto.Op) == protocol.OpAuth {
 			break
 		} else {
-			logging.Errorf("tcp request operation(%d) not auth", proto.Op)
+			logging.Errorf(logHead+"tcp request operation(%d) not auth", proto.Op)
 		}
 	}
 
@@ -192,7 +193,7 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 		Token    string `json:"token"`
 	}
 	if err = json.Unmarshal(proto.Body, &params); err != nil {
-		logging.Errorf("Unmarshal body=%v,err=%v", proto.Body, err)
+		logging.Errorf(logHead+"Unmarshal body=%v,err=%v", proto.Body, err)
 		return
 	}
 
@@ -202,7 +203,7 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 	ch.UserInfo.RoomId = params.RoomId
 	ch.UserInfo.Platform = params.Platform
 	if hb, err = s.Connect(ctx, ch, params.Token); err != nil {
-		logging.Errorf("Connect UserInfo=%v, err=%v", ch.UserInfo, err)
+		logging.Errorf(logHead+"Connect UserInfo=%v, err=%v", ch.UserInfo, err)
 		return
 	}
 
@@ -210,7 +211,7 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 	proto.Op = int32(protocol.OpAuthReply)
 	proto.Body = nil
 	if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
-		logging.Errorf("WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)
+		logging.Errorf(logHead+"WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)
 		return
 	}
 	err = ch.ConnReaderWriter.Flush()
