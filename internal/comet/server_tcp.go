@@ -106,17 +106,10 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 
 	step = 1
 	{
-		// get a proto to write
-		proto, err = ch.ProtoAllocator.GetProtoCanWrite()
-		if err != nil {
-			logging.Errorf("GetProtoCanWrite err=%v,UserInfo=%v,step=%v,hb=%v", err, ch.UserInfo, step, hb)
-			ch.CleanPath1()
-			return
-		}
 		// auth（check token）
-		hb, err = s.authTCP(ctx, ch, proto)
+		hb, err = s.authTCP(ctx, ch, proto, step)
 		if err != nil {
-			logging.Errorf("authTCP err=%v,UserInfo=%v", err, ch.UserInfo)
+			logging.Errorf("authTCP err=%v,UserInfo=%v,hb=%v", err, ch.UserInfo, hb)
 			ch.CleanPath1()
 			return
 		}
@@ -146,7 +139,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 		}
 		// read msg from client
 		// note：if there is no msg，it will block here
-		if err = proto.ReadTCP(ch.Reader); err != nil {
+		if err = ch.ConnReaderWriter.ReadProto(proto); err != nil {
 			goto fail
 		}
 
@@ -171,13 +164,17 @@ fail:
 	}
 }
 
-func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protocol.Proto) (hb time.Duration, err error) {
-	reader := ch.Reader
-	writer := ch.Writer
-
+func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protocol.Proto, step int) (hb time.Duration, err error) {
+	// get a proto to write
+	proto, err = ch.ProtoAllocator.GetProtoCanWrite()
+	if err != nil {
+		logging.Errorf("GetProtoCanWrite err=%v,UserInfo=%v,step=%v,hb=%v", err, ch.UserInfo, step, hb)
+		ch.CleanPath1()
+		return
+	}
 	// 一直读取，直到读取到的Proto的操作类型为protocol.OpAuth
 	for {
-		if err = proto.ReadTCP(reader); err != nil {
+		if err = ch.ConnReaderWriter.ReadProto(proto); err != nil {
 			return
 		}
 		if protocol.Operation(proto.Op) == protocol.OpAuth {
@@ -212,10 +209,10 @@ func (s *Server) authTCP(ctx context.Context, ch *channel.Channel, proto *protoc
 	// reply to client
 	proto.Op = int32(protocol.OpAuthReply)
 	proto.Body = nil
-	if err = proto.WriteTCP(writer); err != nil {
+	if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
 		logging.Errorf("WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)
 		return
 	}
-	err = writer.Flush()
+	err = ch.ConnReaderWriter.Flush()
 	return
 }

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
-	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
@@ -18,7 +17,6 @@ var (
 func (s *Server) dispatchTCP(ch *channel.Channel) {
 	logHead := "dispatchTCP"
 	var err error
-	writer := ch.Writer
 
 	for {
 		// wait any message from signal channel（if not, it will block here）
@@ -26,12 +24,12 @@ func (s *Server) dispatchTCP(ch *channel.Channel) {
 		switch protocol.Operation(proto.Op) {
 		case protocol.OpProtoReady:
 			// 1. read msg from client
-			if err = protoReady(ch, writer); err != nil {
+			if err = protoReady(ch); err != nil {
 				goto fail
 			}
 		case protocol.OpBatchMsg:
 			// 2. write msg to client
-			if err = proto.WriteTCP(writer); err != nil {
+			if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
 				goto fail
 			}
 		case protocol.OpProtoFinish:
@@ -41,7 +39,7 @@ func (s *Server) dispatchTCP(ch *channel.Channel) {
 			logging.Errorf(logHead + "unknown proto")
 			goto fail
 		}
-		if err = writer.Flush(); err != nil {
+		if err = ch.ConnReaderWriter.Flush(); err != nil {
 			goto fail
 		}
 	}
@@ -53,7 +51,7 @@ fail:
 }
 
 // 数据流：client -> comet -> read -> generate proto -> send protoReady(dispatch proto) -> deal protoReady
-func protoReady(ch *channel.Channel, writer *bufio.Writer) error {
+func protoReady(ch *channel.Channel) error {
 	logHead := "protoReady"
 	var err error
 	var online int32
@@ -71,13 +69,13 @@ func protoReady(ch *channel.Channel, writer *bufio.Writer) error {
 			if ch.Room != nil {
 				online = ch.Room.OnlineNum()
 			}
-			if err = proto.WriteTCPHeart(writer, online); err != nil {
+			if err = ch.ConnReaderWriter.WriteProtoHeart(proto, online); err != nil {
 				logging.Errorf(logHead+"WriteTCPHeart err=%v", err)
 				return ErrTCPWriteError
 			}
 		default:
 			// 3. write msg to client
-			if err = proto.WriteTCP(writer); err != nil {
+			if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
 				logging.Errorf(logHead+"WriteTCP err=%v", err)
 				return ErrTCPWriteError
 			}

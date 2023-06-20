@@ -21,8 +21,9 @@ type Channel struct {
 	Prev   *Channel
 
 	// use bufio to reuse buffer
-	Writer *bufio.Writer
-	Reader *bufio.Reader
+	Writer           *bufio.Writer
+	Reader           *bufio.Reader
+	ConnReaderWriter protocol.ConnReaderWriter
 
 	// User Info
 	UserInfo *UserInfo
@@ -35,10 +36,11 @@ type Channel struct {
 func NewChannel(conf *conf.Config, conn *net.TCPConn, connectionType int, readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) *Channel {
 	ch := new(Channel)
 	ch.ProtoAllocator.Init(uint64(conf.Protocol.ClientProtoNum))
+	ch.UserInfo = new(UserInfo)
 	ch.signal = make(chan *protocol.Proto, conf.Protocol.ServerProtoNum)
 	ch.Reader = new(bufio.Reader)
 	ch.Writer = new(bufio.Writer)
-	ch.UserInfo = new(UserInfo)
+	ch.ConnReaderWriter = protocol.NewTcpConnReaderWriter(ch.Reader, ch.Writer)
 
 	// set ConnComponent
 	ch.ConnComponent.ConnType = connectionType
