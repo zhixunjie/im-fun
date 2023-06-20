@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/zhixunjie/im-fun/internal/comet"
 	commetgrpc "github.com/zhixunjie/im-fun/internal/comet/api/grpc"
+	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/perf"
@@ -18,28 +19,31 @@ import (
 func main() {
 	// init pprof
 	perf.InitPProf("127.0.0.1:6060")
-	// init log
-	logging.InitLogConfig()
-
+	// init logger
+	logging.InitLogger()
 	// init config
 	var err error
 	if err = conf.InitConfig("cmd/comet/comet.yaml"); err != nil {
 		panic(err)
 	}
 	// init common
-	InitCommon()
+	rand.Seed(time.Now().UTC().UnixNano())
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	// init server
+	var lis1, lis2 *net.TCPListener
 	srv := comet.NewServer(conf.Conf)
-	// init TCP server
-	var lisTCPSrv *net.TCPListener
-	if lisTCPSrv, err = comet.InitTCP(srv, runtime.NumCPU()); err != nil {
-		panic(err)
+	{
+		// init TCP server
+		if lis1, err = comet.InitTCP(srv, runtime.NumCPU(), channel.ConnectionTypeTcp); err != nil {
+			panic(err)
+		}
+		// init WebSocket server
+		if lis2, err = comet.InitTCP(srv, runtime.NumCPU(), channel.ConnectionTypeWebSocket); err != nil {
+			panic(err)
+		}
 	}
-	// init WS server
-	var lisWebSocketSrv *net.TCPListener
-	if lisWebSocketSrv, err = comet.InitWs(srv, runtime.NumCPU()); err != nil {
-		panic(err)
-	}
+
 	// init GRPC server
 	rpcSrv := commetgrpc.New(srv, conf.Conf.RPC.Server)
 
@@ -52,8 +56,8 @@ func main() {
 		switch s {
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
 			rpcSrv.GracefulStop()
-			lisTCPSrv.Close()
-			lisWebSocketSrv.Close()
+			lis2.Close()
+			lis1.Close()
 			srv.Close()
 			return
 		case syscall.SIGHUP:
@@ -61,11 +65,6 @@ func main() {
 			return
 		}
 	}
-}
-
-func InitCommon() {
-	rand.Seed(time.Now().UTC().UnixNano())
-	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
 func InitDiscovery() {

@@ -6,7 +6,7 @@ import (
 
 var LoggingMyFormatter = logrus.New()
 
-func InitLogConfig() {
+func InitLogger() {
 	SetLoggingMyFormatter(LoggingMyFormatter)
 }
 

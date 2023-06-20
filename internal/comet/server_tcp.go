@@ -9,6 +9,7 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	newtimer "github.com/zhixunjie/im-fun/pkg/time"
+	"github.com/zhixunjie/im-fun/pkg/websocket"
 	"io"
 	"math"
 	"net"
@@ -224,5 +225,24 @@ func (s *Server) auth(ctx context.Context, ch *channel.Channel, proto *protocol.
 		return
 	}
 	err = ch.ConnReaderWriter.Flush()
+	return
+}
+
+func (s *Server) upgradeToWebSocket(ctx context.Context, ch *channel.Channel) (err error) {
+	conn := ch.Conn
+
+	// read request line && upgrade（websocket独有）
+	var req *websocket.Request
+	if req, err = websocket.ReadRequest(ch.Reader); err != nil {
+		logging.Errorf("websocket.ReadRequest err=%v,UserInfo=%+v,addr=%v", err, ch.UserInfo, conn.RemoteAddr().String())
+		return
+	}
+	var wsConn *websocket.Conn
+	if wsConn, err = websocket.Upgrade(conn, ch.Reader, ch.Writer, req); err != nil {
+		logging.Errorf("websocket.Upgrade err=%v,UserInfo=%+v,addr=%v", err, ch.UserInfo, conn.RemoteAddr().String())
+		return
+	}
+	ch.SetWebSocketConnReaderWriter(wsConn)
+
 	return
 }

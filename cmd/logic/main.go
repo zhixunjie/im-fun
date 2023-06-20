@@ -15,8 +15,8 @@ import (
 func main() {
 	// init pprof
 	perf.InitPProf("127.0.0.1:6062")
-	// init log
-	logging.InitLogConfig()
+	// init logger
+	logging.InitLogger()
 	// init config
 	if err := conf.InitConfig("cmd/logic/logic.yaml"); err != nil {
 		panic(err)
