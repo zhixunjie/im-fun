@@ -44,7 +44,7 @@ func NewConsumerGroup(conf *ConsumerGroupConf, fn Callback) (*ConsumerGroup, err
 			logging.Infof(logHead+"conf=%+v,waiting for message......", conf)
 			newErr = consumerGroup.Consume(ctx, topics, handler)
 			if newErr != nil {
-				logging.Errorf(logHead+"err=%v,conf=%+v", err, conf)
+				logging.Errorf(logHead+"err=%v,conf=%+v", newErr, conf)
 				return
 			}
 		}
