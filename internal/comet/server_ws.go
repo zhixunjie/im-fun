@@ -156,7 +156,7 @@ func (s *Server) serveWebSocket(conn *net.TCPConn, readerPool, writerPool *bytes
 	//timerPool.Set(trd, hb)
 
 	// dispatch
-	go s.dispatchWebSocket(ch)
+	go s.dispatch(ch)
 
 	// loop to read client msg
 	//hbTime := s.RandHeartbeatTime()
