@@ -26,7 +26,7 @@ func (s *Server) dispatchTCP(ch *channel.Channel) {
 		switch protocol.Operation(proto.Op) {
 		case protocol.OpProtoReady:
 			// 1. read msg from client
-			if err = protoReady(ch, writer); errors.Is(err, ErrTCPWriteError) {
+			if err = protoReady(ch, writer); err != nil {
 				goto fail
 			}
 		case protocol.OpBatchMsg:
@@ -61,9 +61,9 @@ func protoReady(ch *channel.Channel, writer *bufio.Writer) error {
 	for {
 		// 1. read proto from client（）
 		proto, err = ch.ProtoAllocator.GetProtoCanRead()
-		if err != nil {
-			logging.Errorf(logHead+"GetProtoCanRead err=%v", err)
-			return ErrNotAndProtoToRead
+		if err != nil { // err != nil 说明没有东西可读了(not any proto to read)
+			//logging.Errorf(logHead+"GetProtoCanRead err=%v", err)
+			return nil
 		}
 		// 2. deal proto
 		switch protocol.Operation(proto.Op) {

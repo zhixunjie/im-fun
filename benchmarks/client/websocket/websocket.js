@@ -76,6 +76,7 @@ class WebsocketOp {
                     break;
                 case OpBatchMsg:
                     // batch message
+                    // 因为在switch之前已经解过一次包，所以offset的值从rawHeaderLen开始
                     for (let offset = rawHeaderLen; offset < data.byteLength; offset += packetLen) {
                         let packetLen = dataView.getInt32(offset);
                         let headerLen = dataView.getInt16(offset + headerOffset);

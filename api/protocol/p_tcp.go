@@ -17,7 +17,7 @@ func (proto *Proto) ReadTCP(reader *bufio.Reader) (err error) {
 	}
 
 	// proto header
-	pack, err := decodeHeaderFromBufToProto(proto, buf)
+	pack, err := decodeHeaderFromBufToProto(buf, proto)
 	if err != nil {
 		return err
 	}

@@ -16,6 +16,6 @@ func TestHeaderEncodeAndDecode(t *testing.T) {
 	encodeHeaderFromProtoToBuf(proto, buf)
 
 	var proto1 Proto
-	r1, r2 := decodeHeaderFromBufToProto(&proto1, buf)
+	r1, r2 := decodeHeaderFromBufToProto(buf, &proto1)
 	fmt.Printf("%+v,err=%v\n", r1, r2)
 }

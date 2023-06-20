@@ -40,15 +40,15 @@ func (b *Bucket) broadcast(p *protocol.Proto) {
 // BroadcastRoom
 // 房间广播：发送一个Proto到某个房间ID（即：SendToAllChan => Proto => ROOM）
 func (b *Bucket) BroadcastRoom(req *pb.SendToRoomReq) {
-	num := atomic.AddUint64(&b.routineCounter, 1) % b.conf.RoutineAmount
+	num := atomic.AddUint64(&b.routineCounter, 1) % uint64(b.conf.RoutineAmount)
 	b.routines[num] <- req
 }
 
 // ProcessProtoToRoom
 // 处理发送都某个房间ID的消息 （Pop => ROOM => Proto => DEAL）
-func (b *Bucket) ProcessProtoToRoom(c chan *pb.SendToRoomReq) {
+func (b *Bucket) ProcessProtoToRoom(index int) {
 	for {
-		req := <-c
+		req := <-b.routines[index]
 		room := b.GetRoomById(req.RoomId)
 		if room != nil {
 			room.SendToAllChan(req.Proto)
