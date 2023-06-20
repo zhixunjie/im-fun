@@ -77,11 +77,11 @@ func serveTCPInit(s *Server, conn *net.TCPConn, r int) {
 	)
 	logging.Infof("connect success,lAddr=%v,RemoteAddr=%v",
 		conn.LocalAddr().String(), conn.RemoteAddr().String())
-	s.serveTCP(conn, rp, wp, tr)
+	s.serveTCP(conn, channel.ConnectionTypeTcp, rp, wp, tr)
 }
 
 // serveTCP serve a tcp connection.
-func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) {
+func (s *Server) serveTCP(conn *net.TCPConn,  connectionType int,readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) {
 	var (
 		err    error
 		proto  *protocol.Proto
@@ -90,7 +90,7 @@ func (s *Server) serveTCP(conn *net.TCPConn, readerPool, writerPool *bytes.Pool,
 	)
 	var hb time.Duration
 	//var trd *newtimer.TimerData
-	var ch = channel.NewChannel(s.conf, conn, channel.ConnectionTypeTcp, readerPool, writerPool, timerPool)
+	var ch = channel.NewChannel(s.conf, conn, connectionType, readerPool, writerPool, timerPool)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
