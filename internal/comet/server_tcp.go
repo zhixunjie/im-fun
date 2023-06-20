@@ -20,15 +20,13 @@ import (
 func InitTCP(server *Server, numCPU, connType int) (listener *net.TCPListener, err error) {
 	var addr *net.TCPAddr
 	var addrS []string
-	var logHead string
 
 	// 同时支持TCP和WebSocket
+	logHead := channel.GetLogHeadByConnType(connType)
 	if connType == channel.ConnTypeWebSocket {
-		addrS = conf.Conf.Connect.TCP.Bind
-		logHead = channel.GetLogHeadByConnType(connType)
-	} else {
 		addrS = conf.Conf.Connect.Websocket.Bind
-		logHead = channel.GetLogHeadByConnType(connType)
+	} else {
+		addrS = conf.Conf.Connect.TCP.Bind
 	}
 
 	// bind address
