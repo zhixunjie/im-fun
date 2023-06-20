@@ -139,12 +139,12 @@ func (c *Channel) CleanPath3() {
 }
 
 const (
-	ConnectionTypeTcp = iota + 1
-	ConnectionTypeWebSocket
+	ConnTypeTcp = iota + 1
+	ConnTypeWebSocket
 )
 
 func GetLogHeadByConnType(connType int) string {
-	if connType == ConnectionTypeWebSocket {
+	if connType == ConnTypeWebSocket {
 		return "WebSocket|"
 	}
 	return "TCP|"

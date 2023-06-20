@@ -35,11 +35,11 @@ func main() {
 	srv := comet.NewServer(conf.Conf)
 	{
 		// init TCP server
-		if lis1, err = comet.InitTCP(srv, runtime.NumCPU(), channel.ConnectionTypeTcp); err != nil {
+		if lis1, err = comet.InitTCP(srv, runtime.NumCPU(), channel.ConnTypeTcp); err != nil {
 			panic(err)
 		}
 		// init WebSocket server
-		if lis2, err = comet.InitTCP(srv, runtime.NumCPU(), channel.ConnectionTypeWebSocket); err != nil {
+		if lis2, err = comet.InitTCP(srv, runtime.NumCPU(), channel.ConnTypeWebSocket); err != nil {
 			panic(err)
 		}
 	}
