@@ -15,7 +15,7 @@ var (
 // dispatch deal any proto send to signal channel（Just like a state machine）
 // 可能出现的消息：SendReady（client message） or service job
 func (s *Server) dispatch(ch *channel.Channel) {
-	logHead := "dispatch"
+	logHead := "dispatch|"
 	var err error
 
 	for {
@@ -23,17 +23,18 @@ func (s *Server) dispatch(ch *channel.Channel) {
 		var proto = ch.Waiting()
 		switch protocol.Operation(proto.Op) {
 		case protocol.OpProtoReady:
-			// 1. read msg from client
+			// case1. read msg from client
+			// 数据流：client -> comet -> read -> generate proto -> send protoReady -> protoReady
 			if err = protoReady(ch); err != nil {
 				goto fail
 			}
 		case protocol.OpBatchMsg:
-			// 2. write msg to client
+			// case2. write msg to client
 			if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
 				goto fail
 			}
 		case protocol.OpProtoFinish:
-			// 3. close channel
+			// case3. close channel
 			goto fail
 		default:
 			logging.Errorf(logHead + "unknown proto")
@@ -50,22 +51,22 @@ fail:
 	ch.CleanPath3()
 }
 
-// 数据流：client -> comet -> read -> generate proto -> send protoReady(dispatch proto) -> deal protoReady
 func protoReady(ch *channel.Channel) error {
-	logHead := "protoReady"
+	logHead := "protoReady|"
 	var err error
 	var online int32
 	var proto *protocol.Proto
 	for {
-		// 1. read proto from client（）
+		// 1. read proto from client
 		proto, err = ch.ProtoAllocator.GetProtoCanRead()
 		if err != nil { // err != nil 说明没有东西可读了(not any proto to read)
 			//logging.Errorf(logHead+"GetProtoCanRead err=%v", err)
 			return nil
 		}
-		// 2. deal proto
+		// 2. check proto
 		switch protocol.Operation(proto.Op) {
 		case protocol.OpHeartbeatReply:
+			// 2.1 reply heartbeat
 			if ch.Room != nil {
 				online = ch.Room.OnlineNum()
 			}
@@ -74,7 +75,7 @@ func protoReady(ch *channel.Channel) error {
 				return ErrTCPWriteError
 			}
 		default:
-			// 3. write msg to client
+			// 2.2 write msg to client directly
 			if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
 				logging.Errorf(logHead+"WriteTCP err=%v", err)
 				return ErrTCPWriteError
