@@ -74,7 +74,7 @@ func (consumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
 }
 func (h consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for msg := range claim.Messages() {
-		logging.Infof("Message topic:%q partition:%d offset:%d", msg.Topic, msg.Partition, msg.Offset)
+		logging.Infof("get msg=%s topic:%q partition:%d offset:%d", msg.Value, msg.Topic, msg.Partition, msg.Offset)
 		func() {
 			defer func() {
 				if err := recover(); err != nil {

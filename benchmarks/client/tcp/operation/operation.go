@@ -37,12 +37,11 @@ func Auth(rd *bufio.Reader, wr *bufio.Writer, userId int64) (err error) {
 	logging.Infof(logHead+"auth req,authParams=%+v", authParams)
 
 	// auth reply
-	newProto := new(model.Proto)
-	if err = ReadProto(rd, newProto); err != nil {
+	if err = ReadProto(rd, proto); err != nil {
 		logging.Errorf(logHead+"read() error(%v)", err)
 		return
 	}
-	logging.Infof(logHead+"auth reply,newProto=%+v", newProto)
+	logging.Infof(logHead+"auth reply,proto=%+v", proto)
 
 	return
 }

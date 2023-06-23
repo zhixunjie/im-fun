@@ -82,7 +82,7 @@ func acceptTCP(logHead string, connType int, server *Server, listener *net.TCPLi
 			var tr = s.round.TimerPool(r)
 			var rp = s.round.BufferPool.ReaderPool(r)
 			var wp = s.round.BufferPool.WriterPool(r)
-			logging.Infof("connect success,LocalAddr=%v,RemoteAddr=%v", conn.LocalAddr().String(), conn.RemoteAddr().String())
+			logging.Infof(logHead+"connect success,LocalAddr=%v,RemoteAddr=%v", conn.LocalAddr().String(), conn.RemoteAddr().String())
 			s.serveTCP(logHead, conn, connType, rp, wp, tr)
 		}(server, conn, r)
 	}

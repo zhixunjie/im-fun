@@ -36,8 +36,6 @@ func WriteProto(wr *bufio.Writer, proto *model.Proto) (err error) {
 }
 
 func ReadProto(rd *bufio.Reader, proto *model.Proto) (err error) {
-	proto = new(model.Proto)
-
 	// ready header
 	if err = binary.Read(rd, binary.BigEndian, &proto.PackLen); err != nil {
 		return
