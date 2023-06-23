@@ -34,7 +34,7 @@ func (d *Dao) KafkaSendToRoom(req *request.SendToRoomReq) (err error) {
 		Type:   pb.KafkaSendMsg_UserRoom,
 		SubId:  req.SubId,
 		RoomId: utils.EncodeRoomKey(req.RoomType, req.RoomId),
-		Msg:    req.Message,
+		Msg:    []byte(req.Message),
 	}
 	buf, err := proto.Marshal(protoMsg)
 	if err != nil {
@@ -54,7 +54,7 @@ func (d *Dao) KafkaSendToAll(req *request.SendToAllReq) (err error) {
 		Type:  pb.KafkaSendMsg_UserAll,
 		SubId: req.SubId,
 		Speed: req.Speed,
-		Msg:   req.Message,
+		Msg:   []byte(req.Message),
 	}
 	buf, err := proto.Marshal(protoMsg)
 	if err != nil {

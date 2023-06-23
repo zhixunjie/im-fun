@@ -50,7 +50,7 @@ func (svc *Service) SendToUserIds(ctx context.Context, req *request.SendToUserId
 
 	// 同一台机器的userKey一次性发送
 	for serverId := range serverIdMap {
-		err = svc.dao.KafkaSendToUserKeys(serverId, serverIdMap[serverId], req.SubId, req.Message)
+		err = svc.dao.KafkaSendToUserKeys(serverId, serverIdMap[serverId], req.SubId, []byte(req.Message))
 		if err != nil {
 			logging.Errorf(logHead+"err=%v", err)
 		}

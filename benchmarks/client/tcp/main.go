@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/zhixunjie/im-fun/benchmarks/client/tcp/operation"
 	"math/rand"
 	"runtime"
@@ -21,6 +22,15 @@ func main() {
 	flag.Int64Var(&num, "num", 0, "客户端的数据")
 	flag.StringVar(&addr, "addr", "", "服务端地址")
 	flag.Parse()
+
+	if addr == "" {
+		fmt.Printf("没有指定参数 addr")
+		return
+	}
+	if start == 0 || num == 0 {
+		fmt.Printf("start或num参数等于0")
+		return
+	}
 
 	// start to run
 	go operation.DashBoard()

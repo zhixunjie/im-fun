@@ -9,18 +9,18 @@ type SendToUserKeysReq struct {
 type SendToUserIdsReq struct {
 	UserIds []int64 `json:"user_ids"`
 	SubId   int32   `json:"sub_id"`
-	Message []byte  `json:"message"`
+	Message string  `json:"message"`
 }
 
 type SendToRoomReq struct {
 	RoomId   string `json:"room_id"`
 	RoomType string `json:"room_type"`
 	SubId    int32  `json:"sub_id"`
-	Message  []byte `json:"message"`
+	Message  string `json:"message"`
 }
 
 type SendToAllReq struct {
 	Speed   int32  `json:"speed"`
 	SubId   int32  `json:"sub_id"`
-	Message []byte `json:"message"`
+	Message string `json:"message"`
 }

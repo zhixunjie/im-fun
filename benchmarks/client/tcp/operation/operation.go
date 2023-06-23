@@ -37,11 +37,12 @@ func Auth(rd *bufio.Reader, wr *bufio.Writer, userId int64) (err error) {
 	logging.Infof(logHead+"auth req,authParams=%+v", authParams)
 
 	// auth reply
-	if proto, err = ReadProto(rd); err != nil {
+	newProto := new(model.Proto)
+	if err = ReadProto(rd, newProto); err != nil {
 		logging.Errorf(logHead+"read() error(%v)", err)
 		return
 	}
-	logging.Infof(logHead+"auth reply,proto=%+v", proto)
+	logging.Infof(logHead+"auth reply,newProto=%+v", newProto)
 
 	return
 }
@@ -76,12 +77,12 @@ func Writer(ctx context.Context, seq *int32, wr *bufio.Writer, userId int64, qui
 
 func Reader(ctx context.Context, conn net.Conn, rd *bufio.Reader, userId int64, quit chan bool) (err error) {
 	logHead := fmt.Sprintf("Reader|userId=%v,", userId)
-	proto := new(model.Proto)
 
 	// deal with read
 	for {
 		// read proto
-		if proto, err = ReadProto(rd); err != nil {
+		proto := new(model.Proto)
+		if err = ReadProto(rd, proto); err != nil {
 			logging.Errorf(logHead+"ReadProto() error(%v)", err)
 			quit <- true
 			return
@@ -90,9 +91,9 @@ func Reader(ctx context.Context, conn net.Conn, rd *bufio.Reader, userId int64, 
 		// check operation
 		switch proto.Op {
 		case model.OpAuthReply:
-			logging.Infof(logHead + "receive auth reply")
+			logging.Infof(logHead+"receive auth reply,proto=%+v", proto)
 		case model.OpHeartbeatReply:
-			logging.Infof(logHead+"receive heartbeat reply", userId)
+			logging.Infof(logHead+"receive heartbeat reply,proto=%+v", proto)
 			if err = conn.SetReadDeadline(time.Now().Add(model.Heart + 60*time.Second)); err != nil {
 				logging.Errorf(logHead+"conn.SetReadDeadline() error(%v)", err)
 				quit <- true
@@ -103,7 +104,7 @@ func Reader(ctx context.Context, conn net.Conn, rd *bufio.Reader, userId int64, 
 			if bodyLen > 0 {
 				var batchProto = new(model.Proto)
 				for {
-					batchProto, err = ReadProto(rd)
+					err = ReadProto(rd, batchProto)
 					if err != nil {
 						logging.Errorf(logHead+"ReadProto() error(%v)", err)
 						break
