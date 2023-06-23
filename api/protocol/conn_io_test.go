@@ -31,10 +31,11 @@ func TestTcpConnReaderWriter(t *testing.T) {
 		logging.Infof("io.Flush err=%v", err)
 		return
 	}
-	err = io.ReadProto(proto)
+	newProto := new(Proto)
+	err = io.ReadProto(newProto)
 	if err != nil {
 		logging.Infof("io.ReadProto err=%v", err)
 		return
 	}
-	fmt.Printf("proto=%+v\n", proto)
+	fmt.Printf("proto=%+v\n", newProto)
 }
