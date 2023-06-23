@@ -55,12 +55,7 @@ func (r *TcpConnReaderWriter) ReadProto(proto *Proto) (err error) {
 // WriteProto writer a proto to TCP connection(writer/fd)
 func (r *TcpConnReaderWriter) WriteProto(proto *Proto) (err error) {
 	writer := r.writer
-	//if proto.Op == int32(OpBatchMsg) {
-	//	// 批量消息，直接写入
-	//	// only service job will send this kind of msg by now
-	//	_, err = writer.Write(proto.Body)
-	//	return
-	//} else {
+
 	// 1. Peek：只需要把header的内存区peek出来即可
 	var buf []byte
 	if buf, err = writer.Peek(_rawHeaderSize); err != nil {
@@ -75,7 +70,6 @@ func (r *TcpConnReaderWriter) WriteProto(proto *Proto) (err error) {
 			return
 		}
 	}
-	//}
 
 	return
 }
@@ -95,7 +89,7 @@ func (r *TcpConnReaderWriter) WriteProtoHeart(proto *Proto, online int32) (err e
 	// 3. 把proto的Body信息，编码写入到buf中
 	binary.BigEndian.PutInt32(buf[_heartOffset:], online)
 
-	return nil
+	return
 }
 
 func (r *TcpConnReaderWriter) Flush() error {
@@ -179,8 +173,8 @@ func (r *WsConnReaderWriter) WriteProtoHeart(proto *Proto, online int32) (err er
 
 	// 1. part1: websocket header
 	conn := r.conn
-	payloadLen := _rawHeaderSize + _heartSize // websocket payload
-	err = conn.WriteHeader(websocket.BinaryMessage, payloadLen)
+	packLen := _rawHeaderSize + _heartSize // websocket payload
+	err = conn.WriteHeader(websocket.BinaryMessage, packLen)
 	if err != nil {
 		return err
 	}
@@ -189,7 +183,7 @@ func (r *WsConnReaderWriter) WriteProtoHeart(proto *Proto, online int32) (err er
 	{
 		// 2.1 Peek：一次性把整个数据包的内存区都Peek出来
 		var buf []byte
-		if buf, err = conn.Peek(payloadLen); err != nil {
+		if buf, err = conn.Peek(packLen); err != nil {
 			return
 		}
 		// 2.2 把proto的头信息，编码写入到buf的头
