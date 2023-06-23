@@ -230,6 +230,7 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 
 	// reply to client
 	proto.Op = int32(protocol.OpAuthReply)
+	proto.Seq = int32(time.Now().Unix())
 	proto.Body = nil
 	if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
 		logging.Errorf(logHead+"WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)

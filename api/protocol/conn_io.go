@@ -177,15 +177,15 @@ func (r *WsConnReaderWriter) WriteProtoHeart(proto *Proto, online int32) (err er
 	// pack = [ [websocket header] + [websocket payload]]
 	// websocket payload = [ [proto header] + [proto body] ]
 
-	// 1. websocket header
+	// 1. part1: websocket header
 	conn := r.conn
-	payloadLen := _rawHeaderSize + _heartSize
+	payloadLen := _rawHeaderSize + _heartSize // websocket payload
 	err = conn.WriteHeader(websocket.BinaryMessage, payloadLen)
 	if err != nil {
 		return err
 	}
 
-	// 2. websocket payload
+	// 2. part2: websocket payload
 	{
 		// 2.1 Peek：一次性把整个数据包的内存区都Peek出来
 		var buf []byte
