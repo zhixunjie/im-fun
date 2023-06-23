@@ -18,7 +18,7 @@ func TestTcpConnReaderWriter(t *testing.T) {
 		Ver:  ProtoVersion,
 		Op:   int32(OpBatchMsg),
 		Seq:  1,
-		Body: []byte("i am jason"),
+		Body: []byte("你在干什么呢？"),
 	}
 
 	err := io.WriteProto(proto)
