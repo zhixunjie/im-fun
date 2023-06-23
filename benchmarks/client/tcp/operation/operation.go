@@ -2,6 +2,7 @@ package operation
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -17,7 +18,7 @@ func Auth(rd *bufio.Reader, wr *bufio.Writer, userId int64) (err error) {
 
 	var authParams = &model.AuthParams{
 		UserId:   userId,
-		UserKey:  "random",
+		UserKey:  "any_key",
 		RoomId:   "live://9999",
 		Platform: "linux",
 		Token:    "abcabcabcabc",
@@ -41,7 +42,7 @@ func Auth(rd *bufio.Reader, wr *bufio.Writer, userId int64) (err error) {
 		logging.Errorf(logHead+"read() error(%v)", err)
 		return
 	}
-	logging.Infof(logHead+"auth reply,proto=%+v", proto)
+	PrintProto(logHead+"receive reply auth", proto)
 
 	return
 }
@@ -90,9 +91,10 @@ func Reader(ctx context.Context, conn net.Conn, rd *bufio.Reader, userId int64, 
 		// check operation
 		switch proto.Op {
 		case model.OpAuthReply:
-			logging.Infof(logHead+"receive auth reply,proto=%+v", proto)
+			PrintProto(logHead+"receive reply auth", proto)
 		case model.OpHeartbeatReply:
-			logging.Infof(logHead+"receive heartbeat reply,proto=%+v", proto)
+			PrintProto(logHead+"receive reply heartbeat", proto)
+			// set read deadline
 			if err = conn.SetReadDeadline(time.Now().Add(model.Heart + 60*time.Second)); err != nil {
 				logging.Errorf(logHead+"conn.SetReadDeadline() error(%v)", err)
 				quit <- true
@@ -101,23 +103,27 @@ func Reader(ctx context.Context, conn net.Conn, rd *bufio.Reader, userId int64, 
 		case model.OpBatchMsg:
 			bodyLen := proto.BodyLen
 			if bodyLen > 0 {
+				buf := bufio.NewReader(bytes.NewReader(proto.Body))
 				var batchProto = new(model.Proto)
-				for {
-					err = ReadProto(rd, batchProto)
+
+				// 开始遍历batch消息的body
+				for i := 0; i < int(bodyLen); i += int(batchProto.PackLen) {
+					err = ReadProto(buf, batchProto)
 					if err != nil {
 						logging.Errorf(logHead+"ReadProto() error(%v)", err)
 						break
 					}
-					bodyLen -= batchProto.BodyLen
-					logging.Infof(logHead+"receive msg,proto=%+v", batchProto)
-					if bodyLen == 0 {
-						break
-					}
+					PrintProto(logHead+"receive msg", batchProto)
 				}
 				atomic.AddInt64(&mCount, 1)
 			}
 		default:
-			logging.Infof(logHead+"receive unknown msg,proto=%+v", proto)
+			PrintProto(logHead+"receive unknown msg", proto)
 		}
 	}
+}
+
+func PrintProto(logHead string, proto *model.Proto) {
+	logging.Infof(logHead+",PackLen=%v,HeaderLen=%v,Ver=%v,Seq=%v,Body=%s",
+		proto.PackLen, proto.HeaderLen, proto.Ver, proto.Seq, proto.Body)
 }

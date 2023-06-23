@@ -67,6 +67,8 @@ func (s *Server) Operate(ctx context.Context, logHead string, proto *protocol.Pr
 	case protocol.OpHeartbeat:
 		// 1. 客户端-心跳上报
 		proto.Op = int32(protocol.OpHeartbeatReply)
+		proto.Ver = protocol.ProtoVersion
+		proto.Seq = int32(time.Now().Unix())
 		proto.Body = nil
 		//timerPool.Set(trd, hb)
 		//if now := time.Now(); now.Sub(lastHb) > hbTime {

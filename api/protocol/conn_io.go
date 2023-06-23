@@ -62,7 +62,8 @@ func (r *TcpConnReaderWriter) WriteProto(proto *Proto) (err error) {
 		return
 	}
 	// 2. 把proto的头信息，编码写入到buf的头
-	encodeHeaderFromProtoToBuf(proto, buf)
+	packLen := _rawHeaderSize + int32(len(proto.Body))
+	encodeHeaderFromProtoToBuf(packLen, proto, buf)
 	// 3. 把proto的Body信息，编码写入到buf中
 	if proto.Body != nil {
 		_, err = writer.Write(proto.Body)
@@ -85,7 +86,7 @@ func (r *TcpConnReaderWriter) WriteProtoHeart(proto *Proto, online int32) (err e
 		return
 	}
 	// 2. 把proto的头信息，编码写入到buf的头
-	encodeHeaderFromProtoToBuf(proto, buf)
+	encodeHeaderFromProtoToBuf(int32(packLen), proto, buf)
 	// 3. 把proto的Body信息，编码写入到buf中
 	binary.BigEndian.PutInt32(buf[_heartOffset:], online)
 
@@ -138,8 +139,8 @@ func (r *WsConnReaderWriter) WriteProto(proto *Proto) (err error) {
 
 	// 1. write websocket header
 	conn := r.conn
-	payloadLen := _rawHeaderSize + len(proto.Body)
-	err = conn.WriteHeader(websocket.BinaryMessage, payloadLen)
+	packLen := _rawHeaderSize + len(proto.Body)
+	err = conn.WriteHeader(websocket.BinaryMessage, packLen)
 	if err != nil {
 		return err
 	}
@@ -152,7 +153,7 @@ func (r *WsConnReaderWriter) WriteProto(proto *Proto) (err error) {
 			return
 		}
 		// 2.2 把proto的头信息，编码写入到buf的头
-		encodeHeaderFromProtoToBuf(proto, buf)
+		encodeHeaderFromProtoToBuf(int32(packLen), proto, buf)
 		// 2.3 把proto的Body信息，编码写入到buf中
 		if proto.Body != nil {
 			err = conn.WritePayload(proto.Body)
@@ -187,7 +188,7 @@ func (r *WsConnReaderWriter) WriteProtoHeart(proto *Proto, online int32) (err er
 			return
 		}
 		// 2.2 把proto的头信息，编码写入到buf的头
-		encodeHeaderFromProtoToBuf(proto, buf)
+		encodeHeaderFromProtoToBuf(int32(packLen), proto, buf)
 		// 2.3 把proto的Body信息，编码写入到buf中
 		binary.BigEndian.PutInt32(buf[_heartOffset:], online)
 	}
@@ -204,7 +205,8 @@ func WriteProtoToWriter(proto *Proto, writer *bytes.BufferWriter) {
 	// 1. Peek：只需要把header的内存区peek出来即可
 	buf := writer.Peek(_rawHeaderSize)
 	// 2. 把proto的头信息，编码写入到buf的头
-	encodeHeaderFromProtoToBuf(proto, buf)
+	packLen := _rawHeaderSize + int32(len(proto.Body))
+	encodeHeaderFromProtoToBuf(packLen, proto, buf)
 	// 3. 把proto的Body信息，编码写入到buf中
 	if proto.Body != nil {
 		writer.Write(proto.Body)
