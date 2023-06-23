@@ -11,12 +11,12 @@ const (
 	KeyExpire = 3600
 )
 
-// Hash：userId -> userKey => serverId
+// Hash：userId [ userKey => serverId ]
 func keyHashUserId(userId int64) string {
 	return fmt.Sprintf("session_hash_%d", userId)
 }
 
-// String：userKey => server
+// String：userKey => serverId
 func keyStringUserKey(userKey string) string {
 	return fmt.Sprintf("session_string_%s", userKey)
 }
