@@ -19,8 +19,6 @@ import (
 func main() {
 	// init pprof
 	perf.InitPProf("127.0.0.1:6060")
-	// init logger
-	logging.InitLogger()
 	// init config
 	var err error
 	if err = conf.InitConfig("cmd/comet/comet.yaml"); err != nil {

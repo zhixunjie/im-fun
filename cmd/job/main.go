@@ -13,8 +13,6 @@ import (
 func main() {
 	// init pprof
 	perf.InitPProf("127.0.0.1:6061")
-	// init logger
-	logging.InitLogger()
 	// init config
 	if err := conf.InitConfig("cmd/job/job.yaml"); err != nil {
 		panic(err)
