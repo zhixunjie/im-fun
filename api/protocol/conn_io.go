@@ -55,27 +55,27 @@ func (r *TcpConnReaderWriter) ReadProto(proto *Proto) (err error) {
 // WriteProto writer a proto to TCP connection(writer/fd)
 func (r *TcpConnReaderWriter) WriteProto(proto *Proto) (err error) {
 	writer := r.writer
-	if proto.Op == int32(OpBatchMsg) {
-		// 批量消息，直接写入
-		// only service job will send this kind of msg by now
-		_, err = writer.Write(proto.Body)
+	//if proto.Op == int32(OpBatchMsg) {
+	//	// 批量消息，直接写入
+	//	// only service job will send this kind of msg by now
+	//	_, err = writer.Write(proto.Body)
+	//	return
+	//} else {
+	// 1. Peek：只需要把header的内存区peek出来即可
+	var buf []byte
+	if buf, err = writer.Peek(_rawHeaderSize); err != nil {
 		return
-	} else {
-		// 1. Peek：只需要把header的内存区peek出来即可
-		var buf []byte
-		if buf, err = writer.Peek(_rawHeaderSize); err != nil {
+	}
+	// 2. 把proto的头信息，编码写入到buf的头
+	encodeHeaderFromProtoToBuf(proto, buf)
+	// 3. 把proto的Body信息，编码写入到buf中
+	if proto.Body != nil {
+		_, err = writer.Write(proto.Body)
+		if err != nil {
 			return
 		}
-		// 2. 把proto的头信息，编码写入到buf的头
-		encodeHeaderFromProtoToBuf(proto, buf)
-		// 3. 把proto的Body信息，编码写入到buf中
-		if proto.Body != nil {
-			_, err = writer.Write(proto.Body)
-			if err != nil {
-				return
-			}
-		}
 	}
+	//}
 
 	return
 }
