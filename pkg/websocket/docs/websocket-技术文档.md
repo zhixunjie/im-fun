@@ -31,6 +31,7 @@ Sec-WebSocket-Protocol: chat
 # 1. 客户端
 
 - PHP：https://www.kancloud.cn/zhixunjie/swoole_websocket/363058
+- GO：https://github.com/zhixunjie/im-fun/tree/master/benchmarks/client/websocket
 
 # 2. 服务端
 

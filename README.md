@@ -8,11 +8,11 @@
 
 ![image-20230624000404596](https://typroa-jasonzhi.oss-cn-guangzhou.aliyuncs.com/imgs/image-20230624000404596.png)
 
-技术魔法：
+# 技术魔法
 
 1. 消息系统本身的设计：
     - timeline设计、读写扩散、message的session表的设计（各类id、分表分库）。
-    - 功能点实现：消息发送、消息拉新、消息顺序、多端同步、消息未读数。
+    - 功能点实现：消息发送、消息拉新、消息顺序π、多端同步、消息未读数。
     - 消息及时性保证、消息的顺序保证。
 2. Buffer Pool：复用Buffer，内存复用，减少GC。
 3. Bufio魔改：复用Buffer（Buffer来自Buffer Pool）。
@@ -44,11 +44,10 @@
 12. 分布式部署、大型IM系统。
 13. 性能测试、性能调优、内存泄露。
 
-# Proto
+# TCP的数据包格式
 
-TCP的数据包格式：
+单个Proto的格式：由两部分组成：Header + Body。
 
-- 数据包由两部分组成：Header + Body。
 - Package Length：整个包的长度（Header + Body）。
 - Header Length：Header部分的长度。
 - Protocol Version：数据包格式的版本。
