@@ -22,9 +22,10 @@ func printCallerOther(f *runtime.Frame) string {
 	funcName := s[len(s)-1]
 	dir, filename := path.Split(f.File)
 	baseDir := path.Base(dir)
-	return fmt.Sprintf("%v/%v:%v:[%v]", baseDir, filename, f.Line, funcName)
+	return fmt.Sprintf("%v/%v:%v func[%v]", baseDir, filename, f.Line, funcName)
 }
 
+// 针对im-fun项目的Caller获取
 func printCallerForImFun(f *runtime.Frame) string {
 	pc, file, line, _ := runtime.Caller(9)
 	dir, filename := path.Split(file)
@@ -34,7 +35,7 @@ func printCallerForImFun(f *runtime.Frame) string {
 	s := strings.Split(sFun.Name(), ".")
 	funcName := s[len(s)-1]
 
-	return fmt.Sprintf("%v/%v:%v:[%v]", baseDir, filename, line, funcName)
+	return fmt.Sprintf("%v/%v:%v func[%v]", baseDir, filename, line, funcName)
 
 	// 原来的机制：
 	//s := strings.Split(f.Function, ".")
