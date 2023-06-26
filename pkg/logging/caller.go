@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// printCaller 输出文件
+// printCaller 输出Caller信息
 func printCaller(f *runtime.Frame) (string, string) {
 	s := strings.Split(f.Function, ".")
 	funcName := s[len(s)-1]
@@ -16,7 +16,7 @@ func printCaller(f *runtime.Frame) (string, string) {
 	return funcName, fmt.Sprintf("%v/%v:%v", baseDir, filename, f.Line)
 }
 
-// printCallerOther 输出文件
+// printCallerOther 输出Caller信息
 func printCallerOther(f *runtime.Frame) string {
 	s := strings.Split(f.Function, ".")
 	funcName := s[len(s)-1]
