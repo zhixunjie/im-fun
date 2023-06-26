@@ -34,7 +34,7 @@ func (f *myFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	b.WriteString("\x1b[0m") // 去掉颜色
 
 	// caller
-	b.WriteString(" " + printCallerOther(entry.Caller))
+	b.WriteString(" " + printCallerForImFun(entry.Caller))
 
 	// msg
 	b.WriteString(" ")
