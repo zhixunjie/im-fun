@@ -17,7 +17,7 @@ func main() {
 	if err := conf.InitConfig("cmd/job/job.yaml"); err != nil {
 		panic(err)
 	}
-	job := job.New(conf.Conf)
+	j := job.New(conf.Conf)
 
 	// signal
 	c := make(chan os.Signal, 1)
@@ -27,7 +27,7 @@ func main() {
 		logging.Infof("get a signal %s", s.String())
 		switch s {
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
-			job.Close()
+			j.Close()
 			return
 		case syscall.SIGHUP:
 		default:
