@@ -26,6 +26,7 @@ func New(c *conf.Config) *Dao {
 
 	kafkaProducer, err := kafka.NewSyncProducer(&c.Kafka[0])
 	if err != nil {
+		logging.Errorf("kafka.NewSyncProducer,err=%v", err)
 		panic(err)
 	}
 
@@ -53,6 +54,7 @@ func CreateMySqlClient(addr string, userName string, password string, database s
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=true", userName, password, addr, database)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
+		logging.Errorf("gorm.Open,err=%v", err)
 		panic("failed to connect database")
 	}
 
@@ -103,6 +105,7 @@ func CreateRedisPool(addr, password string) *redis.Client {
 	logging.Infof("PING Result：", pong, err) // Output: PONG <nil>
 	if pong != "PONG" {
 		logging.Errorf("NewClient res=%v,err=%v", pong, err)
+		return nil
 	}
 
 	return client
