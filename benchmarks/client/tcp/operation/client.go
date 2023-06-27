@@ -3,6 +3,7 @@ package operation
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"math/rand"
 	"net"
@@ -11,12 +12,13 @@ import (
 )
 
 func Start(userId int64, addr string) {
+	logHead := fmt.Sprintf("Start|userId=%v，", userId)
 	time.Sleep(time.Duration(rand.Intn(120)) * time.Second)
 
 	// dial to server
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		logging.Errorf("net.Dial(%s) error(%v)", addr, err)
+		logging.Errorf(logHead+"net.Dial(%s) error(%v)", addr, err)
 		return
 	}
 
@@ -36,8 +38,10 @@ func Start(userId int64, addr string) {
 	// auth
 	seq := int32(0)
 	if err = Auth(rd, wr, userId); err != nil {
+		logging.Errorf(logHead+"Auth err=%v", err)
 		return
 	}
+	logging.Infof(logHead + "connect && auth success!!!")
 	seq++
 
 	// writer

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/zhixunjie/im-fun/benchmarks/client/tcp/operation"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"math/rand"
 	"runtime"
 	"time"
@@ -20,10 +21,11 @@ func main() {
 	// get params
 	var start, num int64
 	flag.Int64Var(&start, "start", 0, "用户ID的开始值")
-	flag.Int64Var(&num, "num", 0, "客户端的数据")
+	flag.Int64Var(&num, "num", 0, "启动X个客户端")
 	flag.StringVar(&addr, "addr", "", "服务端地址")
 	flag.Parse()
 
+	// check params
 	if addr == "" {
 		fmt.Printf("没有指定参数 addr")
 		return
@@ -39,6 +41,7 @@ func main() {
 	for i = start; i < start+num; i++ {
 		go func(userId int64) {
 			for {
+				logging.Infof("userId=%v,try to connect server", userId)
 				operation.Start(userId, addr)
 				time.Sleep(time.Duration(rand.Intn(10)) * time.Second)
 			}
