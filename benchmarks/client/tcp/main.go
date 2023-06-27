@@ -15,6 +15,7 @@ var (
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+	rand.Seed(time.Now().UTC().UnixNano())
 
 	// get params
 	var start, num int64

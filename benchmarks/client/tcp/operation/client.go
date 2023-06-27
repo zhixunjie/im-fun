@@ -4,12 +4,14 @@ import (
 	"bufio"
 	"context"
 	"github.com/zhixunjie/im-fun/pkg/logging"
+	"math/rand"
 	"net"
 	"sync/atomic"
+	"time"
 )
 
 func Start(userId int64, addr string) {
-	//time.Sleep(time.Duration(rand.Intn(120)) * time.Second)
+	time.Sleep(time.Duration(rand.Intn(120)) * time.Second)
 
 	// dial to server
 	conn, err := net.Dial("tcp", addr)
