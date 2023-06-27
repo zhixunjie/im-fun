@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/zhixunjie/im-fun/benchmarks/client/tcp/operation"
-	"github.com/zhixunjie/im-fun/pkg/logging"
 	"math/rand"
 	"runtime"
 	"time"
@@ -41,7 +40,6 @@ func main() {
 	for i = start; i < start+num; i++ {
 		go func(userId int64) {
 			for {
-				logging.Infof("userId=%v,try to connect server", userId)
 				operation.Start(userId, addr)
 				time.Sleep(time.Duration(rand.Intn(10)) * time.Second)
 			}

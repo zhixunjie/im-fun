@@ -13,7 +13,9 @@ import (
 
 func Start(userId int64, addr string) {
 	logHead := fmt.Sprintf("Start|userId=%v，", userId)
-	time.Sleep(time.Duration(rand.Intn(120)) * time.Second)
+	sec := time.Duration(rand.Intn(10))
+	logging.Infof(logHead+"try to connect server(auth in %v second)", sec)
+	time.Sleep(sec * time.Second)
 
 	// dial to server
 	conn, err := net.Dial("tcp", addr)
