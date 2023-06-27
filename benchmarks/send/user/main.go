@@ -92,14 +92,13 @@ func Start(st, ed int64) {
 	if err != nil {
 		panic(err)
 	}
-	body := bytes.NewBuffer(bodyStr)
 
 	// start to request
 	var successCount, failCount int
 	var rsp http.Response
 	reqUrl := fmt.Sprintf("http://%v%v", addr, send.UrlSendUserIds)
 	for i := st; i < ed; i++ {
-		rsp, err = client.Post(reqUrl, body, nil, nil)
+		rsp, err = client.Post(reqUrl, bytes.NewBuffer(bodyStr), nil, nil)
 		if err != nil {
 			failCount++
 			continue

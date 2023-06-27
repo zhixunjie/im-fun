@@ -7,3 +7,4 @@ build-mac-amd64:
 
 run:
 	./send_user --addr=localhost:8080 --start=1 --num=100000 --duration=30
+	#./send_user --addr=localhost:8080 --start=1 --num=1000 --duration=30

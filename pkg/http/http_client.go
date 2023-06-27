@@ -100,15 +100,9 @@ func (client *Client) PostJson(reqUrl string, body any, params map[string]string
 	rsp = Response{
 		NeedBody: client.needBody,
 	}
-	var bodyJson []byte
-
-	// get consume time
-	start := time.Now()
-	defer func() {
-		logging.Infof(logHead+"consume=%vms,reqUrl=%v,bodyJson=%s", time.Now().Sub(start).Milliseconds(), reqUrl, string(bodyJson))
-	}()
 
 	// marshal body
+	var bodyJson []byte
 	if body != nil {
 		bodyJson, err = json.Marshal(body)
 		if err != nil {
@@ -132,6 +126,17 @@ func (client *Client) Post(reqUrl string, body io.Reader, params map[string]stri
 	rsp = Response{
 		NeedBody: client.needBody,
 	}
+
+	var bodyLog []byte
+	if v, ok := body.(*bytes.Buffer); ok {
+		bodyLog = v.Bytes()
+	}
+
+	// get consume time
+	start := time.Now()
+	defer func() {
+		logging.Infof(logHead+"consume=%vms,reqUrl=%v,body=%s", time.Now().Sub(start).Milliseconds(), reqUrl, bodyLog)
+	}()
 
 	// new request
 	request, err := http.NewRequest(http.MethodPost, reqUrl, body)
