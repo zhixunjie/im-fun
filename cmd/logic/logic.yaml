@@ -13,7 +13,8 @@ rpc:
     dial: "1s"
     timeout: "1s"
 mysql:
-  - addr: "127.0.0.1:3306"
+  - addr: "127.0.0.1"
+    port: "3306"
     userName: "root"
     password: ""
     dbName: "im"
