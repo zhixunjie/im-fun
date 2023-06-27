@@ -12,15 +12,15 @@ import (
 )
 
 func Start(userId int64, addr string) {
-	logHead := fmt.Sprintf("Start|userId=%v，", userId)
-	sec := time.Duration(rand.Intn(10))
-	logging.Infof(logHead+"try to connect server(auth in %v second)", sec)
-	time.Sleep(sec * time.Second)
+	logHead := fmt.Sprintf("Start|userId=%v,", userId)
+	sec := rand.Intn(10)
+	logging.Infof(logHead+"try to connect server after %v second", sec)
+	time.Sleep(time.Duration(sec) * time.Second)
 
 	// dial to server
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		logging.Errorf(logHead+"net.Dial(%s) error(%v)", addr, err)
+		logging.Errorf(logHead+"net.Dial(%s) error=%v", addr, err)
 		return
 	}
 

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/zhixunjie/im-fun/benchmarks/client/tcp/model"
 	"github.com/zhixunjie/im-fun/pkg/logging"
+	"io"
 	"net"
 	"sync/atomic"
 	"time"
@@ -32,14 +33,14 @@ func Auth(rd *bufio.Reader, wr *bufio.Writer, userId int64) (err error) {
 
 	// auth
 	if err = WriteProto(wr, proto); err != nil {
-		logging.Errorf(logHead+"write() error(%v)", err)
+		logging.Errorf(logHead+"write() error=%v", err)
 		return
 	}
 	logging.Infof(logHead+"auth req,authParams=%+v", authParams)
 
 	// auth reply
 	if err = ReadProto(rd, proto); err != nil {
-		logging.Errorf(logHead+"read() error(%v)", err)
+		logging.Errorf(logHead+"read() error=%v", err)
 		return
 	}
 	PrintProto(logHead+"receive reply auth", proto)
@@ -67,7 +68,7 @@ func Writer(ctx context.Context, seq *int32, wr *bufio.Writer, userId int64, qui
 
 		// write proto
 		if err = WriteProto(wr, proto); err != nil {
-			logging.Errorf(logHead+"WriteProto() error(%v)", err)
+			logging.Errorf(logHead+"WriteProto() error=%v", err)
 			return
 		}
 		logging.Infof(logHead + "Write heartbeat success")
@@ -83,7 +84,10 @@ func Reader(ctx context.Context, conn net.Conn, rd *bufio.Reader, userId int64, 
 		// read proto
 		proto := new(model.Proto)
 		if err = ReadProto(rd, proto); err != nil {
-			logging.Errorf(logHead+"ReadProto() error(%v)", err)
+			if err == io.EOF {
+				continue
+			}
+			logging.Errorf(logHead+"ReadProto() error=%v", err)
 			quit <- true
 			return
 		}
@@ -96,7 +100,7 @@ func Reader(ctx context.Context, conn net.Conn, rd *bufio.Reader, userId int64, 
 			PrintProto(logHead+"receive reply heartbeat", proto)
 			// set read deadline
 			if err = conn.SetReadDeadline(time.Now().Add(model.Heart + 60*time.Second)); err != nil {
-				logging.Errorf(logHead+"conn.SetReadDeadline() error(%v)", err)
+				logging.Errorf(logHead+"conn.SetReadDeadline() error=%v", err)
 				quit <- true
 				return
 			}
@@ -110,7 +114,7 @@ func Reader(ctx context.Context, conn net.Conn, rd *bufio.Reader, userId int64, 
 				for i := 0; i < int(bodyLen); i += int(batchProto.PackLen) {
 					err = ReadProto(buf, batchProto)
 					if err != nil {
-						logging.Errorf(logHead+"ReadProto() error(%v)", err)
+						logging.Errorf(logHead+"ReadProto() error=%v", err)
 						break
 					}
 					PrintProto(logHead+"receive msg", batchProto)

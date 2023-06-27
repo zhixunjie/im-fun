@@ -2,6 +2,7 @@ package comet
 
 import (
 	"errors"
+	"fmt"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/pkg/logging"
@@ -15,7 +16,7 @@ var (
 // dispatch deal any proto send to signal channel（Just like a state machine）
 // 可能出现的消息：SendReady（client message） or service job
 func (s *Server) dispatch(logHead string, ch *channel.Channel) {
-	logHead = logHead + "dispatch|"
+	logHead = logHead + fmt.Sprintf("dispatch|UserInfo=%+v,", ch.UserInfo)
 	var err error
 
 	for {
@@ -26,15 +27,18 @@ func (s *Server) dispatch(logHead string, ch *channel.Channel) {
 			// case1. read msg from client
 			// 数据流：client -> comet -> read -> generate proto -> send protoReady -> protoReady
 			if err = protoReady(logHead, ch); err != nil {
+				logging.Errorf(logHead+"protoReady err=%v", err)
 				goto fail
 			}
 		case protocol.OpBatchMsg:
 			// case2. write msg to client
 			if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
+				logging.Errorf(logHead+"WriteProto err=%v", err)
 				goto fail
 			}
 		case protocol.OpProtoFinish:
 			// case3. close channel
+			logging.Errorf(logHead+"OpProtoFinish err=%v", err)
 			goto fail
 		default:
 			logging.Errorf(logHead + "unknown proto")
@@ -46,7 +50,7 @@ func (s *Server) dispatch(logHead string, ch *channel.Channel) {
 	}
 fail:
 	if err != nil {
-		logging.Errorf(logHead+"UserInfo=%+v,err=%v", ch.UserInfo, err)
+		logging.Errorf(logHead+"err=%v", err)
 	}
 	ch.CleanPath3()
 }

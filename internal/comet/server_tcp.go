@@ -3,6 +3,7 @@ package comet
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
@@ -13,7 +14,6 @@ import (
 	"io"
 	"math"
 	"net"
-	"strings"
 	"time"
 )
 
@@ -128,17 +128,18 @@ func (s *Server) serveTCP(logHead string, conn *net.TCPConn, connType int, reade
 	step = 1
 	{
 		// auth（check token）
-		hb, err = s.auth(ctx, logHead, ch, proto, step)
+		hb, err = s.auth(ctx, logHead, ch, step)
 		if err != nil {
 			logging.Errorf(logHead+"auth err=%v,UserInfo=%v,hb=%v", err, ch.UserInfo, hb)
 			ch.CleanPath1()
 			return
 		}
+		logHead = logHead + fmt.Sprintf("UserInfo=%+v,", ch.UserInfo)
 		// set bucket
 		bucket = s.AllocBucket(ch.UserInfo.UserKey)
 		err = bucket.Put(ch)
 		if err != nil {
-			logging.Errorf("AllocBucket err=%v,UserInfo=%v", err, ch.UserInfo)
+			logging.Errorf(logHead+"AllocBucket err=%v,UserInfo=%v", err, ch.UserInfo)
 			ch.CleanPath1()
 			return
 		}
@@ -156,16 +157,19 @@ func (s *Server) serveTCP(logHead string, conn *net.TCPConn, connType int, reade
 	//hbTime := s.RandHeartbeatTime()
 	for {
 		if proto, err = ch.ProtoAllocator.GetProtoCanWrite(); err != nil {
+			logging.Errorf(logHead+"GetProtoCanWrite,err=%v", err)
 			goto fail
 		}
 		// read msg from client
 		// note：if there is no msg，it will block here
 		if err = ch.ConnReaderWriter.ReadProto(proto); err != nil {
+			logging.Errorf(logHead+"ReadProto err=%v", err)
 			goto fail
 		}
 
 		// deal with the msg
 		if err = s.Operate(ctx, logHead, proto, ch, bucket); err != nil {
+			logging.Errorf(logHead+"Operate err=%v", err)
 			goto fail
 		}
 
@@ -174,21 +178,30 @@ func (s *Server) serveTCP(logHead string, conn *net.TCPConn, connType int, reade
 		ch.SendReady()
 	}
 fail:
-	if err != nil && err != io.EOF && !strings.Contains(err.Error(), "closed") {
-		logging.Errorf("UserInfo=%v sth has happened,err=%v", ch.UserInfo, err)
+	//if err != nil && err != io.EOF && !strings.Contains(err.Error(), "closed") {
+	if err != nil {
+		switch err {
+		case io.EOF:
+			logging.Errorf(logHead + "goto fail,get EOF from client (because client close the connection to server)")
+		default:
+			logging.Errorf(logHead+"goto fail,sth has happened,err=%v", err)
+		}
+	} else {
+		logging.Infof(logHead + "goto fail,sth has happened")
 	}
 	// 回收相关资源
 	bucket.DelChannel(ch)
 	ch.CleanPath2()
 	if err = s.Disconnect(ctx, ch); err != nil {
-		logging.Errorf("Disconnect UserInfo=%+v,err=%v", ch.UserInfo, err)
+		logging.Errorf(logHead+"Disconnect,err=%v", err)
 	}
 }
 
-func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, proto *protocol.Proto, step int) (hb time.Duration, err error) {
+func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, step int) (hb time.Duration, err error) {
 	logHead = logHead + "auth|"
 
 	// get a proto to write
+	var proto *protocol.Proto
 	proto, err = ch.ProtoAllocator.GetProtoCanWrite()
 	if err != nil {
 		logging.Errorf(logHead+"GetProtoCanWrite err=%v,UserInfo=%v,step=%v,hb=%v", err, ch.UserInfo, step, hb)
@@ -197,6 +210,7 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 	// 一直读取，直到读取到的Proto的操作类型为protocol.OpAuth
 	for {
 		if err = ch.ConnReaderWriter.ReadProto(proto); err != nil {
+			logging.Errorf(logHead+"ReadProto err=%v", err)
 			return
 		}
 		if protocol.Operation(proto.Op) == protocol.OpAuth {
