@@ -78,11 +78,12 @@ func main() {
 }
 
 func Start(st, ed int64) {
-	logging.Infof("start Push,from=%d,to=%d,", st, ed)
+	userId := send.RandUserId()
+	logging.Infof("send start[%d~%d],from=%d,to=%d,userId=%v", st, ed, userId)
 
 	// build msg
 	msg := request.SendToUserIdsReq{
-		UserIds: []int64{st},
+		UserIds: []int64{},
 		Message: send.Msg,
 	}
 
@@ -107,5 +108,5 @@ func Start(st, ed int64) {
 		logging.Infof("rsp=%s", rsp.Body)
 		time.Sleep(50 * time.Millisecond)
 	}
-	logging.Infof("end Push,from=%d,to=%d,success=%d,fail=%d", st, ed, successCount, failCount)
+	logging.Infof("send end[%d~%d],userId=%v,success=%d,fail=%d", st, ed, userId, successCount, failCount)
 }
