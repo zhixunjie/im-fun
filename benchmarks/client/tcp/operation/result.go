@@ -21,8 +21,8 @@ func DashBoard() {
 		aliveCount := atomic.LoadInt64(&aCount)
 
 		// print data
-		fmt.Println(fmt.Sprintf("%s aliveCount=%d msgCount=%d(incr/s:%d,lastCount=%v)", time.Now().Format("2006-01-02 15:04:05"),
-			aliveCount, msgCount, (msgCount-lastCount)/interval, lastCount))
+		fmt.Println(fmt.Sprintf("%s interval=%vs,aliveCount=%d msgCount=%d(incr/s:%d,lastCount=%v)", time.Now().Format("2006-01-02 15:04:05"),
+			interval, aliveCount, msgCount, (msgCount-lastCount)/interval, lastCount))
 		lastCount = msgCount
 
 		time.Sleep(time.Second * time.Duration(interval))

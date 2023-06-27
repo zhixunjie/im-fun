@@ -5,10 +5,10 @@ import "math/rand"
 const Msg = "Hello World"
 
 const (
-	UrlSendUserKeys = "/send/user/keys"
-	UrlSendUserIds  = "/send/user/ids"
-	UrlSendRoom     = "/send/user/room"
-	UrlSendAll      = "/send/user/all"
+	UrlSendUserKeys = "/im/send/user/keys"
+	UrlSendUserIds  = "/im/send/user/ids"
+	UrlSendRoom     = "/im/send/user/room"
+	UrlSendAll      = "/im/send/user/all"
 )
 
 const MaxUserId = 1000

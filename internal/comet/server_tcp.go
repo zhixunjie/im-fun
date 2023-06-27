@@ -15,6 +15,7 @@ import (
 	"io"
 	"math"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -164,7 +165,7 @@ func (s *Server) serveTCP(logHead string, conn *net.TCPConn, connType int, reade
 		// read msg from client
 		// note：if there is no msg，it will block here
 		if err = ch.ConnReaderWriter.ReadProto(proto); err != nil {
-			logging.Errorf(logHead+"ReadProto err=%v", err)
+			//logging.Errorf(logHead+"ReadProto err=%v", err)
 			goto fail
 		}
 
@@ -181,9 +182,11 @@ func (s *Server) serveTCP(logHead string, conn *net.TCPConn, connType int, reade
 fail:
 	//if err != nil && err != io.EOF && !strings.Contains(err.Error(), "closed") {
 	if err != nil {
-		switch err {
-		case io.EOF:
-			logging.Errorf(logHead + "goto fail,get EOF from client (because client close the connection to server)")
+		switch {
+		case err == io.EOF:
+			logging.Infof(logHead + "goto fail,get EOF from client (because client close the connection to server)")
+		case strings.Contains(err.Error(), "closed") == true:
+			logging.Infof(logHead+"goto fail,err=%v (because client close the connection to server)", err)
 		default:
 			logging.Errorf(logHead+"goto fail,sth has happened,err=%v", err)
 		}

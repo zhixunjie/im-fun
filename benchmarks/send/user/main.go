@@ -79,11 +79,11 @@ func main() {
 
 func Start(st, ed int64) {
 	userId := send.RandUserId()
-	logging.Infof("send start[%d~%d],from=%d,to=%d,userId=%v", st, ed, userId)
+	logging.Infof("send start[%d~%d],userId=%v", st, ed, userId)
 
 	// build msg
 	msg := request.SendToUserIdsReq{
-		UserIds: []int64{},
+		UserIds: []int64{userId},
 		Message: send.Msg,
 	}
 
