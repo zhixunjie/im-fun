@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	pb "github.com/zhixunjie/im-fun/api/pb"
+	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 )
