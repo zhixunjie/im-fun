@@ -10,6 +10,7 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	newtimer "github.com/zhixunjie/im-fun/pkg/time"
+	"github.com/zhixunjie/im-fun/pkg/utils"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 	"io"
 	"math"
@@ -234,7 +235,7 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 
 	// update channel
 	ch.UserInfo.UserId = params.UserId
-	ch.UserInfo.UserKey = params.UserKey
+	ch.UserInfo.UserKey = utils.GetMergeUserKey(params.UserId, params.UserKey)
 	ch.UserInfo.RoomId = params.RoomId
 	ch.UserInfo.Platform = params.Platform
 	if hb, err = s.Connect(ctx, ch, params.Token); err != nil {
