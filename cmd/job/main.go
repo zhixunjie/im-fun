@@ -30,6 +30,7 @@ func main() {
 			j.Close()
 			return
 		case syscall.SIGHUP:
+			return
 		default:
 			return
 		}

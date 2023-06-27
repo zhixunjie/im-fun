@@ -38,6 +38,7 @@ func main() {
 			rpcSrv.GracefulStop()
 			return
 		case syscall.SIGHUP:
+			return
 		default:
 			return
 		}

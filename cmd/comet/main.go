@@ -59,6 +59,7 @@ func main() {
 			srv.Close()
 			return
 		case syscall.SIGHUP:
+			return
 		default:
 			return
 		}
