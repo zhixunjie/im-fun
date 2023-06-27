@@ -43,14 +43,14 @@ func CreatePool(addr, password string, db int) (*redis.Client, error) {
 		// 钩子函数
 		// 仅当客户端执行命令时需要从连接池获取连接时，如果连接池需要新建连接时则会调用此钩子函数
 		OnConnect: func(ctx context.Context, cn *redis.Conn) error {
-			logging.Errorf("conn=%v\n", cn)
+			logging.Infof("conn=%v\n", cn)
 			return nil
 		},
 	})
 
 	// ping pong
 	pong, err := client.Ping(context.Background()).Result()
-	logging.Infof("PING Result：", pong, err) // Output: PONG <nil>
+	logging.Infof("PING Result：pong=%v, err=%v", pong, err) // Output: PONG <nil>
 	if pong != "PONG" {
 		logging.Errorf("NewClient res=%v,err=%v\n", pong, err)
 		return nil, errors.New("no response for the PING")

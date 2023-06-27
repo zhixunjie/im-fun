@@ -46,7 +46,7 @@ func CreatePool(cfg *Config) (*gorm.DB, error) {
 	//setLogger(config)
 
 	// open connection
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true", cfg.UserName, cfg.Password, cfg.Addr, cfg.Port, cfg.Database)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=true", cfg.UserName, cfg.Password, cfg.Addr, cfg.Port, cfg.Database)
 	db, err := gorm.Open(mysql.Open(dsn), config)
 	if err != nil {
 		logging.Error("failed to connect database")
