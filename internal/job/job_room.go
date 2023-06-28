@@ -6,6 +6,7 @@ import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/job/conf"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
+	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"time"
 )
@@ -38,6 +39,7 @@ func (r *Room) Send(msg []byte) error {
 	var p = &protocol.Proto{
 		Ver:  protocol.ProtoVersion,
 		Op:   int32(protocol.OpBatchMsg),
+		Seq:  int32(gen_id.GenerateSeqId()),
 		Body: msg,
 	}
 

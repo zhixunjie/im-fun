@@ -7,6 +7,7 @@ import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
+	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/utils"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
@@ -246,7 +247,7 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 
 	// reply to client
 	proto.Op = int32(protocol.OpAuthReply)
-	proto.Seq = int32(time.Now().Unix())
+	proto.Seq = int32(gen_id.GenerateSeqId())
 	proto.Body = nil
 	if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
 		logging.Errorf(logHead+"WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)

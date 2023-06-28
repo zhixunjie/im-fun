@@ -3,6 +3,7 @@ package comet
 import (
 	"context"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
+	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"time"
 
@@ -68,7 +69,7 @@ func (s *Server) Operate(ctx context.Context, logHead string, proto *protocol.Pr
 		// 1. 客户端-心跳上报
 		proto.Op = int32(protocol.OpHeartbeatReply)
 		proto.Ver = protocol.ProtoVersion
-		proto.Seq = int32(time.Now().Unix())
+		proto.Seq = int32(gen_id.GenerateSeqId())
 		proto.Body = nil
 		//logging.Infof(logHead + "OpHeartbeat generate")
 		//timerPool.Set(trd, hb)

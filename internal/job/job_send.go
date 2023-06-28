@@ -1,11 +1,11 @@
 package job
 
 import (
-	pb "github.com/zhixunjie/im-fun/api/pb"
+	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
+	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-	"time"
 )
 
 func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, message []byte) (err error) {
@@ -16,7 +16,7 @@ func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, 
 	proto := &protocol.Proto{
 		Ver:  protocol.ProtoVersion,
 		Op:   int32(protocol.OpBatchMsg),
-		Seq:  int32(time.Now().Unix()),
+		Seq:  int32(gen_id.GenerateSeqId()),
 		Body: message,
 	}
 	writer := bytes.NewWriterSize(len(message) + 64)
@@ -46,7 +46,7 @@ func (job *Job) SendToRoom(subId int32, roomId string, batchMessage []byte) (err
 	proto := &protocol.Proto{
 		Ver:  protocol.ProtoVersion,
 		Op:   int32(protocol.OpBatchMsg),
-		Seq:  int32(time.Now().Unix()),
+		Seq:  int32(gen_id.GenerateSeqId()),
 		Body: batchMessage,
 	}
 
@@ -71,6 +71,7 @@ func (job *Job) SendToAll(subId int32, speed int32, message []byte) (err error) 
 	proto := &protocol.Proto{
 		Ver:  protocol.ProtoVersion,
 		Op:   int32(protocol.OpBatchMsg),
+		Seq:  int32(gen_id.GenerateSeqId()),
 		Body: message,
 	}
 
