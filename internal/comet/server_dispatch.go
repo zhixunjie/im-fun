@@ -17,6 +17,7 @@ var (
 func (s *Server) dispatch(logHead string, ch *channel.Channel) {
 	logHead = logHead + "dispatch|,"
 	var err error
+	var finish bool
 
 	for {
 		// wait any message from signal channel（if not, it will block here）
@@ -38,6 +39,7 @@ func (s *Server) dispatch(logHead string, ch *channel.Channel) {
 			}
 		case protocol.OpProtoFinish:
 			// case3: OpProtoFinish is used to end the process of dispatch
+			finish = true
 			logging.Errorf(logHead+"get OpProtoFinish err=%v", err)
 			goto fail
 		default:
@@ -53,6 +55,13 @@ fail:
 		logging.Errorf(logHead+"err=%v", err)
 	}
 	ch.CleanPath3()
+	// 把signal这个channel的消息全部消费掉
+	// 防止：其他地方往signal发送东西时，由于signal没有消费方，而被导致进入无限的阻塞当中。
+	for !finish {
+		tmp := ch.Waiting() == protocol.ProtoFinish
+		finish = tmp
+	}
+	logging.Infof(logHead + "finally ended")
 }
 
 func protoReady(logHead string, ch *channel.Channel) error {
