@@ -19,9 +19,9 @@ import (
 
 func main() {
 	// init pprof
-	perf.InitPProf("127.0.0.1:6060")
+	perf.InitPProf(":6060")
 	// init prometheus
-	prometheus.InitPrometheus("127.0.0.1:7060")
+	prometheus.InitPrometheus(":7060")
 	// init config
 	var err error
 	if err = conf.InitConfig("cmd/comet/comet.yaml"); err != nil {

@@ -13,9 +13,9 @@ import (
 
 func main() {
 	// init pprof
-	perf.InitPProf("127.0.0.1:6061")
+	perf.InitPProf(":6061")
 	// init prometheus
-	prometheus.InitPrometheus("127.0.0.1:7061")
+	prometheus.InitPrometheus(":7061")
 	// init config
 	if err := conf.InitConfig("cmd/job/job.yaml"); err != nil {
 		panic(err)
