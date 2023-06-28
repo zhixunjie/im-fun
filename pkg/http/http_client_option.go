@@ -9,7 +9,6 @@ import (
 type Options struct {
 	// TCP
 	tcpTimeout   time.Duration
-	tcpDeadline  time.Time
 	tcpKeepAlive time.Duration
 
 	// connection
