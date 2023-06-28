@@ -73,7 +73,7 @@ func protoReady(logHead string, ch *channel.Channel) error {
 		// 1. read proto from client
 		proto, err = ch.ProtoAllocator.GetProtoCanRead()
 		if err != nil { // err != nil 说明没有东西可读了(not any proto to read)
-			//logging.Errorf(logHead+"GetProtoCanRead err=%v", err)
+			logging.Errorf(logHead+"GetProtoCanRead err=%v", err)
 			return nil
 		}
 		// 2. check proto
