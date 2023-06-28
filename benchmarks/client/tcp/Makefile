@@ -7,3 +7,4 @@ build-mac-amd64:
 
 run:
 	./tcp-client --addr=localhost:12571 --start=1 --num=1
+	#./tcp-client --addr=localhost:12571 --start=1 --num=3000
