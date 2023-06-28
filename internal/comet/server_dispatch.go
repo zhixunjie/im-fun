@@ -37,7 +37,7 @@ func (s *Server) dispatch(logHead string, ch *channel.Channel) {
 				goto fail
 			}
 		case protocol.OpProtoFinish:
-			// case3: close channel
+			// case3: OpProtoFinish is used to end the process of dispatch
 			logging.Errorf(logHead+"get OpProtoFinish err=%v", err)
 			goto fail
 		default:

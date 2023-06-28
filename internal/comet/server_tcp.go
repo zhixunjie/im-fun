@@ -187,14 +187,14 @@ fail:
 	if err != nil {
 		switch {
 		case err == io.EOF:
-			logging.Infof(logHead + "goto fail,get EOF from client (because client close the connection to server)")
+			logging.Infof(logHead + "fail: get EOF from client (because client close the connection to server)")
 		case strings.Contains(err.Error(), "closed") == true:
-			logging.Infof(logHead+"goto fail,err=%v (because client close the connection to server)", err)
+			logging.Infof(logHead+"fail: err=%v (because client close the connection to server)", err)
 		default:
-			logging.Errorf(logHead+"goto fail,sth has happened,err=%v", err)
+			logging.Errorf(logHead+"fail: sth has happened,err=%v", err)
 		}
 	} else {
-		logging.Infof(logHead + "goto fail,sth has happened")
+		logging.Infof(logHead + "fail:  sth has happened")
 	}
 	// 回收相关资源
 	bucket.DelChannel(ch)

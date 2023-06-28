@@ -1,7 +1,7 @@
 package comet
 
 import (
-	pb "github.com/zhixunjie/im-fun/api/pb"
+	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"sync"
@@ -69,7 +69,7 @@ func (b *Bucket) ChangeRoom(newRoomId string, ch *channel.Channel) (err error) {
 	var ok bool
 	var oldRoom = ch.Room
 
-	// change to no room
+	// reset room
 	if newRoomId == "" {
 		if oldRoom != nil {
 			oldRoom.DelChannel(ch)
@@ -78,6 +78,8 @@ func (b *Bucket) ChangeRoom(newRoomId string, ch *channel.Channel) (err error) {
 		ch.Room = nil
 		return
 	}
+
+	// get room info
 	b.rwLock.Lock()
 	if newRoom, ok = b.rooms[newRoomId]; !ok {
 		newRoom = channel.NewRoom(newRoomId)
@@ -85,6 +87,7 @@ func (b *Bucket) ChangeRoom(newRoomId string, ch *channel.Channel) (err error) {
 	}
 	b.rwLock.Unlock()
 
+	// change room
 	if oldRoom != nil {
 		oldRoom.DelChannel(ch)
 		b.DelRoomById(oldRoom)
