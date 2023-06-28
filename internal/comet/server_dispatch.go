@@ -15,7 +15,7 @@ var (
 // dispatch deal any proto send to signal channel（Just like a state machine）
 // 可能出现的消息：SendReady（client message） or service job
 func (s *Server) dispatch(logHead string, ch *channel.Channel) {
-	logHead = logHead + "dispatch|,"
+	logHead = logHead + "dispatch|"
 	var err error
 	var finish bool
 

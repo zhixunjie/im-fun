@@ -66,10 +66,11 @@ class WebsocketOp {
                 case OpAuthReply:
                     appendToDialog('授权成功...');
                     // send a heartbeat to server
-                    this.heartbeat();
+                    // this.heartbeat();
+
                     // 利用bind，解决this指针丢失的问题
                     // https://blog.csdn.net/Victor2code/article/details/107804354
-                    this.heartbeatInterval = setInterval(this.heartbeat.bind(this), 30 * 1000);
+                    this.heartbeatInterval = setInterval(this.heartbeat.bind(this), 60 * 1000);
                     break;
                 case OpHeartbeatReply:
                     console.log('receive heartbeat reply');

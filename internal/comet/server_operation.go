@@ -11,7 +11,7 @@ import (
 )
 
 func (s *Server) Connect(ctx context.Context, params *channel.AuthParams) (heartbeat time.Duration, err error) {
-	reply, err := s.rpcClient.Connect(ctx, &pb.ConnectReq{
+	reply, err := s.rpcToLogic.Connect(ctx, &pb.ConnectReq{
 		ServerId: s.serverId,
 		UserId:   params.UserId,
 		UserKey:  params.UserKey,
@@ -26,7 +26,7 @@ func (s *Server) Connect(ctx context.Context, params *channel.AuthParams) (heart
 }
 
 func (s *Server) Disconnect(ctx context.Context, ch *channel.Channel) (err error) {
-	_, err = s.rpcClient.Disconnect(ctx, &pb.DisconnectReq{
+	_, err = s.rpcToLogic.Disconnect(ctx, &pb.DisconnectReq{
 		ServerId: s.serverId,
 		UserId:   ch.UserInfo.UserId,
 		UserKey:  ch.UserInfo.UserKey,
@@ -35,7 +35,7 @@ func (s *Server) Disconnect(ctx context.Context, ch *channel.Channel) (err error
 }
 
 func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err error) {
-	_, err = s.rpcClient.Heartbeat(ctx, &pb.HeartbeatReq{
+	_, err = s.rpcToLogic.Heartbeat(ctx, &pb.HeartbeatReq{
 		UserId:  userInfo.UserId,
 		UserKey: userInfo.UserKey,
 	})
@@ -44,7 +44,7 @@ func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err
 
 // RenewOnline renew room online.
 //func (s *Server) RenewOnline(ctx context.Context, serverID string, roomCount map[string]int32) (allRoom map[string]int32, err error) {
-//	reply, err := s.rpcClient.RenewOnline(ctx, &logic.OnlineReq{
+//	reply, err := s.rpcToLogic.RenewOnline(ctx, &logic.OnlineReq{
 //		Server:    s.serverID,
 //		RoomCount: roomCount,
 //	}, grpc.UseCompressor(gzip.Name))
@@ -56,7 +56,7 @@ func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err
 
 // Receive receive a message.
 func (s *Server) Receive(ctx context.Context, ch *channel.Channel, p *protocol.Proto) (err error) {
-	_, err = s.rpcClient.Receive(ctx, &pb.ReceiveReq{UserId: ch.UserInfo.UserId, Proto: p})
+	_, err = s.rpcToLogic.Receive(ctx, &pb.ReceiveReq{UserId: ch.UserInfo.UserId, Proto: p})
 	return
 }
 
