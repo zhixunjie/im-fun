@@ -165,9 +165,10 @@ func (s *Server) serveTCP(logHead string, ch *channel.Channel, connType int) {
 			logging.Errorf(logHead+"GetProtoCanWrite,err=%v", err)
 			goto fail
 		}
+		// blocking here !!!
 		// read msg from client
 		// note：if there is no msg，it will block here
-		logging.Infof(logHead + "waiting proto from client...")
+		//logging.Infof(logHead + "waiting proto from client...")
 		if err = ch.ConnReaderWriter.ReadProto(proto); err != nil {
 			//logging.Errorf(logHead+"ReadProto err=%v", err)
 			goto fail

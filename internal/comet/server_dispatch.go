@@ -19,8 +19,9 @@ func (s *Server) dispatch(logHead string, ch *channel.Channel) {
 	var finish bool
 
 	for {
+		// blocking here !!!
 		// wait any message from signal channel（if not, it will block here）
-		logging.Infof(logHead + "waiting get proto...")
+		//logging.Infof(logHead + "waiting get proto...")
 		var proto = ch.Waiting()
 		switch protocol.Operation(proto.Op) {
 		case protocol.OpProtoReady:

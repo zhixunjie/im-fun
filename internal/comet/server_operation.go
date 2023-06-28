@@ -70,7 +70,7 @@ func (s *Server) Operate(ctx context.Context, logHead string, proto *protocol.Pr
 		proto.Ver = protocol.ProtoVersion
 		proto.Seq = int32(time.Now().Unix())
 		proto.Body = nil
-		logging.Infof(logHead + "OpHeartbeat generate")
+		//logging.Infof(logHead + "OpHeartbeat generate")
 		//timerPool.Set(trd, hb)
 		//if now := time.Now(); now.Sub(lastHb) > hbTime {
 		//	if err1 := s.Heartbeat(ctx, ch.UserInfo); err1 == nil {
