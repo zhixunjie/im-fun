@@ -53,6 +53,8 @@ func accept(logHead string, connType int, server *Server, listener *net.TCPListe
 	var conn *net.TCPConn
 	var err error
 	var r int
+	var traceId = time.Now().UnixNano()
+	logHead = fmt.Sprintf("[traceId=%v]", traceId) + logHead
 
 	for {
 		if conn, err = listener.AcceptTCP(); err != nil {
@@ -82,9 +84,7 @@ func accept(logHead string, connType int, server *Server, listener *net.TCPListe
 			var tr = s.round.TimerPool(r)
 			var rp = s.round.BufferPool.ReaderPool(r)
 			var wp = s.round.BufferPool.WriterPool(r)
-			var traceId = time.Now().UnixNano()
 			var ch = channel.NewChannel(s.conf, conn, traceId, connType, rp, wp, tr)
-			logHead += fmt.Sprintf("[%v]", traceId)
 
 			// let get to server
 			logging.Infof(logHead+"connect success,addr_local=%v,addr_remote=%v",
