@@ -82,14 +82,14 @@ func NewClient(optionFunc ...Option) *Client {
 			Proxy: http.ProxyFromEnvironment,
 			// TCP: 控制TCP连接相关
 			DialContext: (&net.Dialer{
-				Timeout:   newOptions.tcpTimeout,   // TCP建立连接的超时时间
-				KeepAlive: newOptions.tcpKeepAlive, // 设置了活跃连接的TCP-KeepAlive探针间隔
+				Timeout:   newOptions.tcpTimeout,   // 1. TCP建立连接的超时时间
+				KeepAlive: newOptions.tcpKeepAlive, // 2. 设置了活跃连接的TCP-KeepAlive探针间隔
 			}).DialContext,
 			ForceAttemptHTTP2: true,
 			// 空闲连接: 控制连接池子中的空闲连接
-			IdleConnTimeout:     newOptions.tcpKeepAlive,        // 空闲连接KeepAlive的超时时间（超时后回自动断开）
-			MaxIdleConns:        newOptions.maxIdleConns,        // 最大的空闲连接
-			MaxIdleConnsPerHost: newOptions.maxIdleConnsPerHost, // 最大的空闲连接(每个host)，这个参数默认为2，一般情况下不需要设置
+			IdleConnTimeout:     newOptions.tcpKeepAlive,        // 1. 空闲连接KeepAlive的超时时间（超时后回自动断开）
+			MaxIdleConns:        newOptions.maxIdleConns,        // 2. 最大的空闲连接
+			MaxIdleConnsPerHost: newOptions.maxIdleConnsPerHost, // 3. 最大的空闲连接(每个host)，这个参数默认为2，一般情况下不需要设置
 		},
 		Timeout: newOptions.requestTimeout, // 一个HTTP请求过程的超时时间
 	}
@@ -101,12 +101,15 @@ func NewClient(optionFunc ...Option) *Client {
 }
 
 /**
-调研：
+参数调研：
 http.Client、http.Transport的具体研究
 - https://duyanghao.github.io/http-transport/
 - https://www.cnblogs.com/charlieroro/p/11409153.html
 
 q1: Transport.IdleConnTimeout与net.Dialer.KeepAlive有什么关系，哪一个是所谓的HTTP keep-alives？？？
+q2: 实际使用时，配置Deadline后，HTTP请求一段时间后会报错：dial timeout？
+	- 因为Deadline是一个绝对时间，如果在声明http.Client时，指定了一个绝对时间的Deadline。
+	- 当到达Deadline时间后，从Deadline时间点开始，所有创建的新连接都会返回dial timeout的错误（根本就dial不了了）。
 */
 func newClient() *Client {
 	client := new(Client)
@@ -115,14 +118,14 @@ func newClient() *Client {
 		Transport: &http.Transport{
 			// TCP: 控制TCP连接相关
 			DialContext: (&net.Dialer{
-				Timeout:   30 * time.Second,                 // TCP建立连接的超时时间
-				Deadline:  time.Now().Add(30 * time.Second), // TCP建立连接的超时时间(跟参数Timeout一样的效果，只是值的方式不一样) 注意：配置了这个值后，HTTP请求一段时间后会报错：dial timeout
-				KeepAlive: 30 * time.Second,                 // 设置了活跃连接的TCP-KeepAlive探针间隔
+				Timeout:   30 * time.Second,                 // 1. TCP建立连接的超时时间
+				Deadline:  time.Now().Add(30 * time.Second), // 2. TCP建立连接的超时时间(跟参数Timeout一样的效果，只是值的方式不一样)
+				KeepAlive: 30 * time.Second,                 // 3. 设置了活跃连接的TCP-KeepAlive探针间隔
 			}).DialContext,
 			// 空闲连接: 控制连接池子中的空闲连接
-			IdleConnTimeout:     90 * time.Second, // 空闲连接KeepAlive的超时时间（超时后回自动断开）
-			MaxIdleConns:        100,              // 最大的空闲连接
-			MaxIdleConnsPerHost: 100,              // 最大的空闲连接(每个host)，这个参数默认为2，一般情况下不需要设置
+			IdleConnTimeout:     90 * time.Second, // 1. 空闲连接KeepAlive的超时时间（超时后回自动断开）
+			MaxIdleConns:        100,              // 2. 最大的空闲连接
+			MaxIdleConnsPerHost: 100,              // 3. 最大的空闲连接(每个host)，这个参数默认为2，一般情况下不需要设置
 		},
 		Timeout: time.Second * 5, // 一个HTTP请求过程的超时时间
 	}
