@@ -128,6 +128,6 @@ func Reader(ctx context.Context, conn net.Conn, rd *bufio.Reader, userId int64, 
 }
 
 func PrintProto(logHead string, proto *model.Proto) {
-	logging.Infof(logHead+",PackLen=%v,HeaderLen=%v,Ver=%v,Seq=%v,Body=%s",
+	logging.Infof(logHead+"(PackLen=%v,HeaderLen=%v,Ver=%v,Seq=%v,Body=%s)",
 		proto.PackLen, proto.HeaderLen, proto.Ver, proto.Seq, proto.Body)
 }
