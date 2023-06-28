@@ -4,6 +4,7 @@
  */
 function appendToDialog(content) {
     $(".log").append(content + "\r\n");
+    document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight
 }
 
 const protoVersion = 1
@@ -95,8 +96,8 @@ class WebsocketOp {
                 default:
                     let msgBody = this.textDecoder.decode(data.slice(headerLen, packetLen));
                     appendToDialog("receive: ver=" + ver + " op=" + op + " seq=" + seq + " message=" + msgBody);
-                    break
                     console.log(event);
+                    break
             }
         }
         /**
