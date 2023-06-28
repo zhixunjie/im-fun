@@ -10,13 +10,13 @@ import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 )
 
-func (s *Server) Connect(ctx context.Context, params channel.AuthParams) (heartbeat time.Duration, err error) {
+func (s *Server) Connect(ctx context.Context, params *channel.AuthParams) (heartbeat time.Duration, err error) {
 	reply, err := s.rpcClient.Connect(ctx, &pb.ConnectReq{
 		ServerId: s.serverId,
-		UserId:   params.UserInfo.UserId,
-		UserKey:  params.UserInfo.UserKey,
-		RoomId:   params.UserInfo.RoomId,
-		Platform: params.UserInfo.Platform,
+		UserId:   params.UserId,
+		UserKey:  params.UserKey,
+		RoomId:   params.RoomId,
+		Platform: params.Platform,
 		Token:    params.Token,
 	})
 	if err != nil {

@@ -54,7 +54,7 @@ func accept(logHead string, connType int, server *Server, listener *net.TCPListe
 	var err error
 	var r int
 	var traceId = time.Now().UnixNano()
-	logHead = fmt.Sprintf("[traceId=%v]", traceId) + logHead
+	logHead = fmt.Sprintf("[traceId=%v] ", traceId) + logHead
 
 	for {
 		if conn, err = listener.AcceptTCP(); err != nil {
@@ -225,8 +225,8 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 		logging.Errorf(logHead+"tcp request op=%d,but not auth", proto.Op)
 	}
 
-	var params channel.AuthParams
-	if err = json.Unmarshal(proto.Body, &params); err != nil {
+	params := new(channel.AuthParams)
+	if err = json.Unmarshal(proto.Body, params); err != nil {
 		logging.Errorf(logHead+"Unmarshal body=%s,err=%v", proto.Body, err)
 		return
 	}
@@ -234,6 +234,7 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 	// update channel
 	newUserKey := utils.GetMergeUserKey(params.UserId, params.UserKey)
 	params.UserKey = newUserKey
+	params.IP = ch.UserInfo.IP
 	if hb, err = s.Connect(ctx, params); err != nil {
 		logging.Errorf(logHead+"Connect err=%v,params=%+v", err, params)
 		return

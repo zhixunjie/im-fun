@@ -81,7 +81,7 @@ func (c *Channel) SetWebSocketConnReaderWriter(wsConn *websocket.Conn) {
 }
 
 func (c *Channel) CleanPath1() {
-	logHead := fmt.Sprintf("[traceId=%v]CleanPath1|", c.TraceId)
+	logHead := fmt.Sprintf("[traceId=%v] CleanPath1|", c.TraceId)
 
 	// 1. 关闭连接（一旦关闭连接，读写操作都会失败）
 	if c.WsConn != nil {
@@ -109,7 +109,7 @@ func (c *Channel) CleanPath1() {
 }
 
 func (c *Channel) CleanPath2() {
-	logHead := fmt.Sprintf("[traceId=%v]CleanPath2|", c.TraceId)
+	logHead := fmt.Sprintf("[traceId=%v] CleanPath2|", c.TraceId)
 
 	// 1. 关闭连接（一旦关闭连接，读写操作都会失败）
 	if c.WsConn != nil {
@@ -139,7 +139,7 @@ func (c *Channel) CleanPath2() {
 }
 
 func (c *Channel) CleanPath3() {
-	logHead := fmt.Sprintf("[traceId=%v]CleanPath3|", c.TraceId)
+	logHead := fmt.Sprintf("[traceId=%v] CleanPath3|", c.TraceId)
 
 	// 1. 关闭连接（一旦关闭连接，读写操作都会失败）
 	if c.WsConn != nil {
