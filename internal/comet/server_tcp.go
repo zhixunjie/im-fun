@@ -158,7 +158,7 @@ func (s *Server) serveTCP(logHead string, ch *channel.Channel, connType int) {
 	go s.dispatch(logHead, ch)
 
 	// loop to read client msg
-	// 数据流：client -> comet -> read -> generate proto -> send protoReady(dispatch proto)
+	// 数据流：client -> [comet] -> read -> send protoReady -> dispatch
 	//hbTime := s.RandHeartbeatTime()
 	for {
 		if proto, err = ch.ProtoAllocator.GetProtoCanWrite(); err != nil {
