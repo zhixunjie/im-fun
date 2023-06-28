@@ -30,12 +30,15 @@ class WebsocketOp {
         this.textDecoder = new TextDecoder();
     }
 
+    clear() {
+        clearInterval(this.heartbeatInterval)
+    }
     // 连接
     connect() {
         let url = "ws://127.0.0.1:12572";// ws://是web socket协议,发送到websocket服务器的16779端口
         this.WsClient = new WebSocket(url);
         this.WsClient.binaryType = 'arraybuffer';
-
+        this.clear()
         /**
          * 当WebSocket对象的readyState状态变为OPEN时会触发该事件。
          * 该事件表明websocket连接成功并开始发送数据。
@@ -66,11 +69,11 @@ class WebsocketOp {
                 case OpAuthReply:
                     appendToDialog('授权成功...');
                     // send a heartbeat to server
-                    // this.heartbeat();
+                    this.heartbeat();
 
                     // 利用bind，解决this指针丢失的问题
                     // https://blog.csdn.net/Victor2code/article/details/107804354
-                    this.heartbeatInterval = setInterval(this.heartbeat.bind(this), 60 * 1000);
+                    this.heartbeatInterval = setInterval(this.heartbeat.bind(this), 20 * 1000);
                     break;
                 case OpHeartbeatReply:
                     console.log('receive heartbeat reply');
@@ -102,6 +105,7 @@ class WebsocketOp {
          * event属于CloseEvent对象，https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
          */
         this.WsClient.onclose = (event) => {
+            this.clear()
             appendToDialog("连接已关闭...");
             appendToDialog(event.reason);
             console.log(event);
@@ -112,7 +116,8 @@ class WebsocketOp {
          * event属于Event对象，https://developer.mozilla.org/en-US/docs/Web/API/Event
          */
         this.WsClient.onerror = (event) => {
-            appendToDialog("连接出错...");
+            this.clear()
+            appendToDialog("连接时遇到错误...");
             console.log(event);
         }
     }

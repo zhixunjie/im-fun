@@ -8,8 +8,7 @@ import (
 )
 
 var (
-	ErrNotAndProtoToRead = errors.New("not any proto to read")
-	ErrTCPWriteError     = errors.New("write err")
+	ErrTCPWriteError = errors.New("write err")
 )
 
 // dispatch deal any proto send to signal channel（Just like a state machine）
@@ -21,13 +20,14 @@ func (s *Server) dispatch(logHead string, ch *channel.Channel) {
 
 	for {
 		// wait any message from signal channel（if not, it will block here）
+		logging.Infof(logHead + "waiting get proto...")
 		var proto = ch.Waiting()
 		switch protocol.Operation(proto.Op) {
 		case protocol.OpProtoReady:
 			// case1: read msg from client
-			// 数据流：client -> [comet] -> read -> send protoReady -> ch.Waiting()
-			if err = protoReady(logHead, ch); err != nil {
-				logging.Errorf(logHead+"protoReady err=%v", err)
+			// 数据流：client -> [comet] -> read -> send ProtoReady -> ch.Waiting()
+			if err = ProtoReady(logHead, ch); err != nil {
+				logging.Errorf(logHead+"ProtoReady err=%v", err)
 				goto fail
 			}
 		case protocol.OpBatchMsg:
@@ -64,17 +64,21 @@ fail:
 	logging.Infof(logHead + "finally ended")
 }
 
-func protoReady(logHead string, ch *channel.Channel) error {
-	logHead = logHead + "protoReady|"
+func ProtoReady(logHead string, ch *channel.Channel) error {
+	logHead = logHead + "ProtoReady|"
 	var err error
 	var online int32
 	var proto *protocol.Proto
+
+	// 使用for循环：
+	// 如果客户端发送消息的频率非常高，那么就可以通过for循环把连续的proto读取出来了
 	for {
 		// 1. read proto from client
 		proto, err = ch.ProtoAllocator.GetProtoCanRead()
-		if err != nil { // err != nil 说明没有东西可读了(not any proto to read)
-			logging.Errorf(logHead+"GetProtoCanRead err=%v", err)
-			return nil
+		if err != nil {
+			// 说明：没有东西可读了（not any proto to read，因为外层使用了for循环，所以这类的情况还是会出现的）
+			//logging.Infof(logHead+"GetProtoCanRead err=%v", err)
+			break
 		}
 		// 2. check proto
 		switch protocol.Operation(proto.Op) {
@@ -99,4 +103,6 @@ func protoReady(logHead string, ch *channel.Channel) error {
 		proto.Body = nil // avoid memory leak
 		ch.ProtoAllocator.AdvReadPointer()
 	}
+
+	return nil
 }

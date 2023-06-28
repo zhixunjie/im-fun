@@ -39,6 +39,7 @@ func (r *Ring) Init(max uint64) {
 
 // GetProtoCanRead 获取一个Proto（用于读取的Proto）
 func (r *Ring) GetProtoCanRead() (proto *protocol.Proto, err error) {
+	//logging.Infof("rp=%v,wp=%v", r.rp, r.wp)
 	if r.rp == r.wp {
 		return nil, ErrRingEmpty
 	}
@@ -59,11 +60,13 @@ func (r *Ring) GetProtoCanWrite() (proto *protocol.Proto, err error) {
 // AdvReadPointer 向前推进读指针
 func (r *Ring) AdvReadPointer() {
 	r.rp++
+	//logging.Infof("rp++=%v", r.rp)
 }
 
 // AdvWritePointer 向前推进写指针
 func (r *Ring) AdvWritePointer() {
 	r.wp++
+	//logging.Infof("wp++=%v", r.wp)
 }
 
 // ResetPointer 重置指针
