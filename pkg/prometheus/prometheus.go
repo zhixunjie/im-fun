@@ -10,7 +10,7 @@ func InitPrometheus(addr string) {
 	// 启动prometheus的HTTP服务器
 	http.Handle("/metrics", promhttp.Handler())
 	go func() {
-		logging.Infof("start pprof HTTP Server")
+		logging.Infof("start Prometheus HTTP Server")
 		_ = http.ListenAndServe(addr, nil)
 	}()
 }
