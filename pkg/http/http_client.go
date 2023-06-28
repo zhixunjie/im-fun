@@ -68,7 +68,7 @@ func (client *Client) SetNeedBody(need bool) {
 
 // Get 使用Client对象进行请求-GET
 func (client *Client) Get(reqUrl string, params map[string]string, headers map[string]string) (rsp Response, err error) {
-	logHead := "httpGet|"
+	logHead := "Get|"
 	rsp = Response{
 		NeedBody: client.needBody,
 	}
@@ -163,7 +163,7 @@ func (client *Client) do() (rsp Response, err error) {
 	}
 
 	// log
-	logging.Infof(logHead+"method=%s,url=%s\n", request.Method, request.URL.String())
+	//logging.Infof(logHead+"method=%s,url=%s\n", request.Method, request.URL.String())
 
 	// do request
 	result, err := httpClient.Do(request)
