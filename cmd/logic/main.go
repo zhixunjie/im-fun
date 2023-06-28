@@ -17,7 +17,7 @@ func main() {
 	// init pprof
 	perf.InitPProf(":6062")
 	// init prometheus
-	prometheus.InitPrometheus(":7061")
+	prometheus.InitPrometheus(":7062")
 	// init config
 	if err := conf.InitConfig("cmd/logic/logic.yaml"); err != nil {
 		panic(err)

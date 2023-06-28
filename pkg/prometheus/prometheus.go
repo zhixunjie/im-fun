@@ -7,10 +7,19 @@ import (
 )
 
 func InitPrometheus(addr string) {
+	mux := http.NewServeMux()
+	srv := http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+
 	// 启动prometheus的HTTP服务器
-	http.Handle("/metrics", promhttp.Handler())
+	mux.Handle("/metrics", promhttp.Handler())
 	go func() {
 		logging.Infof("start Prometheus HTTP Server")
-		_ = http.ListenAndServe(addr, nil)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logging.Errorf("listen: %s,err=%v", addr, err)
+			return
+		}
 	}()
 }
