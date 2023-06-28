@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/zhixunjie/im-fun/benchmarks/client/tcp/operation"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"math/rand"
 	"runtime"
 	"time"
@@ -40,7 +41,14 @@ func main() {
 	for i = start; i < start+num; i++ {
 		go func(userId int64) {
 			for {
+				// 切分QPS
+				sec := rand.Intn(120)
+				logging.Infof("userId=%v try to connect server after %v second", userId, sec)
+				time.Sleep(time.Duration(sec) * time.Second)
+				// start
 				operation.Start(userId, addr)
+
+				// restart after some second
 				time.Sleep(time.Duration(rand.Intn(10)) * time.Second)
 			}
 		}(i)

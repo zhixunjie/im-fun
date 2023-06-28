@@ -40,7 +40,7 @@ func Auth(rd *bufio.Reader, wr *bufio.Writer, userId int64) (err error) {
 
 	// auth reply
 	if err = ReadProto(rd, proto); err != nil {
-		logging.Errorf(logHead+"read() error=%v", err)
+		logging.Errorf(logHead+"ReadProto() error=%v", err)
 		return
 	}
 	PrintProto(logHead+"receive reply auth", proto)

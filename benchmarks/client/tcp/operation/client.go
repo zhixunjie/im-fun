@@ -5,17 +5,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-	"math/rand"
 	"net"
 	"sync/atomic"
-	"time"
 )
 
 func Start(userId int64, addr string) {
 	logHead := fmt.Sprintf("Start|userId=%v,", userId)
-	sec := rand.Intn(10)
-	logging.Infof(logHead+"try to connect server after %v second", sec)
-	time.Sleep(time.Duration(sec) * time.Second)
 
 	// dial to server
 	conn, err := net.Dial("tcp", addr)

@@ -17,9 +17,9 @@ func CreatePool(addr, password string, db int) (*redis.Client, error) {
 
 		// 连接池容量及闲置连接数量
 		// 连接池最大socket连接数，默认为4倍CPU数， 4 * runtime.NumCPU
-		PoolSize: 16,
+		PoolSize: 500,
 		// 在启动阶段创建指定数量的Idle连接，并长期维持idle状态的连接数不少于指定数量。
-		MinIdleConns: 10,
+		MinIdleConns: 100,
 
 		// 闲置连接检查包括IdleTimeout，MaxConnAge
 		// IdleCheckFrequency: 60 * time.Second, // 闲置连接检查的周期，默认为1分钟，-1表示不做周期性检查，只在客户端获取连接时对闲置连接进行处理。
