@@ -6,18 +6,18 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"time"
 
-	pb "github.com/zhixunjie/im-fun/api/pb"
+	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
 )
 
-func (s *Server) Connect(ctx context.Context, ch *channel.Channel, token string) (heartbeat time.Duration, err error) {
+func (s *Server) Connect(ctx context.Context, params channel.AuthParams) (heartbeat time.Duration, err error) {
 	reply, err := s.rpcClient.Connect(ctx, &pb.ConnectReq{
 		ServerId: s.serverId,
-		UserId:   ch.UserInfo.UserId,
-		UserKey:  ch.UserInfo.UserKey,
-		RoomId:   ch.UserInfo.RoomId,
-		Platform: ch.UserInfo.Platform,
-		Token:    token,
+		UserId:   params.UserInfo.UserId,
+		UserKey:  params.UserInfo.UserKey,
+		RoomId:   params.UserInfo.RoomId,
+		Platform: params.UserInfo.Platform,
+		Token:    params.Token,
 	})
 	if err != nil {
 		return

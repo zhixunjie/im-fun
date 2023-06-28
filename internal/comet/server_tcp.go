@@ -7,9 +7,7 @@ import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
-	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-	newtimer "github.com/zhixunjie/im-fun/pkg/time"
 	"github.com/zhixunjie/im-fun/pkg/utils"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 	"io"
@@ -45,13 +43,13 @@ func InitTCP(server *Server, numCPU, connType int) (listener *net.TCPListener, e
 		// 启动N个协程，每个协程开启后进行accept（需要使用REUSE解决惊群问题）
 		for i := 0; i < numCPU; i++ {
 			// TODO 使用协程池进行管理
-			go acceptTCP(logHead, connType, server, listener)
+			go accept(logHead, connType, server, listener)
 		}
 	}
 	return
 }
 
-func acceptTCP(logHead string, connType int, server *Server, listener *net.TCPListener) {
+func accept(logHead string, connType int, server *Server, listener *net.TCPListener) {
 	var conn *net.TCPConn
 	var err error
 	var r int
@@ -59,7 +57,7 @@ func acceptTCP(logHead string, connType int, server *Server, listener *net.TCPLi
 	for {
 		if conn, err = listener.AcceptTCP(); err != nil {
 			// if listener close then return
-			logging.Errorf(logHead+"listener.Accept(%s) error=%v", listener.Addr().String(), err)
+			logging.Errorf(logHead+"listener.Accept=%s error=%v", listener.Addr().String(), err)
 			return
 		}
 		// set params for the connection
@@ -84,14 +82,20 @@ func acceptTCP(logHead string, connType int, server *Server, listener *net.TCPLi
 			var tr = s.round.TimerPool(r)
 			var rp = s.round.BufferPool.ReaderPool(r)
 			var wp = s.round.BufferPool.WriterPool(r)
-			logging.Infof(logHead+"connect success,LocalAddr=%v,RemoteAddr=%v", conn.LocalAddr().String(), conn.RemoteAddr().String())
-			s.serveTCP(logHead, conn, connType, rp, wp, tr)
+			var traceId = time.Now().UnixNano()
+			var ch = channel.NewChannel(s.conf, conn, traceId, connType, rp, wp, tr)
+			logHead += fmt.Sprintf("[%v]", traceId)
+
+			// let get to server
+			logging.Infof(logHead+"connect success,addr_local=%v,addr_remote=%v",
+				conn.LocalAddr().String(), conn.RemoteAddr().String())
+			s.serveTCP(logHead, ch, connType)
 		}(server, conn, r)
 	}
 }
 
 // serveTCP serve a tcp connection.
-func (s *Server) serveTCP(logHead string, conn *net.TCPConn, connType int, readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) {
+func (s *Server) serveTCP(logHead string, ch *channel.Channel, connType int) {
 	logHead = logHead + "serveTCP|"
 
 	var (
@@ -102,7 +106,6 @@ func (s *Server) serveTCP(logHead string, conn *net.TCPConn, connType int, reade
 	)
 	var hb time.Duration
 	//var trd *newtimer.TimerData
-	var ch = channel.NewChannel(s.conf, conn, connType, readerPool, writerPool, timerPool)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -120,7 +123,7 @@ func (s *Server) serveTCP(logHead string, conn *net.TCPConn, connType int, reade
 		// upgrade to websocket
 		if connType == channel.ConnTypeWebSocket {
 			if err = s.upgradeToWebSocket(ctx, logHead, ch); err != nil {
-				logging.Errorf(logHead+"upgradeToWebSocket err=%v,UserInfo=%v", err, ch.UserInfo)
+				logging.Errorf(logHead+"upgradeToWebSocket err=%v", err)
 				ch.CleanPath1()
 				return
 			}
@@ -132,16 +135,16 @@ func (s *Server) serveTCP(logHead string, conn *net.TCPConn, connType int, reade
 		// auth（check token）
 		hb, err = s.auth(ctx, logHead, ch, step)
 		if err != nil {
-			logging.Errorf(logHead+"auth err=%v,UserInfo=%v,hb=%v", err, ch.UserInfo, hb)
+			logging.Errorf(logHead+"auth err=%v,hb=%v", err, hb)
 			ch.CleanPath1()
 			return
 		}
-		logHead = logHead + fmt.Sprintf("UserInfo=%+v,", ch.UserInfo)
+
 		// set bucket
 		bucket = s.AllocBucket(ch.UserInfo.UserKey)
 		err = bucket.Put(ch)
 		if err != nil {
-			logging.Errorf(logHead+"AllocBucket err=%v,UserInfo=%v", err, ch.UserInfo)
+			logging.Errorf(logHead+"AllocBucket err=%v", err)
 			ch.CleanPath1()
 			return
 		}
@@ -180,7 +183,7 @@ func (s *Server) serveTCP(logHead string, conn *net.TCPConn, connType int, reade
 		ch.SendReady()
 	}
 fail:
-	//if err != nil && err != io.EOF && !strings.Contains(err.Error(), "closed") {
+	// check error
 	if err != nil {
 		switch {
 		case err == io.EOF:
@@ -208,7 +211,7 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 	var proto *protocol.Proto
 	proto, err = ch.ProtoAllocator.GetProtoCanWrite()
 	if err != nil {
-		logging.Errorf(logHead+"GetProtoCanWrite err=%v,UserInfo=%v,step=%v,hb=%v", err, ch.UserInfo, step, hb)
+		logging.Errorf(logHead+"GetProtoCanWrite err=%v,step=%v,hb=%v", err, step, hb)
 		return
 	}
 	// 一直读取，直到读取到的Proto的操作类型为protocol.OpAuth
@@ -219,32 +222,25 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 		}
 		if protocol.Operation(proto.Op) == protocol.OpAuth {
 			break
-		} else {
-			logging.Errorf(logHead+"tcp request operation(%d) not auth", proto.Op)
 		}
+		logging.Errorf(logHead+"tcp request op=%d,but not auth", proto.Op)
 	}
 
-	var params struct {
-		UserId   int64  `json:"user_id"`
-		UserKey  string `json:"user_key"`
-		RoomId   string `json:"room_id"`
-		Platform string `json:"platform"`
-		Token    string `json:"token"`
-	}
+	var params channel.AuthParams
 	if err = json.Unmarshal(proto.Body, &params); err != nil {
 		logging.Errorf(logHead+"Unmarshal body=%s,err=%v", proto.Body, err)
 		return
 	}
 
 	// update channel
-	ch.UserInfo.UserId = params.UserId
-	ch.UserInfo.UserKey = utils.GetMergeUserKey(params.UserId, params.UserKey)
-	ch.UserInfo.RoomId = params.RoomId
-	ch.UserInfo.Platform = params.Platform
-	if hb, err = s.Connect(ctx, ch, params.Token); err != nil {
-		logging.Errorf(logHead+"Connect UserInfo=%v, err=%v", ch.UserInfo, err)
+	newUserKey := utils.GetMergeUserKey(params.UserId, params.UserKey)
+	params.UserKey = newUserKey
+	if hb, err = s.Connect(ctx, params); err != nil {
+		logging.Errorf(logHead+"Connect err=%v,params=%+v", err, params)
 		return
 	}
+	ch.UserInfo = &params.UserInfo
+	logging.Infof(logHead+"update user info after Connect,[%v]", ch.UserInfo)
 
 	// reply to client
 	proto.Op = int32(protocol.OpAuthReply)

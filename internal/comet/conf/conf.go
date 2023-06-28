@@ -98,8 +98,8 @@ type RPCClient struct {
 
 type TCP struct {
 	Bind      []string `yaml:"bind"`
-	Sndbuf    int      `yaml:"sndbuf"`
-	Rcvbuf    int      `yaml:"rcvbuf"`
+	Sndbuf    int      `yaml:"sndbuf"` // 内核缓冲区
+	Rcvbuf    int      `yaml:"rcvbuf"` // 内核缓冲区
 	Keepalive bool     `yaml:"keepalive"`
 }
 

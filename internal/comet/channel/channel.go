@@ -1,10 +1,12 @@
 package channel
 
 import (
+	"fmt"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	newtimer "github.com/zhixunjie/im-fun/pkg/time"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 	"net"
@@ -33,11 +35,12 @@ type Channel struct {
 }
 
 // NewChannel new a channel.
-func NewChannel(conf *conf.Config, conn *net.TCPConn, connType int, readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) *Channel {
+func NewChannel(conf *conf.Config, conn *net.TCPConn, traceId int64, connType int, readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) *Channel {
 	// init channel
 	ch := &Channel{
 		// set ConnComponent
 		ConnComponent: ConnComponent{
+			TraceId:    traceId,
 			ConnType:   connType,
 			Conn:       conn,
 			WsConn:     nil,
@@ -78,20 +81,26 @@ func (c *Channel) SetWebSocketConnReaderWriter(wsConn *websocket.Conn) {
 }
 
 func (c *Channel) CleanPath1() {
+	logHead := fmt.Sprintf("CleanPath1|[traceId=%v]", c.TraceId)
+
 	// 1. 关闭连接（一旦关闭连接，读写操作都会失败）
 	if c.WsConn != nil {
 		_ = c.WsConn.Close() // 它会把原本的Conn也给关闭掉
+		logging.Info(logHead + "WsConn.Close")
 	} else {
 		if c.Conn != nil {
 			_ = c.Conn.Close()
+			logging.Info(logHead + "Conn.Close")
 		}
 	}
 	// 2. 把buffer重新放回到Pool(read & write)
 	if c.writeBuf != nil {
 		c.WriterPool.Put(c.writeBuf)
+		logging.Info(logHead + "WriterPool.Put")
 	}
 	if c.readBuf != nil {
 		c.ReaderPool.Put(c.readBuf)
+		logging.Info(logHead + "ReaderPool.Put")
 	}
 	// 3. 把timer从Pool里面删除
 	if c.Trd != nil {
@@ -100,18 +109,23 @@ func (c *Channel) CleanPath1() {
 }
 
 func (c *Channel) CleanPath2() {
+	logHead := fmt.Sprintf("CleanPath2|[traceId=%v]", c.TraceId)
+
 	// 1. 关闭连接（一旦关闭连接，读写操作都会失败）
 	if c.WsConn != nil {
 		_ = c.WsConn.Close() // 它会把原本的Conn也给关闭掉
+		logging.Info(logHead + "WsConn.Close")
 	} else {
 		if c.Conn != nil {
 			_ = c.Conn.Close()
+			logging.Info(logHead + "Conn.Close")
 		}
 	}
 	// 2. 把buffer重新放回到Pool(only read buffer)
 	// writePool's buffer will be released  in Server.dispatchTCP()
 	if c.readBuf != nil {
 		c.ReaderPool.Put(c.readBuf)
+		logging.Info(logHead + "ReaderPool.Put")
 	}
 	// 3. 把timer从Pool里面删除
 	if c.Trd != nil {
@@ -120,21 +134,27 @@ func (c *Channel) CleanPath2() {
 	// 4. SendFinish
 	if c.signal != nil {
 		c.SendFinish()
+		logging.Info(logHead + "SendFinish")
 	}
 }
 
 func (c *Channel) CleanPath3() {
+	logHead := fmt.Sprintf("CleanPath3|[traceId=%v]", c.TraceId)
+
 	// 1. 关闭连接（一旦关闭连接，读写操作都会失败）
 	if c.WsConn != nil {
 		_ = c.WsConn.Close() // 它会把原本的Conn也给关闭掉
+		logging.Info(logHead + "WsConn.Close")
 	} else {
 		if c.Conn != nil {
 			_ = c.Conn.Close()
+			logging.Info(logHead + "Conn.Close")
 		}
 	}
 	// 2. 把buffer重新放回到Pool(only write buffer)
 	if c.writeBuf != nil {
-		c.ReaderPool.Put(c.writeBuf)
+		c.WriterPool.Put(c.writeBuf)
+		logging.Info(logHead + "WriterPool.Put")
 	}
 }
 
@@ -152,6 +172,7 @@ func GetLogHeadByConnType(connType int) string {
 
 // ConnComponent 每一条连接需要用到的组件
 type ConnComponent struct {
+	TraceId  int64
 	ConnType int
 
 	// Connection(fd)
