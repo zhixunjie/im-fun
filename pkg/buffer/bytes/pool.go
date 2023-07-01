@@ -9,7 +9,7 @@ import (
 
 type Pool struct {
 	lock     sync.Mutex
-	free     *Buffer // check this detail in BatchNew
+	free     *Buffer // check this detail in batchNew
 	bufSize  int     // each Buffer Size
 	batchNum int     // create Buffer continuously
 }
@@ -18,12 +18,12 @@ type Pool struct {
 func (pool *Pool) Init(bufSize, batchNum int) {
 	pool.bufSize = bufSize
 	pool.batchNum = batchNum
-	pool.BatchNew()
+	pool.batchNew()
 }
 
-// BatchNew Buffer
+// batchNew Buffer
 // free LinkList:  free buffer 1 ->  free buffer 2 -> free buffer 3
-func (pool *Pool) BatchNew() {
+func (pool *Pool) batchNew() {
 	bufSize := pool.bufSize
 	batchNum := pool.batchNum
 	bfArr := make([]Buffer, batchNum)
@@ -45,7 +45,7 @@ func (pool *Pool) BatchNew() {
 func (pool *Pool) Get() (b *Buffer) {
 	pool.lock.Lock()
 	if b = pool.free; b == nil {
-		pool.BatchNew()
+		pool.batchNew()
 		b = pool.free
 	}
 	pool.free = b.next
