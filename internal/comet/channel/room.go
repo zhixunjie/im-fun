@@ -10,7 +10,7 @@ import (
 type Room struct {
 	Id        string
 	rwLock    sync.RWMutex
-	next      *Channel // linklist: ch1 -> ch2 -> ch3 （every connection has a channel）
+	linklist  *Channel // linklist: ch1 -> ch2 -> ch3 （every connection has a channel）
 	Online    int32    // dirty read is ok
 	AllOnline int32
 }
@@ -26,12 +26,12 @@ func NewRoom(id string) (r *Room) {
 // insert to the head of the linklist
 func (r *Room) PutChannel(ch *Channel) (err error) {
 	r.rwLock.Lock()
-	if r.next != nil {
-		r.next.Prev = ch
+	if r.linklist != nil {
+		r.linklist.Prev = ch
 	}
-	ch.Next = r.next
+	ch.Next = r.linklist
 	ch.Prev = nil
-	r.next = ch
+	r.linklist = ch
 	r.Online++
 	r.rwLock.Unlock()
 	return
@@ -46,7 +46,7 @@ func (r *Room) DelChannel(ch *Channel) {
 	if ch.Prev != nil { // if not head in the linklist
 		ch.Prev.Next = ch.Next
 	} else {
-		r.next = ch.Next
+		r.linklist = ch.Next
 	}
 	ch.Next = nil
 	ch.Prev = nil
@@ -58,7 +58,7 @@ func (r *Room) DelChannel(ch *Channel) {
 func (r *Room) SendToAllChan(proto *protocol.Proto) {
 	r.rwLock.RLock()
 	// if chan full，discard it
-	for ch := r.next; ch != nil; ch = ch.Next {
+	for ch := r.linklist; ch != nil; ch = ch.Next {
 		_ = ch.Push(proto)
 	}
 	r.rwLock.RUnlock()
@@ -67,7 +67,7 @@ func (r *Room) SendToAllChan(proto *protocol.Proto) {
 func (r *Room) Close() {
 	r.rwLock.RLock()
 	// close channel one by one in the room
-	for ch := r.next; ch != nil; ch = ch.Next {
+	for ch := r.linklist; ch != nil; ch = ch.Next {
 		ch.SendFinish()
 	}
 	r.rwLock.RUnlock()
