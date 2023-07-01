@@ -108,6 +108,7 @@ func (c *Channel) CleanPath1() {
 	}
 }
 
+// CleanPath2 Read协程结束时，需要执行的清理动作
 func (c *Channel) CleanPath2() {
 	logHead := fmt.Sprintf("[traceId=%v] CleanPath2|", c.TraceId)
 
@@ -138,6 +139,7 @@ func (c *Channel) CleanPath2() {
 	}
 }
 
+// CleanPath3 Write协程结束时，需要执行的清理动作
 func (c *Channel) CleanPath3() {
 	logHead := fmt.Sprintf("[traceId=%v] CleanPath3|", c.TraceId)
 
