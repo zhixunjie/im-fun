@@ -3,6 +3,7 @@ package channel
 import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/errors"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
 func (c *Channel) Waiting() *protocol.Proto {
@@ -22,6 +23,8 @@ func (c *Channel) SendReady() {
 	c.signal <- protocol.ProtoReady
 }
 
+// SendFinish 通知Write协程结束
 func (c *Channel) SendFinish() {
+	logging.Infof("traceId=%v] SendFinish|", c.TraceId)
 	c.signal <- protocol.ProtoFinish
 }

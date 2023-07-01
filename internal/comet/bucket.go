@@ -4,6 +4,7 @@ import (
 	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"sync"
 )
 
@@ -65,6 +66,8 @@ func (b *Bucket) RoomsCount() (res map[string]int32) {
 
 // ChangeRoom change ro room
 func (b *Bucket) ChangeRoom(newRoomId string, ch *channel.Channel) (err error) {
+	logging.Errorf("traceId=%v] ChangeRoom|", ch.TraceId)
+
 	var newRoom *channel.Room
 	var ok bool
 	var oldRoom = ch.Room
@@ -133,6 +136,7 @@ func (b *Bucket) Put(ch *channel.Channel) (err error) {
 
 // DelChannel 删除一个用户的Channel
 func (b *Bucket) DelChannel(currCh *channel.Channel) {
+	logging.Infof("traceId=%v] DelChannel|", currCh.TraceId)
 	userInfo := currCh.UserInfo
 
 	b.rwLock.Lock()

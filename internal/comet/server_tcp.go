@@ -189,8 +189,7 @@ fail:
 	// check error
 	if err != nil {
 		switch {
-		case err == io.EOF:
-		case strings.Contains(err.Error(), "closed") == true:
+		case err == io.EOF, strings.Contains(err.Error(), "closed") == true:
 			logging.Infof(logHead+"fail: err=%v (client close or server close by dispatch)", err)
 		default:
 			logging.Errorf(logHead+"fail: sth has happened,err=%v", err)

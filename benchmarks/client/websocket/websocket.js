@@ -3,8 +3,17 @@
  * @param content
  */
 function appendToDialog(content) {
-    $(".log").append(content + "\r\n");
+    $(".log").append(date() + " | " + content + "\r\n");
     document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight
+}
+
+function date() {
+    let today = new Date();
+    let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+    let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    let dateTime = date+' '+time;
+
+    return dateTime
 }
 
 const protoVersion = 1
@@ -34,6 +43,7 @@ class WebsocketOp {
     clear() {
         clearInterval(this.heartbeatInterval)
     }
+
     // 连接
     connect() {
         let url = "ws://127.0.0.1:12572";// ws://是web socket协议,发送到websocket服务器的16779端口
@@ -108,7 +118,7 @@ class WebsocketOp {
         this.WsClient.onclose = (event) => {
             this.clear()
             appendToDialog("连接已关闭...");
-            appendToDialog(event.reason);
+            appendToDialog("event=" + event);
             console.log(event);
 
         };
@@ -119,6 +129,7 @@ class WebsocketOp {
         this.WsClient.onerror = (event) => {
             this.clear()
             appendToDialog("连接时遇到错误...");
+            appendToDialog("event=" + event);
             console.log(event);
         }
     }
