@@ -16,15 +16,14 @@ Pool -> Buffer
 
 **相互调用关系：**
 
-1. Pool 管理 Buffer。
-2. Bufio的缓冲区，相当于用户缓冲区。TCP Reader(conn)的缓冲区，相当于内核缓冲区。
-3. Bufio相当于让TCP Reader(conn)的读写带上了缓冲区，从而减少conn的Read/Write调用次数。
-  - 由于Bufio的缓冲区会每个TCP连接都带上，如果频繁进行创建和销毁，申请内存和GC都要消耗性能的。
-  - 所以，缓冲区的内存交由Buffer Pool去管理。
+1. Pool 管理 Buffer（池子里面的一个单元，就是一个Buffer对象）。
+2. Bufio相当于让TCP Reader(conn)的读写带上了缓冲区（相当于C语言的标准IO函数，一大块用户缓冲区），从而减少conn的系统调用Read/Write的次数。
+  - 由于Bufio的用户缓冲区会每个TCP连接都带上，如果频繁进行创建和销毁，申请内存和GC都要消耗性能的。
+  - 所以，用户缓冲区的内存交由Buffer Pool去管理。
 
 # 2. 优点说明
 
-- Bufio ：复用了 Buffer Pool里面的Bufffer，从而减少每个TCP的IO读写带来的Buffer GC。
+- Bufio ：复用了 Buffer Pool里面的Buffer，从而减少每个TCP的IO读写带来的Buffer GC。
 - Buffer Pool：
     - 通过链表方式分配内存。
     - 当发现Buffer Pool没有Buffer时，需要预先分配一大段内存再进行切分（批量创建buffer）。
