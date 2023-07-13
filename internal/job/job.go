@@ -65,7 +65,7 @@ func (job *Job) Consume(msg *sarama.ConsumerMessage) {
 	case pb.KafkaSendMsg_UserKeys:
 		err = job.SendToUserKeys(message.SubId, message.ServerId, message.UserKeys, message.Msg)
 	case pb.KafkaSendMsg_UserRoom:
-		err = job.CreateOrGetRoom(message.RoomId).Send(message.Msg)
+		err = job.CreateOrGetRoom(message.RoomId).SendToCh(message.Msg)
 	case pb.KafkaSendMsg_UserAll:
 		err = job.SendToAll(message.SubId, message.Speed, message.Msg)
 	default:
