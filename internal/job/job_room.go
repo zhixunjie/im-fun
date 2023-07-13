@@ -55,7 +55,7 @@ func (r *Room) SendToCh(msg []byte) error {
 func (r *Room) receiveFromCh(accumulate int, interval time.Duration) {
 	logHead := fmt.Sprintf("receive|roowId=%v,", r.id)
 
-	duration := interval * 5000
+	duration := interval * 100
 	timer := time.NewTicker(duration)
 	defer timer.Stop()
 
