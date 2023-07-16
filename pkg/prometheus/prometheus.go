@@ -6,9 +6,6 @@ import (
 	"net/http"
 )
 
-// InitPrometheus 实现Go应用
-// - https://hulining.gitbook.io/prometheus/guides/go-application
-// - https://prometheus.io/docs/guides/go-application/
 func InitPrometheus(addr string) {
 	// new mux
 	mux := http.NewServeMux()
