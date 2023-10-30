@@ -1,34 +1,11 @@
 package register
 
 import (
+	"github.com/felixge/fgprof"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"net/http"
 	"net/http/pprof"
 )
-
-/**
-为什么引入net/http/pprof后，就能使用默认的多路复用器进行监听？
-因为该包的init函数执行了如下的代码：
-
-func init() {
-	http.HandleFunc("/debug/pprof/", Index)
-	http.HandleFunc("/debug/pprof/cmdline", Cmdline)
-	http.HandleFunc("/debug/pprof/profile", Profile)
-	http.HandleFunc("/debug/pprof/symbol", Symbol)
-	http.HandleFunc("/debug/pprof/trace", Trace)
-}
-*/
-
-func InitPProf1(addr string) {
-	// 启动pprof的HTTP服务器
-	go func() {
-		logging.Infof("start pprof HTTP Server")
-		if err := http.ListenAndServe(addr, nil); err != nil && err != http.ErrServerClosed {
-			logging.Errorf("listen: %s,err=%v", addr, err)
-			return
-		}
-	}()
-}
 
 // InitPProf 使用新的多路复用器进行监听
 func InitPProf(addr string) {
@@ -39,6 +16,10 @@ func InitPProf(addr string) {
 	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
 	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	// use fgprof:
+	// note: Please upgrade to Go 1.19 or newer. In older versions of Go fgprof can cause significant STW latencies in applications with a lot of goroutines (> 1-10k).
+	// See CL 387415 for more details.
+	mux.Handle("/debug/fgprof", fgprof.Handler())
 
 	// bind mux to server
 	srv := http.Server{
