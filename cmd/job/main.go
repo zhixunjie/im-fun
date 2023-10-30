@@ -5,7 +5,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/job/conf"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/perf"
-	"github.com/zhixunjie/im-fun/pkg/prometheus"
+	"github.com/zhixunjie/im-fun/pkg/prometheus/register"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,7 +15,7 @@ func main() {
 	// init pprof
 	perf.InitPProf(":6061")
 	// init prometheus
-	prometheus.InitPrometheus(":7061")
+	register.InitProm(":7061")
 	// init config
 	if err := conf.InitConfig("cmd/job/job.yaml"); err != nil {
 		panic(err)

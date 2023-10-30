@@ -7,7 +7,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/perf"
-	"github.com/zhixunjie/im-fun/pkg/prometheus"
+	"github.com/zhixunjie/im-fun/pkg/prometheus/register"
 	"math/rand"
 	"net"
 	"os"
@@ -21,7 +21,7 @@ func main() {
 	// init pprof
 	perf.InitPProf(":6060")
 	// init prometheus
-	prometheus.InitPrometheus(":7060")
+	register.InitProm(":7060")
 	// init config
 	var err error
 	if err = conf.InitConfig("cmd/comet/comet.yaml"); err != nil {

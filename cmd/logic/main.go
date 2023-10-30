@@ -7,7 +7,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/service"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/perf"
-	"github.com/zhixunjie/im-fun/pkg/prometheus"
+	"github.com/zhixunjie/im-fun/pkg/prometheus/register"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,7 +17,7 @@ func main() {
 	// init pprof
 	perf.InitPProf(":6062")
 	// init prometheus
-	prometheus.InitPrometheus(":7062")
+	register.InitProm(":7062")
 	// init config
 	if err := conf.InitConfig("cmd/logic/logic.yaml"); err != nil {
 		panic(err)
