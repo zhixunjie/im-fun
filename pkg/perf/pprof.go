@@ -1,4 +1,4 @@
-package register
+package perf
 
 import (
 	"github.com/felixge/fgprof"
