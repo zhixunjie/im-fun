@@ -7,7 +7,7 @@
 
 The handshake from the client looks as follows:
 
-~~~
+~~~shell
 GET /chat HTTP/1.1
 Host: server.example.com
 Upgrade: websocket
@@ -20,7 +20,7 @@ Sec-WebSocket-Version: 13
 
  The handshake from the server looks as follows:
 
-~~~
+~~~shell
 HTTP/1.1 101 Switching Protocols
 Upgrade: websocket
 Connection: Upgrade

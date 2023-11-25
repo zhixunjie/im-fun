@@ -9,7 +9,7 @@
 
 ## 1.1 Reader原理
 
-> bufio.Reader调用 Read => 底层Reader调用 Read => 保存到buf数组 => 从buf中返回N个字节
+> **数据流：bufio.Reader调用 Read => 底层Reader调用 Read => 保存到Reader的buf数组（预读到用户缓冲区） => 从buf中返回N个字节**
 
 ~~~go
 // Reader implements buffering for an io.Reader object.
@@ -25,8 +25,8 @@ type Reader struct {
 
 1、**字段说明：**
 
-- **buf**：bufio.Reader底层使用的实际内存。
-- **rd**：bufio.Reader底层使用使用的Reader（fd）。
+- **buf**：bufio.Reader 底层使用的实际内存。
+- **rd**：bufio.Reader 底层使用使用的Reader（fd）。
 
 ----
 
@@ -35,7 +35,7 @@ type Reader struct {
 - 执行bufio.Reader的Read操作时，如果发现缓冲区buf的内容不足以满足本次读取的字节数，会调用fill函数，从而调用底层Reader(fd)的Read（系统调用）函数，一次性读取N个字节。
 - 等到从底层Reader(fd)读取完毕后，再把执行最后的copy操作。
 
-3、**r、w值的变化过程**：执行读取操作，会增加r的值，执行写入操作，会增加w的值。
+3、**读取过程中 r、w 值的变化过程**：执行读取操作，会增加r的值，执行写入操作，会增加w的值。
 
 - **w的值比r的值大**：说明还能从buf中读取操作。
 - **w的值等于r的值**：
@@ -61,11 +61,11 @@ type Writer struct {
 
 大致跟Reader相同，参照[Writer.WriteByte函数](https://github.com/zhixunjie/im-fun/blob/584f7ec67b1140de3dcabc2bb6a73835421d0b9b/pkg/buffer/bufio/bufio.go#L687)的源码。
 
-- 特点是：写入时，如果发现存放写入内容的缓冲区buf（用户缓冲区）空间不足时，会把调用系统调用函数Write，把当前缓冲区的刷入（Flush）到内核缓存区后，从而释放buf（用户缓冲区）的内容以满足写入操作。
+- 特点是：写入时，如果发现存放写入内容的缓冲区buf（用户缓冲区）空间不足时，会调用系统调用函数Write，把用户缓冲区的内容刷入（Flush）到内核缓存区后，从而释放buf（用户缓冲区）的内容以满足写入操作。
 
 # 2. 功能加强
 
-> 源码来源：Go 1.18.10，这里为其reader和writer作能力加强
+> 源码来源：基于Go 1.18.10，这里为其 reader 和 writer 做能力加强
 
 **1、Reader.ReadBytesN()**：读取N个字节（bytes）。
 
