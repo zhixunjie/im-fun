@@ -14,7 +14,7 @@ func GetContactVersionId(ctx context.Context, mem *redis.Client, currTimestamp i
 	// - ownerId：contact's owner
 	// - verIdTimeKey = timeStamp / 128
 	//   - 每隔128，verIdTimeKey的值增加1，所以KEY随着随着时间的过去，会不断增大（我们就是需要它能不断增大的）
-	//   - 128秒内，使用同一KEY进行累加，如果128秒的请求数超出100w，那么version_id的值就有问题了
+	//   - 128秒内，使用同一KEY进行累加，如果128秒的请求数超出100w（同一个用户下），那么version_id的值就有问题了
 	verIdTimeKey := currTimestamp >> TimeStampKeyShift
 	key := keyContactVersion(ownerId, verIdTimeKey)
 
@@ -44,7 +44,7 @@ func GetMsgVersionId(ctx context.Context, mem *redis.Client, currTimestamp int64
 	// - smallerId、largerId：people that in chatting
 	// - verIdTimeKey = timeStamp / 128
 	//   - 每隔128，verIdTimeKey的值增加1，所以KEY随着随着时间的过去，会不断增大（我们就是需要它能不断增大的）
-	//   - 128秒内，使用同一KEY进行累加，如果128秒的请求数超出100w，那么version_id的值就有问题了
+	//   - 128秒内，使用同一KEY进行累加，如果128秒的请求数超出100w（同一个会话下），那么version_id的值就有问题了
 	verIdTimeKey := currTimestamp >> TimeStampKeyShift
 	key := keyMsgVersion(smallerId, largerId, verIdTimeKey)
 
