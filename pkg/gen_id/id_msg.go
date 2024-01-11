@@ -14,8 +14,8 @@ const (
 )
 
 // GenerateMsgId 生成msg_id
-// 注意：msg_id要求全局唯一
-// 另外：msg_id跟largerId的后4位是相同的
+// - msg_id要求全局唯一
+// - msg_id跟largerId的后4位是相同的（slotId其实就是largerId）
 func GenerateMsgId(ctx context.Context, mem *redis.Client, slotId uint64, currTimestamp int64) (uint64, error) {
 	// 每秒一个Key，在Key上面进行+1操作
 	key := getMsgIdIncrNum(currTimestamp)

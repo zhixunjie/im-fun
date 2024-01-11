@@ -14,7 +14,7 @@ func (d *Dao) GetContactDbAndTable(ownerId uint64) (string, string) {
 	// 分表规则
 	// message表和contact表都放在message库
 	dbName := fmt.Sprintf("messsage_%v", ownerId%model.TotalDb)
-	tbName := fmt.Sprintf("contact_%v", ownerId%model.TotalTableMessage)
+	tbName := fmt.Sprintf("contact_%v", ownerId%model.TotalTableContact)
 
 	return dbName, tbName
 }
