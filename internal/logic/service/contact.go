@@ -13,19 +13,17 @@ func (svc *Service) Ping() {
 }
 
 // 消息发送方的会话
-func (svc *Service) transformSenderContact(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (model.Contact, error) {
-	var defaultRet model.Contact
-
+func (svc *Service) transformSenderContact(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (contact model.Contact, err error) {
 	// get version_id（区别的地方）
 	versionId, err := gen_id.GetContactVersionId(ctx, svc.dao.RedisClient, currTimestamp, req.SendId)
 	if err != nil {
-		return defaultRet, err
+		return
 	}
 
 	// query contact（区别的地方，获取"消息发送方"的会话）
-	contact, err := svc.dao.QueryContactById(req.SendId, req.ReceiveId)
+	contact, err = svc.dao.QueryContactById(req.SendId, req.PeerId)
 	if err != nil {
-		return defaultRet, err
+		return
 	}
 	// 新增：需要执行的逻辑
 	if contact.Id == 0 {
@@ -34,11 +32,11 @@ func (svc *Service) transformSenderContact(ctx context.Context, req *request.Sen
 		contact.CreatedAt = time.Now()
 	}
 	// 新增 or 更新：都要执行的逻辑
-	contact.OwnerId = req.SendId   // 会话的所有者
-	contact.PeerId = req.ReceiveId // 会话的对方
-	contact.LastMsgId = msgId      // 双方聊天记录中，最新一次发送的消息id
-	contact.VersionId = versionId  // 版本号（用于拉取会话框）
-	contact.SortKey = versionId    // sort_key的值等同于version_id
+	contact.OwnerId = req.SendId  // 会话的所有者
+	contact.PeerId = req.PeerId   // 会话的对方
+	contact.LastMsgId = msgId     // 双方聊天记录中，最新一次发送的消息id
+	contact.VersionId = versionId // 版本号（用于拉取会话框）
+	contact.SortKey = versionId   // sort_key的值等同于version_id
 	contact.PeerType = req.SendType
 	contact.Status = model.ContactStatusNormal
 	contact.UpdatedAt = time.Now()
@@ -47,35 +45,31 @@ func (svc *Service) transformSenderContact(ctx context.Context, req *request.Sen
 }
 
 // 消息接收方的会话
-func (svc *Service) transformReceiverContact(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (model.Contact, error) {
-	var defaultRet model.Contact
-
+func (svc *Service) transformPeerContact(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (contact model.Contact, err error) {
 	// get version_id（区别的地方）
-	versionId, err := gen_id.GetContactVersionId(ctx, svc.dao.RedisClient, currTimestamp, req.ReceiveId)
+	versionId, err := gen_id.GetContactVersionId(ctx, svc.dao.RedisClient, currTimestamp, req.PeerId)
 	if err != nil {
-		return defaultRet, err
+		return
 	}
 
 	// query contact（区别的地方，获取"消息接收方"的会话）
-	contact, err := svc.dao.QueryContactById(req.ReceiveId, req.SendId)
+	contact, err = svc.dao.QueryContactById(req.PeerId, req.SendId)
 	if err != nil {
-		return defaultRet, err
+		return
 	}
 	// 新增：需要执行的逻辑（区别的地方）
 	if contact.Id == 0 {
 		contact.PeerType = model.PeerNotExist
 		contact.PeerAck = model.PeerAck
-		contact.CreatedAt = time.Now()
 	}
 	// 新增 or 更新：都要执行的逻辑（区别的地方）
-	contact.OwnerId = req.ReceiveId // 会话的所有者
-	contact.PeerId = req.SendId     // 会话的对方
-	contact.LastMsgId = msgId       // 双方聊天记录中，最新一次发送的消息id
-	contact.VersionId = versionId   // 版本号（用于拉取会话框）
-	contact.SortKey = versionId     // sort_key的值等同于version_id
-	contact.PeerType = req.ReceiveType
+	contact.OwnerId = req.PeerId  // 会话的所有者
+	contact.PeerId = req.SendId   // 会话的对方
+	contact.LastMsgId = msgId     // 双方聊天记录中，最新一次发送的消息id
+	contact.VersionId = versionId // 版本号（用于拉取会话框）
+	contact.SortKey = versionId   // sort_key的值等同于version_id
+	contact.PeerType = req.PeerType
 	contact.Status = model.ContactStatusNormal
-	contact.UpdatedAt = time.Now()
 
-	return contact, nil
+	return
 }
