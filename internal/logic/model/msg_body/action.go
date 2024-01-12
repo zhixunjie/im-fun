@@ -5,8 +5,6 @@ import (
 	"unicode/utf8"
 )
 
-//type HighLight map[string]any
-
 type HighLight struct {
 	Text   string `json:"text,omitempty"`   // 高亮的文本
 	Link   string `json:"link,omitempty"`   // 跳转链接
