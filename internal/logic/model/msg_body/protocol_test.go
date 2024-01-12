@@ -101,17 +101,17 @@ func TestHighLightText(t *testing.T) {
 			TextContent: &TextContent{
 				Text: text,
 				HighLights: []HighLight{
-					map[string]any{
-						"text":  "尊敬的用户",
-						"link":  "https://1111",
-						"color": "#0046FF",
-						"range": GetRange(text, "尊敬的用户"),
+					{
+						Text:   "尊敬的用户",
+						Link:   "https://1111",
+						Color:  "#0046FF",
+						Offset: GetOffset(text, "尊敬的用户"),
 					},
-					map[string]any{
-						"text":   "如有疑问",
-						"link":   "https://222",
-						"color":  "#0046FF",
-						"offset": GetRange(text, "如有疑问"),
+					{
+						Text:   "如有疑问",
+						Link:   "https://222",
+						Color:  "#0046FF",
+						Offset: GetOffset(text, "如有疑问"),
 					},
 				},
 			},
