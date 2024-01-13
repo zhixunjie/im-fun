@@ -1,12 +1,8 @@
 > IM PlayGround，Just For Fun 😄
 
-数据流：
+![flow.png](img/flow.png)
 
-![image-20230305161416634](https://typroa-jasonzhi.oss-cn-guangzhou.aliyuncs.com/imgs/image-20230305161416634.png)
-
-组件图：
-
-![image-20230624000404596](https://typroa-jasonzhi.oss-cn-guangzhou.aliyuncs.com/imgs/image-20230624000404596.png)
+![server](img/service.png)
 
 # 技术魔法
 
@@ -54,9 +50,9 @@
 11. 分布式部署、大型IM系统。
 13. 性能测试、性能调优、内存泄露。
 
-# TCP的数据包格式
+# 通信协议
 
-单个Proto的格式：由两部分组成：Header + Body。
+单个Proto：由两部分组成：Header + Body。
 
 - Package Length：整个包的长度（Header + Body）。
 - Header Length：Header部分的长度。
@@ -65,8 +61,12 @@
 - Sequence Id：序列号
 - Body：请求体，根据业务需求，可以自定义不同的请求体内容。
 
-![image-20230418112113592](https://typroa-jasonzhi.oss-cn-guangzhou.aliyuncs.com/imgs/image-20230418112113592.png)
+![proto.png](img/proto.png)
 
-批量Proto的格式：
+批量Proto：
 
-![image-20230623235943605](https://typroa-jasonzhi.oss-cn-guangzhou.aliyuncs.com/imgs/image-20230623235943605.png)
+![batch proto.png](img/batch proto.png)
+
+# 系统设计
+
+![system.png](img/system.svg)
