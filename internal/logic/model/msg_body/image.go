@@ -4,6 +4,7 @@ type ImageContent struct {
 	List []Image `json:"list,omitempty"` // 图片列表
 
 }
+
 type Image struct {
 	Url    string `json:"url,omitempty"`    // 图片链接
 	Width  int32  `json:"width,omitempty"`  // 图片宽
