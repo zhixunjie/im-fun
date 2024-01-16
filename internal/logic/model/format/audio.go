@@ -1,4 +1,4 @@
-package msg_body
+package format
 
 type AudioContent struct {
 	Url      string `json:"url,omitempty"`      // 音频链接

@@ -1,4 +1,4 @@
-package msg_body
+package format
 
 type MsgType int32
 

@@ -1,4 +1,4 @@
-package msg_body
+package format
 
 type ImageContent struct {
 	Images []Image `json:"images,omitempty"` // 图片列表

@@ -1,4 +1,4 @@
-package msg_body
+package format
 
 import (
 	"encoding/json"

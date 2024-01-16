@@ -1,4 +1,4 @@
-package msg_body
+package format
 
 type TextContent struct {
 	Text       string      `json:"text,omitempty"` // 文本内容
