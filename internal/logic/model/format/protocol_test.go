@@ -63,6 +63,24 @@ func TestHighLightText(t *testing.T) {
 	utils.PrettyPrint(buf)
 }
 
+// 提示消息
+func TestTips(t *testing.T) {
+	body := MsgBody{
+		MsgType: MsgTypeTips,
+		MsgContent: &MsgContent{
+			TipsContent: &TipsContent{
+				Text:   "提示消息：对方已通过认证",
+				ImgUrl: "https://1.png",
+			},
+		},
+	}
+	buf, err := json.Marshal(&body)
+	if err != nil {
+		return
+	}
+	utils.PrettyPrint(buf)
+}
+
 // 图片消息
 func TestImage(t *testing.T) {
 	body := MsgBody{
@@ -102,24 +120,6 @@ func TestAudio(t *testing.T) {
 				Url:      "https://xxxx.mp3",
 				Duration: 1,
 				Text:     "我是音频",
-			},
-		},
-	}
-	buf, err := json.Marshal(&body)
-	if err != nil {
-		return
-	}
-	utils.PrettyPrint(buf)
-}
-
-// 提示消息
-func TestTips(t *testing.T) {
-	body := MsgBody{
-		MsgType: MsgTypeTips,
-		MsgContent: &MsgContent{
-			TipsContent: &TipsContent{
-				Text:   "提示消息：对方已通过认证",
-				ImgUrl: "https://1.png",
 			},
 		},
 	}
