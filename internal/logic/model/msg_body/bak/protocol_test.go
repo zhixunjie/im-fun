@@ -3,8 +3,42 @@ package msg_body
 import (
 	"encoding/json"
 	"github.com/zhixunjie/im-fun/pkg/utils"
+	"log"
 	"testing"
 )
+
+func TestJson(t *testing.T) {
+	str := `
+{
+ "msg_type": 1,
+ "msg_content": {
+  "content": {
+   "text": "哈哈哈",
+   "highLights": null
+  }
+ }
+}
+`
+	var val MsgBody[TextContent]
+	err := json.Unmarshal([]byte(str), &val)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("val=%v,content=%+v\n", val, val.MsgContent.Content)
+}
+
+func TestNewMsgBody(t *testing.T) {
+	Content := &TextContent{
+		Text: "哈哈哈",
+	}
+	body := NewMsgBody[TextContent](MsgTypeText, Content)
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return
+	}
+	utils.PrettyPrint(buf)
+}
 
 // 文本消息
 func TestText(t *testing.T) {
@@ -13,10 +47,10 @@ func TestText(t *testing.T) {
 	//		Text: "哈哈哈",
 	//	},
 	//},
-	body := MsgBody{
+	body := MsgBody[TextContent]{
 		MsgType: MsgTypeText,
-		MsgContent: &MsgContent{
-			TextContent: &TextContent{
+		MsgContent: &MsgContent[TextContent]{
+			Content: &TextContent{
 				Text: "哈哈哈",
 			},
 			CheckFail: 0,
@@ -34,10 +68,10 @@ func TestHighLightText(t *testing.T) {
 	text := "尊敬的用户，感谢您的关注，如有疑问请联系在线客服！"
 	//highLightArr := []string{"尊敬的用户", "如有疑问"}
 
-	body := MsgBody{
+	body := MsgBody[TextContent]{
 		MsgType: MsgTypeText,
-		MsgContent: &MsgContent{
-			TextContent: &TextContent{
+		MsgContent: &MsgContent[TextContent]{
+			Content: &TextContent{
 				Text: text,
 				HighLights: []HighLight{
 					{
@@ -65,10 +99,10 @@ func TestHighLightText(t *testing.T) {
 
 // 图片消息
 func TestImage(t *testing.T) {
-	body := MsgBody{
+	body := MsgBody[ImageContent]{
 		MsgType: MsgTypeImage,
-		MsgContent: &MsgContent{
-			ImageContent: &ImageContent{
+		MsgContent: &MsgContent[ImageContent]{
+			Content: &ImageContent{
 				Images: []Image{
 					{
 						Url:    "https://1.png",
@@ -95,10 +129,10 @@ func TestImage(t *testing.T) {
 
 // 音频消息
 func TestAudio(t *testing.T) {
-	body := MsgBody{
+	body := MsgBody[AudioContent]{
 		MsgType: MsgTypeAudio,
-		MsgContent: &MsgContent{
-			AudioContent: &AudioContent{
+		MsgContent: &MsgContent[AudioContent]{
+			Content: &AudioContent{
 				Url:      "https://xxxx.mp3",
 				Duration: 1,
 				Text:     "我是音频",
@@ -114,10 +148,10 @@ func TestAudio(t *testing.T) {
 
 // 提示消息
 func TestTips(t *testing.T) {
-	body := MsgBody{
+	body := MsgBody[TipsContent]{
 		MsgType: MsgTypeTips,
-		MsgContent: &MsgContent{
-			TipsContent: &TipsContent{
+		MsgContent: &MsgContent[TipsContent]{
+			Content: &TipsContent{
 				Text:   "提示消息：对方已通过认证",
 				ImgUrl: "https://1.png",
 			},
