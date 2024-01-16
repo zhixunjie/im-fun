@@ -1,8 +1,12 @@
 package msg_body
 
 type ImageContent struct {
-	List []Image `json:"list,omitempty"` // 图片列表
+	Images []Image `json:"list,omitempty"` // 图片列表
 
+}
+
+func (c ImageContent) GetType() MsgType {
+	return MsgTypeImage
 }
 
 type Image struct {
