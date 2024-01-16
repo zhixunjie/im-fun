@@ -4,8 +4,8 @@ import "time"
 
 const (
 	TotalDb           = 10
-	TotalTableMessage = 100 // message表：分表个数
-	TotalTableContact = 100 // contact表：分表个数
+	TotalTableMessage = 100 // message表：分表个数（一共10个数据库，每个数据库100个表）
+	TotalTableContact = 100 // contact表：分表个数（一共10个数据库，每个数据库100个表）
 )
 
 // 消息读取状态

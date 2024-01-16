@@ -5,16 +5,18 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/model"
 )
 
-// GetMessageDbAndTable 这里传入msgId或者largerId都是可以的
-func (d *Dao) GetMessageDbAndTable(id uint64) (string, string) {
+// GetMessageDbAndTable
+// 因为msgId和largerId的后4位是相同的，所以这里传入msgId或者largerId都可以
+func (d *Dao) GetMessageDbAndTable(id uint64) (dbName string, tbName string) {
 	// 临时写死
 	if true {
 		return "", "message_0"
 	}
-	// 分表规则
-	// message表和contact表都放在message库
-	dbName := fmt.Sprintf("messsage_%v", id%model.TotalDb)
-	tbName := fmt.Sprintf("message_%v", id%model.TotalTableMessage)
+	// 分表规则：
+	// - 数据库前缀：message_xxx，规则：id 倒数第三位数字就是分库值
+	// - 数据表前缀：message_xxx，规则：id 的最后两位就是分表值
+	dbName = fmt.Sprintf("messsage_%v", id%1000/100)
+	tbName = fmt.Sprintf("message_%v", id%model.TotalTableMessage)
 
 	return dbName, tbName
 }

@@ -6,15 +6,16 @@ import (
 	"gorm.io/gorm"
 )
 
-func (d *Dao) GetContactDbAndTable(ownerId uint64) (string, string) {
+func (d *Dao) GetContactDbAndTable(ownerId uint64) (dbName string, tbName string) {
 	// 临时写死
 	if true {
 		return "", "contact_0"
 	}
-	// 分表规则
-	// message表和contact表都放在message库
-	dbName := fmt.Sprintf("messsage_%v", ownerId%model.TotalDb)
-	tbName := fmt.Sprintf("contact_%v", ownerId%model.TotalTableContact)
+	// 分表规则：
+	// - 数据库前缀：message_xxx，规则：owner_id 倒数第三位数字就是分库值
+	// - 数据表前缀：contact_xxx，规则：owner_id 的最后两位就是分表值
+	dbName = fmt.Sprintf("messsage_%v", ownerId%1000/100)
+	tbName = fmt.Sprintf("contact_%v", ownerId%model.TotalTableContact)
 
 	return dbName, tbName
 }
