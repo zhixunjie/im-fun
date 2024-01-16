@@ -1,7 +1,7 @@
 package msg_body
 
 type ImageContent struct {
-	Images []Image `json:"list,omitempty"` // 图片列表
+	Images []Image `json:"images,omitempty"` // 图片列表
 
 }
 

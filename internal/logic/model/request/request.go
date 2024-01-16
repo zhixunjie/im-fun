@@ -1,8 +1,6 @@
 package request
 
-import (
-	"github.com/zhixunjie/im-fun/internal/logic/model/msg_body"
-)
+import "github.com/zhixunjie/im-fun/internal/logic/model/msg_body"
 
 type PingReq struct {
 	Id int `json:"id"`

@@ -75,7 +75,7 @@ func transformMessage(ctx context.Context, mem *redis.Client, req *request.SendM
 		return
 	}
 
-	// exchange：InvisibleList
+	// exchange：MsgContent
 	bufContent, err := json.Marshal(req.MsgBody.MsgContent)
 	if err != nil {
 		return
@@ -84,7 +84,7 @@ func transformMessage(ctx context.Context, mem *redis.Client, req *request.SendM
 	// build message
 	msg = model.Message{
 		MsgId:         msgId,
-		MsgType:       req.MsgBody.MsgType,
+		MsgType:       int32(req.MsgBody.MsgType),
 		SessionId:     gen_id.GetSessionId(req.SendId, req.PeerId),
 		SendId:        req.SendId,
 		VersionId:     versionId,

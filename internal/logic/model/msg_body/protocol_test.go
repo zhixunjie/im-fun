@@ -3,8 +3,30 @@ package msg_body
 import (
 	"encoding/json"
 	"github.com/zhixunjie/im-fun/pkg/utils"
+	"log"
 	"testing"
 )
+
+func TestJson(t *testing.T) {
+	str := `
+{
+ "msg_type": 1,
+ "msg_content": {
+  "content": {
+   "text": "哈哈哈",
+   "highLights": null
+  }
+ }
+}
+`
+	var val MsgBody[TextContent]
+	err := json.Unmarshal([]byte(str), &val)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("val=%v,content=%+v\n", val, val.MsgContent.Content)
+}
 
 func TestNewMsgBody(t *testing.T) {
 	Content := &TextContent{
