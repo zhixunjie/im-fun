@@ -1,45 +1,76 @@
 package gen_id
 
-// 使用自增id（存在问题：过了一天以后这个KEY还在，那就会复用前一天的这个KEY）
+import (
+	"context"
+	"fmt"
+	"github.com/go-redis/redis/v8"
+	"github.com/spf13/cast"
+)
 
-//// GetContactVersionId 获取"会话表"的version_id
-//// 注意：version_id不需要全局唯一，只要在同一个用户中唯一即可
-//func GetContactVersionId(ctx context.Context, mem *redis.Client, currTimestamp int64, ownerId uint64) (uint64, error) {
-//	// 每小时一个Key，在Key上面进行+1操作
-//	key := getContactVersionIncrNum(currTimestamp, ownerId)
-//	incr, err := incNum(ctx, mem, key, 86400+120)
-//	if err != nil {
-//		return 0, err
-//	}
-//
-//	// version_id的组成部分：[ 10位：相对时间戳 | 6位：自增id ]
-//	timeOffset := currTimestamp - baseTimeStampOffset
-//	idStr := fmt.Sprintf("%d%06d", timeOffset, incr%1000000)
-//	return cast.ToUint64(idStr), nil
-//}
-//
-//func getContactVersionIncrNum(currTimestamp int64, ownerId uint64) string {
-//	offset := currTimestamp % 86400
-//	return fmt.Sprintf("contact_version_num_%v_%v", ownerId, offset)
-//}
-//
-//// GetMsgVersionId 获取"消息表"的version_id
-//// 注意：version_id不需要全局唯一，只要在同一个会话中唯一即可
-//func GetMsgVersionId(ctx context.Context, mem *redis.Client, currTimestamp int64, smallerId uint64, largerId uint64) (uint64, error) {
-//	// 每小时一个Key，在Key上面进行+1操作
-//	key := getMsgVersionIncrNum(currTimestamp, smallerId, largerId)
-//	incr, err := incNum(ctx, mem, key, 86400+120)
-//	if err != nil {
-//		return 0, err
-//	}
-//
-//	// version_id的组成部分：[ 10位：相对时间戳 | 6位：自增id ]
-//	timeOffset := currTimestamp - baseTimeStampOffset
-//	idStr := fmt.Sprintf("%d%06d", timeOffset, incr%1000000)
-//	return cast.ToUint64(idStr), nil
-//}
-//
-//func getMsgVersionIncrNum(currTimestamp int64, smallerId uint64, largerId uint64) string {
-//	offset := currTimestamp % 86400
-//	return fmt.Sprintf("msg_version_num_%v_%v_%v", smallerId, largerId, offset)
-//}
+// GetContactVersionId 获取"会话表"的version_id
+// 注意：version_id不需要全局唯一，只要在同一个用户中唯一即可
+func GetContactVersionId(ctx context.Context, mem *redis.Client, currTimestamp int64, ownerId uint64) (id uint64, err error) {
+	// key:
+	// - ownerId：contact's owner
+	// - verIdTimeKey = timeStamp / 128
+	//   - 每隔128，verIdTimeKey的值增加1，所以KEY随着随着时间的过去，会不断增大（我们就是需要它能不断增大的）
+	//   - 128秒内，使用同一KEY进行累加，如果128秒的请求数超出100w（同一个用户下），那么version_id的值就有问题了
+	verIdTimeKey := currTimestamp >> TimeStampKeyShift
+	key := keyContactVersion(ownerId, verIdTimeKey)
+
+	// IncrBy
+	value, err := mem.IncrBy(ctx, key, 1).Result()
+	if err != nil {
+		return
+	}
+	if value == 1 {
+		_, err = mem.Do(ctx, "EXPIRE", key, TimeStampKeyExpire).Result()
+		if err != nil {
+			mem.Do(ctx, "EXPIRE", key, TimeStampKeyExpire)
+			return
+		}
+	}
+	// version_id的组成部分：[ 10位：当前时间戳 | 6位：自增id ]
+	idStr := fmt.Sprintf("%d%06d", currTimestamp, value%1000000)
+	id = cast.ToUint64(idStr)
+
+	return
+}
+
+// GetMsgVersionId 获取"消息表"的version_id
+// 注意：version_id不需要全局唯一，只要在同一个会话中唯一即可
+func GetMsgVersionId(ctx context.Context, mem *redis.Client, currTimestamp int64, smallerId, largerId uint64) (id uint64, err error) {
+	// key:
+	// - smallerId、largerId：people that in chatting
+	// - verIdTimeKey = timeStamp / 128
+	//   - 每隔128，verIdTimeKey的值增加1，所以KEY随着随着时间的过去，会不断增大（我们就是需要它能不断增大的）
+	//   - 128秒内，使用同一KEY进行累加，如果128秒的请求数超出100w（同一个会话下），那么version_id的值就有问题了
+	verIdTimeKey := currTimestamp >> TimeStampKeyShift
+	key := keyMsgVersion(smallerId, largerId, verIdTimeKey)
+
+	// IncrBy
+	value, err := mem.IncrBy(ctx, key, 1).Result()
+	if err != nil {
+		return
+	}
+	if value == 1 {
+		_, err = mem.Do(ctx, "EXPIRE", key, TimeStampKeyExpire).Result()
+		if err != nil {
+			mem.Do(ctx, "EXPIRE", key, TimeStampKeyExpire)
+			return
+		}
+	}
+	// version_id的组成部分：[ 10位：当前时间戳 | 6位：自增id ]
+	idStr := fmt.Sprintf("%d%06d", currTimestamp, value%1000000)
+	id = cast.ToUint64(idStr)
+
+	return
+}
+
+func keyContactVersion(ownerId uint64, verIdTimeKey int64) string {
+	return fmt.Sprintf(RedisPrefix+"cvid_%v_%v", ownerId, verIdTimeKey)
+}
+
+func keyMsgVersion(smallerId, largerId uint64, verIdTimeKey int64) string {
+	return fmt.Sprintf(RedisPrefix+"mvid_%v_%v_%v", smallerId, largerId, verIdTimeKey)
+}
