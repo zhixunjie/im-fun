@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"encoding/json"
+	"github.com/samber/lo"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
@@ -39,16 +40,21 @@ func (messageUseCase *MessageUseCase) SendMessage(ctx context.Context, req *requ
 		return
 	}
 
-	// transform contact（send）
-	senderContact, err := contactUseCase.Transform(ctx, req.SendId, req.PeerId, req.PeerType, currTimestamp, msg.MsgID)
-	if err != nil {
-		return
+	// transform contact（sender）
+	var senderContact, peerContact *model.Contact
+	if lo.Contains[uint64](req.InvisibleList, req.SendId) {
+		senderContact, err = contactUseCase.Transform(ctx, req.SendId, req.PeerId, req.PeerType, currTimestamp, msg.MsgID)
+		if err != nil {
+			return
+		}
 	}
 
 	// transform contact（receive）
-	peerContact, err := contactUseCase.Transform(ctx, req.PeerId, req.SendId, req.SenderType, currTimestamp, msg.MsgID)
-	if err != nil {
-		return
+	if lo.Contains[uint64](req.InvisibleList, req.PeerId) {
+		peerContact, err = contactUseCase.Transform(ctx, req.PeerId, req.SendId, req.SenderType, currTimestamp, msg.MsgID)
+		if err != nil {
+			return
+		}
 	}
 
 	// DB操作
@@ -62,16 +68,21 @@ func (messageUseCase *MessageUseCase) SendMessage(ctx context.Context, req *requ
 			return errTx
 		}
 		// 2. add contact(sender)
-		errTx = contactUseCase.repo.AddOrUpdateContact(tx, senderContact)
-		if errTx != nil {
-			logging.Error(logHead+"AddOrUpdateContact error=%v", err)
-			return errTx
+		if senderContact != nil {
+			errTx = contactUseCase.repo.AddOrUpdateContact(tx, senderContact)
+			if errTx != nil {
+				logging.Error(logHead+"AddOrUpdateContact error=%v", err)
+				return errTx
+			}
 		}
+
 		// 3. add contact(peer)
-		errTx = contactUseCase.repo.AddOrUpdateContact(tx, peerContact)
-		if errTx != nil {
-			logging.Error(logHead+"AddOrUpdateContact error=%v", err)
-			return errTx
+		if peerContact != nil {
+			errTx = contactUseCase.repo.AddOrUpdateContact(tx, peerContact)
+			if errTx != nil {
+				logging.Error(logHead+"AddOrUpdateContact error=%v", err)
+				return errTx
+			}
 		}
 
 		return nil
