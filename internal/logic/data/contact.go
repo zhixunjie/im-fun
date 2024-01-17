@@ -17,10 +17,10 @@ func NewContactRepo(data *Data) *ContactRepo {
 }
 
 func (repo *ContactRepo) TableName(ownerId uint64) (dbName string, tbName string) {
-	// 临时写死
-	if true {
-		return "", "contact_0"
-	}
+	//// 临时写死
+	//if true {
+	//	return "", "contact_0"
+	//}
 	// 分表规则：
 	// - 数据库前缀：message_xxx，规则：owner_id 倒数第三位数字就是分库值
 	// - 数据表前缀：contact_xxx，规则：owner_id 的最后两位就是分表值
