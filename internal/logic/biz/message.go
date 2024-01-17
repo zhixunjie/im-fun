@@ -1,9 +1,9 @@
-package service
+package biz
 
 import (
 	"context"
 	"encoding/json"
-	"github.com/go-redis/redis/v8"
+	"github.com/zhixunjie/im-fun/internal/logic/data"
 	"github.com/zhixunjie/im-fun/internal/logic/model"
 	"github.com/zhixunjie/im-fun/internal/logic/model/request"
 	"github.com/zhixunjie/im-fun/internal/logic/model/response"
@@ -12,32 +12,45 @@ import (
 	"time"
 )
 
+type MessageUseCase struct {
+	repo           *data.MessageRepo
+	contactUseCase *ContactUseCase
+}
+
+func NewMessageUseCase(repo *data.MessageRepo, contactUseCase *ContactUseCase) *MessageUseCase {
+	return &MessageUseCase{
+		repo:           repo,
+		contactUseCase: contactUseCase,
+	}
+}
+
 // SendMessage 发送消息
-func (svc *Service) SendMessage(ctx context.Context, req *request.SendMsgReq) (resp response.SendMsgResp, err error) {
+func (bz *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgReq) (resp response.SendMsgResp, err error) {
 	currTimestamp := time.Now().Unix()
+	contactUseCase := bz.contactUseCase
 
 	// transform message
-	msg, err := transformMessage(ctx, svc.dao.RedisClient, req, currTimestamp)
+	msg, err := bz.transformMessage(ctx, req, currTimestamp)
 	if err != nil {
 		return
 	}
 
 	// transform contact（send）
-	senderContact, err := svc.transformSenderContact(ctx, req, currTimestamp, msg.MsgId)
+	senderContact, err := contactUseCase.TransformSender(ctx, req, currTimestamp, msg.MsgId)
 	if err != nil {
 		return
 	}
 
 	// transform contact（receive）
-	peerContact, err := svc.transformPeerContact(ctx, req, currTimestamp, msg.MsgId)
+	peerContact, err := contactUseCase.TransformPeer(ctx, req, currTimestamp, msg.MsgId)
 	if err != nil {
 		return
 	}
 
 	// DB操作
-	_ = svc.dao.AddMsg(&msg)
-	_ = svc.dao.AddOrUpdateContact(&senderContact)
-	_ = svc.dao.AddOrUpdateContact(&peerContact)
+	_ = bz.repo.AddMsg(&msg)
+	_ = contactUseCase.repo.AddOrUpdateContact(&senderContact)
+	_ = contactUseCase.repo.AddOrUpdateContact(&peerContact)
 
 	// build response
 	resp = response.SendMsgResp{
@@ -55,16 +68,18 @@ func (svc *Service) SendMessage(ctx context.Context, req *request.SendMsgReq) (r
 	return
 }
 
-func transformMessage(ctx context.Context, mem *redis.Client, req *request.SendMsgReq, currTimestamp int64) (msg model.Message, err error) {
+func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.SendMsgReq, currTimestamp int64) (msg model.Message, err error) {
+	mem := bz.repo.RedisClient
+
 	// gen msg_id
 	smallerId, largeId := utils.GetSortNum(req.SendId, req.PeerId)
-	msgId, err := gen_id.GenerateMsgId(ctx, mem, largeId, currTimestamp)
+	msgId, err := gen_id.MsgId(ctx, mem, largeId, currTimestamp)
 	if err != nil {
 		return
 	}
 
 	// gen version_id
-	versionId, err := gen_id.GetMsgVersionId(ctx, mem, currTimestamp, smallerId, largeId)
+	versionId, err := gen_id.MsgVersionId(ctx, mem, currTimestamp, smallerId, largeId)
 	if err != nil {
 		return
 	}
@@ -87,7 +102,7 @@ func transformMessage(ctx context.Context, mem *redis.Client, req *request.SendM
 		SeqId:         req.SeqId,
 		MsgType:       int32(req.MsgBody.MsgType),
 		Content:       string(bufContent),
-		SessionId:     gen_id.GetSessionId(req.SendId, req.PeerId),
+		SessionId:     gen_id.SessionId(req.SendId, req.PeerId),
 		SendId:        req.SendId,
 		VersionId:     versionId,
 		SortKey:       versionId, // sort_key的值等同于version_id
@@ -100,7 +115,7 @@ func transformMessage(ctx context.Context, mem *redis.Client, req *request.SendM
 }
 
 // FetchMessage 拉取消息
-func (svc *Service) FetchMessage(ctx context.Context, req *request.FetchMsgReq) (resp response.SendMsgResp, err error) {
+func (bz *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsgReq) (resp response.SendMsgResp, err error) {
 	// https://redis.io/commands/zrevrangebyscore/
 	// https://redis.io/commands/zcount/
 

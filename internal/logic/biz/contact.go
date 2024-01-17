@@ -1,27 +1,32 @@
-package service
+package biz
 
 import (
 	"context"
+	"github.com/zhixunjie/im-fun/internal/logic/data"
 	"github.com/zhixunjie/im-fun/internal/logic/model"
 	"github.com/zhixunjie/im-fun/internal/logic/model/request"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"time"
 )
 
-func (svc *Service) Ping() {
-
+type ContactUseCase struct {
+	repo *data.ContactRepo
 }
 
-// 消息发送方的会话
-func (svc *Service) transformSenderContact(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (contact model.Contact, err error) {
+func NewContactUseCase(repo *data.ContactRepo) *ContactUseCase {
+	return &ContactUseCase{repo: repo}
+}
+
+// TransformSender 消息发送方的会话
+func (bz *ContactUseCase) TransformSender(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (contact model.Contact, err error) {
 	// get version_id（区别的地方）
-	versionId, err := gen_id.GetContactVersionId(ctx, svc.dao.RedisClient, currTimestamp, req.SendId)
+	versionId, err := gen_id.ContactVersionId(ctx, bz.repo.RedisClient, currTimestamp, req.SendId)
 	if err != nil {
 		return
 	}
 
 	// query contact（区别的地方，获取"消息发送方"的会话）
-	contact, err = svc.dao.QueryContactById(req.SendId, req.PeerId)
+	contact, err = bz.repo.QueryContactById(req.SendId, req.PeerId)
 	if err != nil {
 		return
 	}
@@ -44,16 +49,16 @@ func (svc *Service) transformSenderContact(ctx context.Context, req *request.Sen
 	return contact, nil
 }
 
-// 消息接收方的会话
-func (svc *Service) transformPeerContact(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (contact model.Contact, err error) {
+// TransformPeer 消息接收方的会话
+func (bz *ContactUseCase) TransformPeer(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (contact model.Contact, err error) {
 	// get version_id（区别的地方）
-	versionId, err := gen_id.GetContactVersionId(ctx, svc.dao.RedisClient, currTimestamp, req.PeerId)
+	versionId, err := gen_id.ContactVersionId(ctx, bz.repo.RedisClient, currTimestamp, req.PeerId)
 	if err != nil {
 		return
 	}
 
 	// query contact（区别的地方，获取"消息接收方"的会话）
-	contact, err = svc.dao.QueryContactById(req.PeerId, req.SendId)
+	contact, err = bz.repo.QueryContactById(req.PeerId, req.SendId)
 	if err != nil {
 		return
 	}

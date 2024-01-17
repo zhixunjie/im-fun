@@ -16,6 +16,7 @@ require (
 	github.com/Shopify/sarama v1.38.1
 	github.com/felixge/fgprof v0.9.3
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
+	github.com/google/wire v0.5.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/prometheus/client_golang v1.16.0
 	github.com/satori/go.uuid v1.2.0

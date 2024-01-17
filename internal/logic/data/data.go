@@ -1,7 +1,8 @@
-package dao
+package data
 
 import (
 	"github.com/go-redis/redis/v8"
+	"github.com/google/wire"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/pkg/gomysql"
 	"github.com/zhixunjie/im-fun/pkg/goredis"
@@ -11,7 +12,10 @@ import (
 	"time"
 )
 
-type Dao struct {
+// ProviderSet is data providers.
+var ProviderSet = wire.NewSet(NewContactRepo, NewMessageRepo, NewData)
+
+type Data struct {
 	conf          *conf.Config
 	RedisClient   *redis.Client
 	MySQLClient   *gorm.DB
@@ -19,7 +23,7 @@ type Dao struct {
 	redisExpire   int32
 }
 
-func New(c *conf.Config) *Dao {
+func NewData(c *conf.Config) *Data {
 	redisConf := c.Redis[0]
 	mysqlConf := c.MySQL[0]
 
@@ -47,7 +51,7 @@ func New(c *conf.Config) *Dao {
 		panic(err)
 	}
 
-	d := &Dao{
+	d := &Data{
 		conf:          c,
 		KafkaProducer: kafkaProducer,
 		RedisClient:   redisClient,

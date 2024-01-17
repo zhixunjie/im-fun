@@ -27,7 +27,7 @@ func (s *Server) sendToUserKeys(ctx *gin.Context) {
 	}
 
 	// service
-	err := s.svc.SendToUserKeys(ctx, &req)
+	err := s.bz.SendToUserKeys(ctx, &req)
 	if err != nil {
 		response.JsonError(ctx, err)
 		return
@@ -58,7 +58,7 @@ func (s *Server) sendToUserIds(ctx *gin.Context) {
 	}
 
 	// service
-	err := s.svc.SendToUserIds(ctx, &req)
+	err := s.bz.SendToUserIds(ctx, &req)
 	if err != nil {
 		response.JsonError(ctx, err)
 		return
@@ -93,7 +93,7 @@ func (s *Server) sendToRoom(ctx *gin.Context) {
 	}
 
 	// service
-	err := s.svc.SendToRoom(ctx, &req)
+	err := s.bz.SendToRoom(ctx, &req)
 	if err != nil {
 		response.JsonError(ctx, err)
 		return
@@ -124,7 +124,7 @@ func (s *Server) sendToAll(ctx *gin.Context) {
 	}
 
 	// service
-	err := s.svc.SendToAll(ctx, &req)
+	err := s.bz.SendToAll(ctx, &req)
 	if err != nil {
 		response.JsonError(ctx, err)
 		return

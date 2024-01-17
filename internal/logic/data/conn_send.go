@@ -1,4 +1,4 @@
-package dao
+package data
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 )
 
 // SessionGetByUserKeys 获取多个userKey的string信息
-func (d *Dao) SessionGetByUserKeys(ctx context.Context, userKeys []string) (res []string, err error) {
+func (d *Data) SessionGetByUserKeys(ctx context.Context, userKeys []string) (res []string, err error) {
 	mem := d.RedisClient
 
 	// exec command
@@ -30,7 +30,7 @@ func (d *Dao) SessionGetByUserKeys(ctx context.Context, userKeys []string) (res 
 }
 
 // SessionGetByUserIds 获取多个userId的Hash信息
-func (d *Dao) SessionGetByUserIds(ctx context.Context, userIds []int64) (res map[string]string, err error) {
+func (d *Data) SessionGetByUserIds(ctx context.Context, userIds []int64) (res map[string]string, err error) {
 	mem := d.RedisClient
 
 	// exec command

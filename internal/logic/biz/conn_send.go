@@ -1,4 +1,4 @@
-package service
+package biz
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 )
 
 // SendToUserKeys 发送消息（by kafka）
-func (svc *Service) SendToUserKeys(ctx context.Context, req *request.SendToUserKeysReq) error {
+func (bz *Biz) SendToUserKeys(ctx context.Context, req *request.SendToUserKeysReq) error {
 	logHead := "SendToUserKeys|"
-	res, err := svc.dao.SessionGetByUserKeys(ctx, req.UserKeys)
+	res, err := bz.data.SessionGetByUserKeys(ctx, req.UserKeys)
 	if err != nil {
 		logging.Errorf(logHead+"res=%v, err=%v", res, err)
 		return err
@@ -24,7 +24,7 @@ func (svc *Service) SendToUserKeys(ctx context.Context, req *request.SendToUserK
 
 	// 同一台机器的userKey一次性发送
 	for serverId := range serverIdMap {
-		err = svc.dao.KafkaSendToUserKeys(serverId, serverIdMap[serverId], req.SubId, []byte(req.Message))
+		err = bz.data.KafkaSendToUserKeys(serverId, serverIdMap[serverId], req.SubId, []byte(req.Message))
 		if err != nil {
 			logging.Errorf(logHead+"err=%v", err)
 		}
@@ -34,9 +34,9 @@ func (svc *Service) SendToUserKeys(ctx context.Context, req *request.SendToUserK
 }
 
 // SendToUserIds 发送消息（by kafka）
-func (svc *Service) SendToUserIds(ctx context.Context, req *request.SendToUserIdsReq) error {
+func (bz *Biz) SendToUserIds(ctx context.Context, req *request.SendToUserIdsReq) error {
 	logHead := "SendToUserIds|"
-	res, err := svc.dao.SessionGetByUserIds(ctx, req.UserIds)
+	res, err := bz.data.SessionGetByUserIds(ctx, req.UserIds)
 	if err != nil {
 		logging.Errorf(logHead+"res=%v, err=%v", res, err)
 		return err
@@ -50,7 +50,7 @@ func (svc *Service) SendToUserIds(ctx context.Context, req *request.SendToUserId
 
 	// 同一台机器的userKey一次性发送
 	for serverId := range serverIdMap {
-		err = svc.dao.KafkaSendToUserKeys(serverId, serverIdMap[serverId], req.SubId, []byte(req.Message))
+		err = bz.data.KafkaSendToUserKeys(serverId, serverIdMap[serverId], req.SubId, []byte(req.Message))
 		if err != nil {
 			logging.Errorf(logHead+"err=%v", err)
 		}
@@ -60,9 +60,9 @@ func (svc *Service) SendToUserIds(ctx context.Context, req *request.SendToUserId
 }
 
 // SendToRoom 发送消息（by kafka）
-func (svc *Service) SendToRoom(ctx context.Context, req *request.SendToRoomReq) error {
+func (bz *Biz) SendToRoom(ctx context.Context, req *request.SendToRoomReq) error {
 	logHead := "SendToRoom|"
-	err := svc.dao.KafkaSendToRoom(req)
+	err := bz.data.KafkaSendToRoom(req)
 	if err != nil {
 		logging.Errorf(logHead+"err=%v", err)
 		return err
@@ -71,9 +71,9 @@ func (svc *Service) SendToRoom(ctx context.Context, req *request.SendToRoomReq) 
 }
 
 // SendToAll 发送消息（by kafka）
-func (svc *Service) SendToAll(ctx context.Context, req *request.SendToAllReq) error {
+func (bz *Biz) SendToAll(ctx context.Context, req *request.SendToAllReq) error {
 	logHead := "SendToAll|"
-	err := svc.dao.KafkaSendToAll(req)
+	err := bz.data.KafkaSendToAll(req)
 	if err != nil {
 		logging.Errorf(logHead+"err=%v", err)
 		return err

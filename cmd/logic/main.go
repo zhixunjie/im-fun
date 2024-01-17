@@ -1,10 +1,8 @@
 package main
 
 import (
-	logicGrpc "github.com/zhixunjie/im-fun/internal/logic/api/grpc"
-	logicHttp "github.com/zhixunjie/im-fun/internal/logic/api/http"
+	"github.com/zhixunjie/im-fun/cmd/logic/wire"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
-	"github.com/zhixunjie/im-fun/internal/logic/service"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/perf"
 	"github.com/zhixunjie/im-fun/pkg/prometheus/register"
@@ -23,11 +21,10 @@ func main() {
 		panic(err)
 	}
 	// init service
-	svc := service.New(conf.Conf)
 	// init HTTP server
-	httpSrv := logicHttp.New(conf.Conf, svc)
+	httpSrv := wire.InitHttp(conf.Conf)
 	// init GRPC server
-	rpcSrv := logicGrpc.New(conf.Conf.RPC.Server, svc)
+	rpcSrv := wire.InitGrpc(conf.Conf)
 
 	// signal
 	c := make(chan os.Signal, 1)

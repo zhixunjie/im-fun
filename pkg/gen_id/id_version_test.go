@@ -19,7 +19,7 @@ func TestVersionIdContact(t *testing.T) {
 	ownerId := uint64(1001)
 
 	for i := 0; i < 10; i++ {
-		fmt.Println(GetContactVersionId(ctx, redisClient, time.Now().Unix(), ownerId))
+		fmt.Println(ContactVersionId(ctx, redisClient, time.Now().Unix(), ownerId))
 	}
 }
 
@@ -34,6 +34,6 @@ func TestVersionIdMsg(t *testing.T) {
 	largerId := uint64(1002)
 
 	for i := 0; i < 10; i++ {
-		fmt.Println(GetMsgVersionId(ctx, redisClient, time.Now().Unix(), smallerId, largerId))
+		fmt.Println(MsgVersionId(ctx, redisClient, time.Now().Unix(), smallerId, largerId))
 	}
 }

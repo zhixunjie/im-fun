@@ -3,35 +3,37 @@ package http
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/google/wire"
 	"github.com/sirupsen/logrus"
+	"github.com/zhixunjie/im-fun/internal/logic/biz"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
-	"github.com/zhixunjie/im-fun/internal/logic/service"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"net/http"
 	"time"
 )
 
+// ProviderSet is server providers.
+var ProviderSet = wire.NewSet(NewServer)
+
 // Server is http server.
 type Server struct {
 	engine     *gin.Engine
 	httpServer *http.Server
-	svc        *service.Service
+
+	bz        *biz.Biz
+	bzContact *biz.ContactUseCase
+	bzMessage *biz.MessageUseCase
 }
 
-func New(conf *conf.Config, svc *service.Service) *Server {
+func NewServer(conf *conf.Config, bz *biz.Biz, bzContact *biz.ContactUseCase, bzMessage *biz.MessageUseCase) *Server {
 	if conf.Debug {
 		gin.SetMode(gin.DebugMode)
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
-	engine := gin.Default()
 
-	srv := &Server{
-		engine: engine,
-		svc:    svc,
-	}
-	// 设置-路由
-	srv.SetupRouter()
+	// get gin engine
+	engine := gin.Default()
 
 	// set net.http
 	addr := conf.HTTPServer.Addr
@@ -39,7 +41,17 @@ func New(conf *conf.Config, svc *service.Service) *Server {
 		Addr:    addr,
 		Handler: engine,
 	}
-	srv.httpServer = httpServer
+
+	// set Server
+	srv := &Server{
+		engine:     engine,
+		httpServer: httpServer,
+		bz:         bz,
+		bzContact:  bzContact,
+		bzMessage:  bzMessage,
+	}
+	// 设置-路由
+	srv.SetupRouter()
 
 	// begin to listen
 	logging.Infof("HTTP server is listening：%v", addr)

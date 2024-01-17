@@ -1,4 +1,4 @@
-package dao
+package data
 
 import (
 	"github.com/Shopify/sarama"
@@ -8,7 +8,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func (d *Dao) KafkaSendToUserKeys(serverId string, userKeys []string, subId int32, msg []byte) (err error) {
+func (d *Data) KafkaSendToUserKeys(serverId string, userKeys []string, subId int32, msg []byte) (err error) {
 	protoMsg := &pb.KafkaSendMsg{
 		Type:     pb.KafkaSendMsg_UserKeys,
 		SubId:    subId,
@@ -29,7 +29,7 @@ func (d *Dao) KafkaSendToUserKeys(serverId string, userKeys []string, subId int3
 	return err
 }
 
-func (d *Dao) KafkaSendToRoom(req *request.SendToRoomReq) (err error) {
+func (d *Data) KafkaSendToRoom(req *request.SendToRoomReq) (err error) {
 	protoMsg := &pb.KafkaSendMsg{
 		Type:   pb.KafkaSendMsg_UserRoom,
 		SubId:  req.SubId,
@@ -49,7 +49,7 @@ func (d *Dao) KafkaSendToRoom(req *request.SendToRoomReq) (err error) {
 	return err
 }
 
-func (d *Dao) KafkaSendToAll(req *request.SendToAllReq) (err error) {
+func (d *Data) KafkaSendToAll(req *request.SendToAllReq) (err error) {
 	protoMsg := &pb.KafkaSendMsg{
 		Type:  pb.KafkaSendMsg_UserAll,
 		SubId: req.SubId,

@@ -1,4 +1,4 @@
-package dao
+package data
 
 import (
 	"fmt"
@@ -6,7 +6,17 @@ import (
 	"gorm.io/gorm"
 )
 
-func (d *Dao) GetContactDbAndTable(ownerId uint64) (dbName string, tbName string) {
+type ContactRepo struct {
+	*Data
+}
+
+func NewContactRepo(data *Data) *ContactRepo {
+	return &ContactRepo{
+		Data: data,
+	}
+}
+
+func (repo *ContactRepo) TableName(ownerId uint64) (dbName string, tbName string) {
 	// 临时写死
 	if true {
 		return "", "contact_0"
@@ -21,17 +31,17 @@ func (d *Dao) GetContactDbAndTable(ownerId uint64) (dbName string, tbName string
 }
 
 // QueryContactLogic 查询某个会话的信息
-func (d *Dao) QueryContactLogic(ownerId uint64, peerId uint64) (model.Contact, error) {
+func (repo *ContactRepo) QueryContactLogic(ownerId uint64, peerId uint64) (model.Contact, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
-	return d.QueryContactById(ownerId, peerId)
+	return repo.QueryContactById(ownerId, peerId)
 }
 
 // QueryContactById 查询某个会话的信息，From：DB
-func (d *Dao) QueryContactById(ownerId uint64, peerId uint64) (model.Contact, error) {
-	_, tbName := d.GetContactDbAndTable(ownerId)
+func (repo *ContactRepo) QueryContactById(ownerId uint64, peerId uint64) (model.Contact, error) {
+	_, tbName := repo.TableName(ownerId)
 	var row model.Contact
-	err := d.MySQLClient.Table(tbName).Where("owner_id = ? AND peer_id = ?", ownerId, peerId).Find(&row).Error
+	err := repo.MySQLClient.Table(tbName).Where("owner_id = ? AND peer_id = ?", ownerId, peerId).Find(&row).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return row, err
 	}
@@ -39,16 +49,16 @@ func (d *Dao) QueryContactById(ownerId uint64, peerId uint64) (model.Contact, er
 }
 
 // AddOrUpdateContact 插入 or 更新记录
-func (d *Dao) AddOrUpdateContact(row *model.Contact) error {
-	_, tbName := d.GetContactDbAndTable(row.OwnerId)
+func (repo *ContactRepo) AddOrUpdateContact(row *model.Contact) error {
+	_, tbName := repo.TableName(row.OwnerId)
 
 	if row.Id == 0 {
-		err := d.MySQLClient.Table(tbName).Create(&row).Error
+		err := repo.MySQLClient.Table(tbName).Create(&row).Error
 		if err != nil {
 			return err
 		}
 	} else {
-		err := d.MySQLClient.Table(tbName).Updates(&row).Error
+		err := repo.MySQLClient.Table(tbName).Updates(&row).Error
 		if err != nil {
 			return err
 		}

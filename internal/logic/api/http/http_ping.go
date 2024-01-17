@@ -16,7 +16,7 @@ func (s *Server) ping(ctx *gin.Context) {
 	}
 
 	// service
-	s.svc.Ping()
+	s.bz.Ping()
 
 	// resp
 	var resp response.PingResp

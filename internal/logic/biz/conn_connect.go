@@ -1,4 +1,4 @@
-package service
+package biz
 
 import (
 	"context"
@@ -8,12 +8,12 @@ import (
 )
 
 // Connect connected a conn.
-func (svc *Service) Connect(ctx context.Context, req *pb.ConnectReq) (hb int64, err error) {
+func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (hb int64, err error) {
 	logHead := "Connect|"
 
 	// set return
-	hb = int64(svc.conf.Node.Heartbeat) * int64(svc.conf.Node.HeartbeatMax)
-	if err = svc.dao.SessionBinding(ctx, req.UserId, req.UserKey, req.ServerId); err != nil {
+	hb = int64(bz.conf.Node.Heartbeat) * int64(bz.conf.Node.HeartbeatMax)
+	if err = bz.data.SessionBinding(ctx, req.UserId, req.UserKey, req.ServerId); err != nil {
 		logging.Errorf(logHead+"fail,SessionBinding error=%v,UserId=%v,UserKey=%v", err, req.UserId, req.UserKey)
 		return
 	}
@@ -23,9 +23,9 @@ func (svc *Service) Connect(ctx context.Context, req *pb.ConnectReq) (hb int64, 
 }
 
 // Disconnect disconnect a conn.
-func (svc *Service) Disconnect(c context.Context, req *pb.DisconnectReq) (has bool, err error) {
+func (bz *Biz) Disconnect(c context.Context, req *pb.DisconnectReq) (has bool, err error) {
 	logHead := "Disconnect|"
-	if has, err = svc.dao.SessionDel(c, req.UserId, req.UserKey, req.ServerId); err != nil {
+	if has, err = bz.data.SessionDel(c, req.UserId, req.UserKey, req.ServerId); err != nil {
 		logging.Errorf(logHead+"fail,SessionDel error=%v,UserId=%v,UserKey=%v", err, req.UserId, req.UserKey)
 		return
 	}
@@ -34,7 +34,7 @@ func (svc *Service) Disconnect(c context.Context, req *pb.DisconnectReq) (has bo
 }
 
 // Heartbeat heartbeat a conn.
-func (svc *Service) Heartbeat(c context.Context, userId int64, userKey, serverId string) (err error) {
+func (bz *Biz) Heartbeat(c context.Context, userId int64, userKey, serverId string) (err error) {
 	//has, err := svc.dao.ExpireMapping(c, userId, userKey)
 	//if err != nil {
 	//	logging.Errorf("l.dao.ExpireMapping(%d,%s,%s) error(%v)", userId, userKey, serverId, err)
@@ -51,7 +51,7 @@ func (svc *Service) Heartbeat(c context.Context, userId int64, userKey, serverId
 }
 
 // RenewOnline renew a server online.
-func (svc *Service) RenewOnline(c context.Context, serverId string, roomCount map[string]int32) (map[string]int32, error) {
+func (bz *Biz) RenewOnline(c context.Context, serverId string, roomCount map[string]int32) (map[string]int32, error) {
 	//online := &model.Online{
 	//	Server:    serverId,
 	//	RoomCount: roomCount,
@@ -64,7 +64,7 @@ func (svc *Service) RenewOnline(c context.Context, serverId string, roomCount ma
 }
 
 // Receive receive a message.
-func (svc *Service) Receive(c context.Context, userId int64, proto *protocol.Proto) (err error) {
+func (bz *Biz) Receive(c context.Context, userId int64, proto *protocol.Proto) (err error) {
 	logging.Infof("receive userId:%d message:%+v", userId, proto)
 	return
 }

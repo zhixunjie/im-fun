@@ -1,13 +1,23 @@
-package dao
+package data
 
 import (
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/model"
 )
 
-// GetMessageDbAndTable
+type MessageRepo struct {
+	*Data
+}
+
+func NewMessageRepo(data *Data) *MessageRepo {
+	return &MessageRepo{
+		Data: data,
+	}
+}
+
+// TableName
 // 因为msgId和largerId的后4位是相同的，所以这里传入msgId或者largerId都可以
-func (d *Dao) GetMessageDbAndTable(id uint64) (dbName string, tbName string) {
+func (repo *MessageRepo) TableName(id uint64) (dbName string, tbName string) {
 	// 临时写死
 	if true {
 		return "", "message_0"
@@ -21,29 +31,29 @@ func (d *Dao) GetMessageDbAndTable(id uint64) (dbName string, tbName string) {
 	return dbName, tbName
 }
 
-// QueryMsgLogic 查询某条消息的详情
-func (d *Dao) QueryMsgLogic(msgId uint64) (model.Message, error) {
-	// todo 先从cache拿，拿不到再从DB拿
-
-	return d.QueryMsgByMsgId(msgId)
-}
-
-// QueryMsgByMsgId 查询某条消息的详情，From：DB
-func (d *Dao) QueryMsgByMsgId(msgId uint64) (model.Message, error) {
-	_, tbName := d.GetMessageDbAndTable(msgId)
-	var row model.Message
-	err := d.MySQLClient.Table(tbName).Where("msg_id=?", msgId).Find(&row).Error
-	if err != nil {
-		return row, err
-	}
-	return row, nil
-}
-
-func (d *Dao) AddMsg(row *model.Message) error {
-	_, tbName := d.GetMessageDbAndTable(row.MsgId)
-	err := d.MySQLClient.Table(tbName).Create(&row).Error
+func (repo *MessageRepo) AddMsg(row *model.Message) error {
+	_, tbName := repo.TableName(row.MsgId)
+	err := repo.MySQLClient.Table(tbName).Create(&row).Error
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+// QueryMsgLogic 查询某条消息的详情
+func (repo *MessageRepo) QueryMsgLogic(msgId uint64) (model.Message, error) {
+	// todo 先从cache拿，拿不到再从DB拿
+
+	return repo.QueryMsgByMsgId(msgId)
+}
+
+// QueryMsgByMsgId 查询某条消息的详情，From：DB
+func (repo *MessageRepo) QueryMsgByMsgId(msgId uint64) (model.Message, error) {
+	_, tbName := repo.TableName(msgId)
+	var row model.Message
+	err := repo.MySQLClient.Table(tbName).Where("msg_id=?", msgId).Find(&row).Error
+	if err != nil {
+		return row, err
+	}
+	return row, nil
 }

@@ -1,4 +1,4 @@
-package dao
+package data
 
 import (
 	"context"
@@ -27,7 +27,7 @@ func keyServerOnline(key string) string {
 }
 
 // SessionBinding add relationship
-func (d *Dao) SessionBinding(ctx context.Context, userId int64, userKey, serverId string) (err error) {
+func (d *Data) SessionBinding(ctx context.Context, userId int64, userKey, serverId string) (err error) {
 	mem := d.RedisClient
 
 	// set hash
@@ -53,7 +53,7 @@ func (d *Dao) SessionBinding(ctx context.Context, userId int64, userKey, serverI
 	return
 }
 
-func (d *Dao) SessionDel(ctx context.Context, userId int64, userKey, serverId string) (has bool, err error) {
+func (d *Data) SessionDel(ctx context.Context, userId int64, userKey, serverId string) (has bool, err error) {
 	mem := d.RedisClient
 
 	// delete hash

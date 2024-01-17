@@ -3,49 +3,18 @@ package grpc
 import (
 	"context"
 	"errors"
-	"github.com/zhixunjie/im-fun/internal/logic/service"
-	"github.com/zhixunjie/im-fun/pkg/logging"
-	"net"
-	"time"
-
 	pb "github.com/zhixunjie/im-fun/api/pb"
-	"github.com/zhixunjie/im-fun/internal/logic/conf"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
-
+	"github.com/zhixunjie/im-fun/internal/logic/biz"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	// use gzip decoder
 	_ "google.golang.org/grpc/encoding/gzip"
 )
 
-// New logic grpc server
-func New(conf *conf.RPCServer, svc *service.Service) *grpc.Server {
-	params := grpc.KeepaliveParams(keepalive.ServerParameters{
-		MaxConnectionIdle:     time.Duration(conf.IdleTimeout),
-		MaxConnectionAgeGrace: time.Duration(conf.ForceCloseWait),
-		Time:                  time.Duration(conf.KeepAliveInterval),
-		Timeout:               time.Duration(conf.KeepAliveTimeout),
-		MaxConnectionAge:      time.Duration(conf.MaxLifeTime),
-	})
-	srv := grpc.NewServer(params)
-	pb.RegisterLogicServer(srv, &server{svc: svc})
-	listener, err := net.Listen(conf.Network, conf.Addr)
-	if err != nil {
-		panic(err)
-	}
-	// begin to listen
-	logging.Infof("GRPC server is listening %v：%v", conf.Network, conf.Addr)
-	go func() {
-		if err = srv.Serve(listener); err != nil {
-			panic(err)
-		}
-	}()
-	return srv
-}
-
 type server struct {
 	pb.UnimplementedLogicServer
-	svc *service.Service
+	bz        *biz.Biz
+	bzContact *biz.ContactUseCase
+	bzMessage *biz.MessageUseCase
 }
 
 var _ pb.LogicServer = &server{}
@@ -64,7 +33,7 @@ func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (*pb.ConnectRe
 		return &pb.ConnectReply{}, errors.New("req.Token not allow")
 	}
 
-	hb, err := s.svc.Connect(ctx, req)
+	hb, err := s.bz.Connect(ctx, req)
 	if err != nil {
 		return &pb.ConnectReply{}, err
 	}
@@ -74,7 +43,7 @@ func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (*pb.ConnectRe
 }
 
 func (s *server) Disconnect(ctx context.Context, req *pb.DisconnectReq) (*pb.DisconnectReply, error) {
-	has, err := s.svc.Disconnect(ctx, req)
+	has, err := s.bz.Disconnect(ctx, req)
 	if err != nil {
 		return &pb.DisconnectReply{}, err
 	}
@@ -91,7 +60,7 @@ func (s *server) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (*pb.Heart
 }
 
 func (s *server) RenewOnline(ctx context.Context, req *pb.OnlineReq) (*pb.OnlineReply, error) {
-	allRoomCount, err := s.svc.RenewOnline(ctx, req.ServerId, req.RoomCount)
+	allRoomCount, err := s.bz.RenewOnline(ctx, req.ServerId, req.RoomCount)
 	if err != nil {
 		return &pb.OnlineReply{}, err
 	}

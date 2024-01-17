@@ -7,10 +7,10 @@ import (
 	"github.com/spf13/cast"
 )
 
-// GenerateMsgId 生成msg_id
+// MsgId 生成msg_id
 // - msg_id要求全局唯一
 // - msg_id跟largerId的后4位是相同的（slotId其实就是largerId）
-func GenerateMsgId(ctx context.Context, mem *redis.Client, slotId uint64, currTimestamp int64) (uint64, error) {
+func MsgId(ctx context.Context, mem *redis.Client, slotId uint64, currTimestamp int64) (uint64, error) {
 	// 每秒一个Key，在Key上面进行+1操作
 	key := keyMsgId(currTimestamp)
 	expireSec := 2
