@@ -53,7 +53,17 @@ func NewData(c *conf.Config) *Data {
 		logging.Errorf("mysqlClient,err=%v", err)
 		panic(err)
 	}
+
+	// set gorm gen
 	query.SetDefault(mysqlClient)
+
+	// https://gorm.io/zh_CN/docs/sharding.html
+	//mysqlClient.Use(sharding.Register(sharding.Config{
+	//	ShardingKey:         "user_id",
+	//	NumberOfShards:      64,
+	//	PrimaryKeyGenerator: sharding.PKSnowflake,
+	//}, "orders")
+	//q := query.Use(mysqlClient)
 
 	return &Data{
 		conf:          c,
