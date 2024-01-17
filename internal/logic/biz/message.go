@@ -115,7 +115,7 @@ func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.Sen
 }
 
 // FetchMessage 拉取消息
-func (bz *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsgReq) (resp response.SendMsgResp, err error) {
+func (bz *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsgReq) (resp response.FetchMsgResp, err error) {
 	// https://redis.io/commands/zrevrangebyscore/
 	// https://redis.io/commands/zcount/
 
