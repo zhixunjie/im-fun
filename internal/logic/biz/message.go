@@ -28,35 +28,35 @@ func NewMessageUseCase(repo *data.MessageRepo, contactUseCase *ContactUseCase) *
 }
 
 // SendMessage 发送消息
-func (bz *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgReq) (resp response.SendMsgResp, err error) {
+func (messageUseCase *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgReq) (resp response.SendMsgResp, err error) {
 	logHead := "SendMessage|"
 	currTimestamp := time.Now().Unix()
-	contactUseCase := bz.contactUseCase
+	contactUseCase := messageUseCase.contactUseCase
 
 	// transform message
-	msg, err := bz.transformMessage(ctx, req, currTimestamp)
+	msg, err := messageUseCase.TransForm(ctx, req, currTimestamp)
 	if err != nil {
 		return
 	}
 
 	// transform contact（send）
-	senderContact, err := contactUseCase.TransformSender(ctx, req, currTimestamp, msg.MsgID)
+	senderContact, err := contactUseCase.Transform(ctx, req.SendId, req.PeerId, req.PeerType, currTimestamp, msg.MsgID)
 	if err != nil {
 		return
 	}
 
 	// transform contact（receive）
-	peerContact, err := contactUseCase.TransformPeer(ctx, req, currTimestamp, msg.MsgID)
+	peerContact, err := contactUseCase.Transform(ctx, req.PeerId, req.SendId, req.SenderType, currTimestamp, msg.MsgID)
 	if err != nil {
 		return
 	}
 
 	// DB操作
-	err = bz.repo.Db.Transaction(func(tx *query.Query) error {
+	err = messageUseCase.repo.Db.Transaction(func(tx *query.Query) error {
 		var errTx error
 
 		// 1. add message
-		errTx = bz.repo.AddMsg(tx, msg)
+		errTx = messageUseCase.repo.AddMsg(tx, msg)
 		if errTx != nil {
 			logging.Error(logHead+"AddMsg error=%v", err)
 			return errTx
@@ -98,8 +98,8 @@ func (bz *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgR
 	return
 }
 
-func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.SendMsgReq, currTimestamp int64) (msg *model.Message, err error) {
-	mem := bz.repo.RedisClient
+func (messageUseCase *MessageUseCase) TransForm(ctx context.Context, req *request.SendMsgReq, currTimestamp int64) (msg *model.Message, err error) {
+	mem := messageUseCase.repo.RedisClient
 
 	// gen msg_id
 	smallerId, largeId := utils.GetSortNum(req.SendId, req.PeerId)
@@ -132,12 +132,12 @@ func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.Sen
 		SeqID:         req.SeqId,
 		MsgType:       uint32(req.MsgBody.MsgType),
 		Content:       string(bufContent),
-		SessionID:     gen_id.SessionId(req.SendId, req.PeerId),
-		SenderID:      req.SendId,
-		VersionID:     versionId,
-		SortKey:       versionId, // sort_key的值等同于version_id
-		Status:        model.MsgStatusNormal,
-		HasRead:       model.MsgRead,
+		SessionID:     gen_id.SessionId(req.SendId, req.PeerId), // 会话ID
+		SenderID:      req.SendId,                               // 发送者ID
+		VersionID:     versionId,                                // 版本ID
+		SortKey:       versionId,                                // sort_key的值等同于version_id
+		Status:        model.MsgStatusNormal,                    // 状态正常
+		HasRead:       model.MsgRead,                            // 已读（功能还没做好）
 		InvisibleList: string(buf),
 	}
 
@@ -145,7 +145,7 @@ func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.Sen
 }
 
 // FetchMessage 拉取消息
-func (bz *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsgReq) (resp response.FetchMsgResp, err error) {
+func (messageUseCase *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsgReq) (resp response.FetchMsgResp, err error) {
 	// https://redis.io/commands/zrevrangebyscore/
 	// https://redis.io/commands/zcount/
 

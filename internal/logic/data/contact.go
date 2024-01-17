@@ -37,7 +37,7 @@ func (repo *ContactRepo) QueryContactLogic(ownerId uint64, peerId uint64) (*mode
 	return repo.QueryContactById(ownerId, peerId)
 }
 
-// QueryContactById 查询某个会话的信息，From：DB
+// QueryContactById 查询某个会话的信息
 func (repo *ContactRepo) QueryContactById(ownerId uint64, peerId uint64) (row *model.Contact, err error) {
 	_, tbName := repo.TableName(ownerId)
 	qModel := repo.Db.Contact.Table(tbName)
