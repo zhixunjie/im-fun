@@ -50,9 +50,14 @@ RFC：
 **需要实现的功能：**
 
 - [x] upgrade
-- [x] read frame，加解码这个事情，不知道为什么老喜欢做。其实没啥好做的，就一个烦字，而且出问题很难定位。
-- [x] write frame
+
+- [x] frame：read frame、write frame
+
+  > 加解码的事情，就一个烦字，出问题很难定位。
+
 - [x] close
+
+- [ ] heartbeat
 
 ~~~shell
 0                   1                   2                   3
