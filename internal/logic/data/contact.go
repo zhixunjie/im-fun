@@ -52,7 +52,7 @@ func (repo *ContactRepo) QueryContactById(ownerId uint64, peerId uint64) (row *m
 	return
 }
 
-// AddOrUpdateContact 插入 or 更新记录
+// AddOrUpdateContact 插入/更新记录
 func (repo *ContactRepo) AddOrUpdateContact(tx *query.Query, row *model.Contact) (err error) {
 	_, tbName := repo.TableName(row.OwnerID)
 	qModel := tx.Contact
