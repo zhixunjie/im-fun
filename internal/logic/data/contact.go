@@ -40,9 +40,9 @@ func (repo *ContactRepo) QueryContactLogic(ownerId uint64, peerId uint64) (*mode
 // QueryContactById 查询某个会话的信息，From：DB
 func (repo *ContactRepo) QueryContactById(ownerId uint64, peerId uint64) (row *model.Contact, err error) {
 	_, tbName := repo.TableName(ownerId)
-	qModel := repo.Db.Contact
+	qModel := repo.Db.Contact.Table(tbName)
 
-	row, err = qModel.Table(tbName).Where(
+	row, err = qModel.Where(
 		qModel.OwnerID.Eq(ownerId),
 		qModel.PeerID.Eq(peerId),
 	).Take()
