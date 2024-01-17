@@ -50,7 +50,7 @@ func (repo *MessageRepo) QueryMsgLogic(msgId uint64) (*model.Message, error) {
 	return repo.QueryMsgByMsgId(msgId)
 }
 
-// QueryMsgByMsgId 查询某条消息的详情，From：DB
+// QueryMsgByMsgId 查询某条消息的详情
 func (repo *MessageRepo) QueryMsgByMsgId(msgId uint64) (row *model.Message, err error) {
 	_, tbName := repo.TableName(msgId)
 	qModel := repo.Db.Message
