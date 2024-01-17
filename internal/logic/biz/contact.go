@@ -34,15 +34,16 @@ func (contactUseCase *ContactUseCase) Transform(ctx context.Context, ownerId, pe
 		contact = new(model.Contact)
 		contact.PeerType = model.PeerNotExist
 		contact.PeerAck = model.PeerAck
+		err = nil
 	}
-	// 新增 or 更新：都要执行的逻辑（区别的地方）
-	contact.OwnerID = ownerId     // 会话的所有者
-	contact.PeerID = peerId       // 联系人
-	contact.PeerType = peerType   // 联系人类型
-	contact.LastMsgID = msgId     // 双方聊天记录中，最新一次发送的消息id
-	contact.VersionID = versionId // 版本号（用于拉取会话框）
-	contact.SortKey = versionId   // sort_key的值等同于version_id
-	contact.Status = model.ContactStatusNormal
+	// 新增 / 更新：都要执行的逻辑
+	contact.OwnerID = ownerId                  // 会话的所有者
+	contact.PeerID = peerId                    // 联系人
+	contact.PeerType = peerType                // 联系人类型
+	contact.LastMsgID = msgId                  // 双方聊天记录中，最新一次发送的消息id
+	contact.VersionID = versionId              // 版本号（用于拉取会话框）
+	contact.SortKey = versionId                // sort_key的值等同于version_id
+	contact.Status = model.ContactStatusNormal // 状态正常
 
 	return
 }
