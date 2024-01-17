@@ -3,8 +3,8 @@ package biz
 import (
 	"context"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
-	"github.com/zhixunjie/im-fun/internal/logic/model"
-	"github.com/zhixunjie/im-fun/internal/logic/model/request"
+	"github.com/zhixunjie/im-fun/internal/logic/data/model"
+	"github.com/zhixunjie/im-fun/internal/logic/data/model/request"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"time"
 )

@@ -2,8 +2,8 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/zhixunjie/im-fun/internal/logic/model/request"
-	"github.com/zhixunjie/im-fun/internal/logic/model/response"
+	"github.com/zhixunjie/im-fun/internal/logic/data/model/request"
+	"github.com/zhixunjie/im-fun/internal/logic/data/model/response"
 	"net/http"
 )
 

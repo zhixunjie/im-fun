@@ -1,7 +1,7 @@
 package request
 
 import (
-	"github.com/zhixunjie/im-fun/internal/logic/model/format"
+	"github.com/zhixunjie/im-fun/internal/logic/data/model/format"
 )
 
 type PingReq struct {

@@ -3,7 +3,7 @@ package data
 import (
 	"github.com/Shopify/sarama"
 	pb "github.com/zhixunjie/im-fun/api/pb"
-	"github.com/zhixunjie/im-fun/internal/logic/model/request"
+	"github.com/zhixunjie/im-fun/internal/logic/data/model/request"
 	"github.com/zhixunjie/im-fun/pkg/utils"
 	"google.golang.org/protobuf/proto"
 )

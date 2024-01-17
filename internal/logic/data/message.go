@@ -2,7 +2,7 @@ package data
 
 import (
 	"fmt"
-	"github.com/zhixunjie/im-fun/internal/logic/model"
+	"github.com/zhixunjie/im-fun/internal/logic/data/model"
 )
 
 type MessageRepo struct {
