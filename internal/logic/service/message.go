@@ -86,12 +86,12 @@ func transformMessage(ctx context.Context, mem *redis.Client, req *request.SendM
 		MsgId:         msgId,
 		SeqId:         req.SeqId,
 		MsgType:       int32(req.MsgBody.MsgType),
+		Content:       string(bufContent),
 		SessionId:     gen_id.GetSessionId(req.SendId, req.PeerId),
 		SendId:        req.SendId,
 		VersionId:     versionId,
 		SortKey:       versionId, // sort_key的值等同于version_id
 		Status:        model.MsgStatusNormal,
-		Content:       string(bufContent),
 		HasRead:       model.MsgRead,
 		InvisibleList: string(buf),
 	}
