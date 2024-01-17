@@ -56,14 +56,14 @@ func (svc *Service) SendMessage(ctx context.Context, req *request.SendMsgReq) (r
 }
 
 func transformMessage(ctx context.Context, mem *redis.Client, req *request.SendMsgReq, currTimestamp int64) (msg model.Message, err error) {
-	// get msg_id
+	// gen msg_id
 	smallerId, largeId := utils.GetSortNum(req.SendId, req.PeerId)
 	msgId, err := gen_id.GenerateMsgId(ctx, mem, largeId, currTimestamp)
 	if err != nil {
 		return
 	}
 
-	// get version_id
+	// gen version_id
 	versionId, err := gen_id.GetMsgVersionId(ctx, mem, currTimestamp, smallerId, largeId)
 	if err != nil {
 		return
@@ -84,6 +84,7 @@ func transformMessage(ctx context.Context, mem *redis.Client, req *request.SendM
 	// build message
 	msg = model.Message{
 		MsgId:         msgId,
+		SeqId:         req.SeqId,
 		MsgType:       int32(req.MsgBody.MsgType),
 		SessionId:     gen_id.GetSessionId(req.SendId, req.PeerId),
 		SendId:        req.SendId,
@@ -93,7 +94,6 @@ func transformMessage(ctx context.Context, mem *redis.Client, req *request.SendM
 		Content:       string(bufContent),
 		HasRead:       model.MsgRead,
 		InvisibleList: string(buf),
-		SeqId:         req.SeqId,
 	}
 
 	return
@@ -101,6 +101,8 @@ func transformMessage(ctx context.Context, mem *redis.Client, req *request.SendM
 
 // FetchMessage 拉取消息
 func (svc *Service) FetchMessage(ctx context.Context, req *request.FetchMsgReq) (resp response.SendMsgResp, err error) {
+	// https://redis.io/commands/zrevrangebyscore/
+	// https://redis.io/commands/zcount/
 
 	return
 }
