@@ -42,7 +42,7 @@ func (messageUseCase *MessageUseCase) SendMessage(ctx context.Context, req *requ
 
 	// transform contact（sender）
 	var senderContact, peerContact *model.Contact
-	if lo.Contains[uint64](req.InvisibleList, req.SendId) {
+	if !lo.Contains[uint64](req.InvisibleList, req.SendId) {
 		senderContact, err = contactUseCase.Transform(ctx, req.SendId, req.PeerId, req.PeerType, currTimestamp, msg.MsgID)
 		if err != nil {
 			return
@@ -50,7 +50,7 @@ func (messageUseCase *MessageUseCase) SendMessage(ctx context.Context, req *requ
 	}
 
 	// transform contact（receive）
-	if lo.Contains[uint64](req.InvisibleList, req.PeerId) {
+	if !lo.Contains[uint64](req.InvisibleList, req.PeerId) {
 		peerContact, err = contactUseCase.Transform(ctx, req.PeerId, req.SendId, req.SenderType, currTimestamp, msg.MsgID)
 		if err != nil {
 			return
@@ -126,9 +126,12 @@ func (messageUseCase *MessageUseCase) TransForm(ctx context.Context, req *reques
 	}
 
 	// exchange：InvisibleList
-	buf, err := json.Marshal(req.InvisibleList)
-	if err != nil {
-		return
+	var buf []byte
+	if len(req.InvisibleList) > 0 {
+		buf, err = json.Marshal(req.InvisibleList)
+		if err != nil {
+			return
+		}
 	}
 
 	// exchange：MsgContent
