@@ -25,6 +25,7 @@ func (s *Server) send(ctx *gin.Context) {
 	resp, err := s.BzMessage.SendMessage(ctx, &req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + err.Error()})
+		return
 	}
 
 	// resp
@@ -45,6 +46,7 @@ func (s *Server) fetch(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + err.Error()})
+		return
 	}
 
 	// resp
