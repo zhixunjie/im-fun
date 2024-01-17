@@ -2,7 +2,7 @@ package biz
 
 import (
 	"context"
-	"github.com/zhixunjie/im-fun/internal/logic/data/model/request"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 

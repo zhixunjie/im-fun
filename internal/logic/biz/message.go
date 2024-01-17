@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
-	"github.com/zhixunjie/im-fun/internal/logic/data/model/generate/models"
-	"github.com/zhixunjie/im-fun/internal/logic/data/model/request"
-	"github.com/zhixunjie/im-fun/internal/logic/data/model/response"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/response"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/utils"
 	"time"
@@ -68,7 +68,7 @@ func (bz *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgR
 	return
 }
 
-func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.SendMsgReq, currTimestamp int64) (msg models.Message, err error) {
+func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.SendMsgReq, currTimestamp int64) (msg model.Message, err error) {
 	mem := bz.repo.RedisClient
 
 	// gen msg_id
@@ -97,7 +97,7 @@ func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.Sen
 	}
 
 	// build message
-	msg = models.Message{
+	msg = model.Message{
 		MsgID:         msgId,
 		SeqID:         req.SeqId,
 		MsgType:       uint32(req.MsgBody.MsgType),
@@ -106,8 +106,8 @@ func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.Sen
 		SenderID:      req.SendId,
 		VersionID:     versionId,
 		SortKey:       versionId, // sort_key的值等同于version_id
-		Status:        models.MsgStatusNormal,
-		HasRead:       models.MsgRead,
+		Status:        model.MsgStatusNormal,
+		HasRead:       model.MsgRead,
 		InvisibleList: string(buf),
 	}
 
