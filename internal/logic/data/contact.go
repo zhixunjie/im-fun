@@ -3,7 +3,7 @@ package data
 import (
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
-	"gorm.io/gorm"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 )
 
 type ContactRepo struct {
@@ -31,37 +31,43 @@ func (repo *ContactRepo) TableName(ownerId uint64) (dbName string, tbName string
 }
 
 // QueryContactLogic 查询某个会话的信息
-func (repo *ContactRepo) QueryContactLogic(ownerId uint64, peerId uint64) (model.Contact, error) {
+func (repo *ContactRepo) QueryContactLogic(ownerId uint64, peerId uint64) (*model.Contact, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
 	return repo.QueryContactById(ownerId, peerId)
 }
 
 // QueryContactById 查询某个会话的信息，From：DB
-func (repo *ContactRepo) QueryContactById(ownerId uint64, peerId uint64) (row model.Contact, err error) {
+func (repo *ContactRepo) QueryContactById(ownerId uint64, peerId uint64) (row *model.Contact, err error) {
 	_, tbName := repo.TableName(ownerId)
-	err = repo.MySQLClient.Table(tbName).Where("owner_id = ? AND peer_id = ?", ownerId, peerId).Find(&row).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return row, err
+	qModel := repo.Db.Contact
+
+	row, err = qModel.Table(tbName).Where(
+		qModel.OwnerID.Eq(ownerId),
+		qModel.PeerID.Eq(peerId),
+	).Take()
+	if err != nil {
+		return
 	}
-	return row, nil
+	return
 }
 
 // AddOrUpdateContact 插入 or 更新记录
-func (repo *ContactRepo) AddOrUpdateContact(row *model.Contact) error {
+func (repo *ContactRepo) AddOrUpdateContact(tx *query.Query, row *model.Contact) (err error) {
 	_, tbName := repo.TableName(row.OwnerID)
+	qModel := tx.Contact
 
 	if row.ID == 0 {
-		err := repo.MySQLClient.Table(tbName).Create(&row).Error
+		err = qModel.Table(tbName).Create(row)
 		if err != nil {
-			return err
+			return
 		}
 	} else {
-		err := repo.MySQLClient.Table(tbName).Updates(&row).Error
+		_, err = qModel.Table(tbName).Updates(row)
 		if err != nil {
-			return err
+			return
 		}
 	}
 
-	return nil
+	return
 }

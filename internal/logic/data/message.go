@@ -3,6 +3,7 @@ package data
 import (
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 )
 
 type MessageRepo struct {
@@ -31,28 +32,32 @@ func (repo *MessageRepo) TableName(id uint64) (dbName string, tbName string) {
 	return dbName, tbName
 }
 
-func (repo *MessageRepo) AddMsg(row *model.Message) error {
+func (repo *MessageRepo) AddMsg(tx *query.Query, row *model.Message) (err error) {
 	_, tbName := repo.TableName(row.MsgID)
-	err := repo.MySQLClient.Table(tbName).Create(&row).Error
+	qModel := tx.Message
+
+	err = qModel.Table(tbName).Create(row)
 	if err != nil {
-		return err
+		return
 	}
-	return nil
+	return
 }
 
 // QueryMsgLogic 查询某条消息的详情
-func (repo *MessageRepo) QueryMsgLogic(msgId uint64) (model.Message, error) {
+func (repo *MessageRepo) QueryMsgLogic(msgId uint64) (*model.Message, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
 	return repo.QueryMsgByMsgId(msgId)
 }
 
 // QueryMsgByMsgId 查询某条消息的详情，From：DB
-func (repo *MessageRepo) QueryMsgByMsgId(msgId uint64) (row model.Message, err error) {
+func (repo *MessageRepo) QueryMsgByMsgId(msgId uint64) (row *model.Message, err error) {
 	_, tbName := repo.TableName(msgId)
-	err = repo.MySQLClient.Table(tbName).Where("msg_id=?", msgId).Find(&row).Error
+	qModel := repo.Db.Message
+
+	row, err = qModel.Table(tbName).Where(qModel.MsgID.Eq(msgId)).Take()
 	if err != nil {
-		return row, err
+		return
 	}
-	return row, nil
+	return
 }

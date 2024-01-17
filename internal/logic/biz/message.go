@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/response"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/utils"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -26,6 +29,7 @@ func NewMessageUseCase(repo *data.MessageRepo, contactUseCase *ContactUseCase) *
 
 // SendMessage 发送消息
 func (bz *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgReq) (resp response.SendMsgResp, err error) {
+	logHead := "SendMessage|"
 	currTimestamp := time.Now().Unix()
 	contactUseCase := bz.contactUseCase
 
@@ -48,9 +52,35 @@ func (bz *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgR
 	}
 
 	// DB操作
-	_ = bz.repo.AddMsg(&msg)
-	_ = contactUseCase.repo.AddOrUpdateContact(&senderContact)
-	_ = contactUseCase.repo.AddOrUpdateContact(&peerContact)
+	err = bz.repo.Db.Transaction(func(tx *query.Query) error {
+		var errTx error
+
+		// 1. add message
+		errTx = bz.repo.AddMsg(tx, msg)
+		if errTx != nil {
+			logging.Error(logHead+"AddMsg error=%v", err)
+			return errTx
+		}
+		// 2. add contact(sender)
+		errTx = contactUseCase.repo.AddOrUpdateContact(tx, senderContact)
+		if errTx != nil {
+			logging.Error(logHead+"AddOrUpdateContact error=%v", err)
+			return errTx
+		}
+		// 3. add contact(peer)
+		errTx = contactUseCase.repo.AddOrUpdateContact(tx, peerContact)
+		if errTx != nil {
+			logging.Error(logHead+"AddOrUpdateContact error=%v", err)
+			return errTx
+		}
+
+		return nil
+	})
+	if err != nil {
+		logging.Error(logHead+"mysql tx error", zap.Error(err))
+		return
+	}
+	logging.Info(logHead + "mysql tx success")
 
 	// build response
 	resp = response.SendMsgResp{
@@ -68,7 +98,7 @@ func (bz *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgR
 	return
 }
 
-func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.SendMsgReq, currTimestamp int64) (msg model.Message, err error) {
+func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.SendMsgReq, currTimestamp int64) (msg *model.Message, err error) {
 	mem := bz.repo.RedisClient
 
 	// gen msg_id
@@ -97,7 +127,7 @@ func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.Sen
 	}
 
 	// build message
-	msg = model.Message{
+	msg = &model.Message{
 		MsgID:         msgId,
 		SeqID:         req.SeqId,
 		MsgType:       uint32(req.MsgBody.MsgType),

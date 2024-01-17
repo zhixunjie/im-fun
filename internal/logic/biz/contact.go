@@ -6,7 +6,6 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
-	"time"
 )
 
 type ContactUseCase struct {
@@ -18,7 +17,7 @@ func NewContactUseCase(repo *data.ContactRepo) *ContactUseCase {
 }
 
 // TransformSender 消息发送方的会话
-func (bz *ContactUseCase) TransformSender(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (contact model.Contact, err error) {
+func (bz *ContactUseCase) TransformSender(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (contact *model.Contact, err error) {
 	// get version_id（区别的地方）
 	versionId, err := gen_id.ContactVersionId(ctx, bz.repo.RedisClient, currTimestamp, req.SendId)
 	if err != nil {
@@ -34,7 +33,6 @@ func (bz *ContactUseCase) TransformSender(ctx context.Context, req *request.Send
 	if contact.ID == 0 {
 		contact.PeerType = model.PeerNotExist
 		contact.PeerAck = model.PeerNotAck
-		contact.CreatedAt = time.Now()
 	}
 	// 新增 or 更新：都要执行的逻辑
 	contact.OwnerID = req.SendId  // 会话的所有者
@@ -49,7 +47,7 @@ func (bz *ContactUseCase) TransformSender(ctx context.Context, req *request.Send
 }
 
 // TransformPeer 消息接收方的会话
-func (bz *ContactUseCase) TransformPeer(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (contact model.Contact, err error) {
+func (bz *ContactUseCase) TransformPeer(ctx context.Context, req *request.SendMsgReq, currTimestamp int64, msgId uint64) (contact *model.Contact, err error) {
 	// get version_id（区别的地方）
 	versionId, err := gen_id.ContactVersionId(ctx, bz.repo.RedisClient, currTimestamp, req.PeerId)
 	if err != nil {

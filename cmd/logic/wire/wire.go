@@ -26,3 +26,29 @@ func InitHttp(c *conf.Config) *http.Server {
 
 	return nil
 }
+
+// 用于测试用例的各种对象
+
+func GetMessageRepo(c *conf.Config) *data.MessageRepo {
+	wire.Build(data.ProviderSet)
+
+	return nil
+}
+
+func GetContactRepo(c *conf.Config) *data.ContactRepo {
+	wire.Build(data.ProviderSet)
+
+	return nil
+}
+
+func GetMessageUseCase(c *conf.Config) *biz.MessageUseCase {
+	wire.Build(biz.ProviderSet, data.ProviderSet)
+
+	return nil
+}
+
+func GetContactUseCase(c *conf.Config) *biz.ContactUseCase {
+	wire.Build(biz.ProviderSet, data.ProviderSet)
+
+	return nil
+}

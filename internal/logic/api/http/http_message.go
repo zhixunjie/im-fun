@@ -3,8 +3,8 @@ package http
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/zhixunjie/im-fun/internal/logic/data/model/request"
-	"github.com/zhixunjie/im-fun/internal/logic/data/model/response"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/response"
 	"net/http"
 )
 
@@ -22,7 +22,7 @@ func (s *Server) send(ctx *gin.Context) {
 	}
 
 	// biz
-	resp, err := s.bzMessage.SendMessage(ctx, &req)
+	resp, err := s.BzMessage.SendMessage(ctx, &req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + err.Error()})
 	}
@@ -41,7 +41,7 @@ func (s *Server) fetch(ctx *gin.Context) {
 	}
 
 	// biz
-	resp, err := s.bzMessage.FetchMessage(ctx, &req)
+	resp, err := s.BzMessage.FetchMessage(ctx, &req)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + err.Error()})

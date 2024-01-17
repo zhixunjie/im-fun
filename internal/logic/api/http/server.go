@@ -21,8 +21,8 @@ type Server struct {
 	httpServer *http.Server
 
 	bz        *biz.Biz
-	bzContact *biz.ContactUseCase
-	bzMessage *biz.MessageUseCase
+	BzContact *biz.ContactUseCase
+	BzMessage *biz.MessageUseCase
 }
 
 func NewServer(conf *conf.Config, bz *biz.Biz, bzContact *biz.ContactUseCase, bzMessage *biz.MessageUseCase) *Server {
@@ -47,8 +47,8 @@ func NewServer(conf *conf.Config, bz *biz.Biz, bzContact *biz.ContactUseCase, bz
 		engine:     engine,
 		httpServer: httpServer,
 		bz:         bz,
-		bzContact:  bzContact,
-		bzMessage:  bzMessage,
+		BzContact:  bzContact,
+		BzMessage:  bzMessage,
 	}
 	// 设置-路由
 	srv.SetupRouter()

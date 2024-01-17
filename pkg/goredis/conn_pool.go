@@ -43,7 +43,7 @@ func CreatePool(addr, password string, db int) (*redis.Client, error) {
 		// 钩子函数
 		// 仅当客户端执行命令时需要从连接池获取连接时，如果连接池需要新建连接时则会调用此钩子函数
 		OnConnect: func(ctx context.Context, cn *redis.Conn) error {
-			logging.Infof("conn=%v\n", cn)
+			logging.Infof("conn success,%v\n", cn)
 			return nil
 		},
 	})

@@ -38,3 +38,31 @@ func InitHttp(c *conf.Config) *http.Server {
 	server := http.NewServer(c, bizBiz, contactUseCase, messageUseCase)
 	return server
 }
+
+func GetMessageRepo(c *conf.Config) *data.MessageRepo {
+	dataData := data.NewData(c)
+	messageRepo := data.NewMessageRepo(dataData)
+	return messageRepo
+}
+
+func GetContactRepo(c *conf.Config) *data.ContactRepo {
+	dataData := data.NewData(c)
+	contactRepo := data.NewContactRepo(dataData)
+	return contactRepo
+}
+
+func GetMessageUseCase(c *conf.Config) *biz.MessageUseCase {
+	dataData := data.NewData(c)
+	messageRepo := data.NewMessageRepo(dataData)
+	contactRepo := data.NewContactRepo(dataData)
+	contactUseCase := biz.NewContactUseCase(contactRepo)
+	messageUseCase := biz.NewMessageUseCase(messageRepo, contactUseCase)
+	return messageUseCase
+}
+
+func GetContactUseCase(c *conf.Config) *biz.ContactUseCase {
+	dataData := data.NewData(c)
+	contactRepo := data.NewContactRepo(dataData)
+	contactUseCase := biz.NewContactUseCase(contactRepo)
+	return contactUseCase
+}
