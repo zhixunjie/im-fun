@@ -17,14 +17,14 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/zhixunjie/im-fun/internal/logic/data/model/generate/models"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 )
 
 func newMessage(db *gorm.DB, opts ...gen.DOOption) message {
 	_message := message{}
 
 	_message.messageDo.UseDB(db, opts...)
-	_message.messageDo.UseModel(&models.Message{})
+	_message.messageDo.UseModel(&model.Message{})
 
 	tableName := _message.messageDo.TableName()
 	_message.ALL = field.NewAsterisk(tableName)
@@ -167,17 +167,17 @@ type IMessageDo interface {
 	Count() (count int64, err error)
 	Scopes(funcs ...func(gen.Dao) gen.Dao) IMessageDo
 	Unscoped() IMessageDo
-	Create(values ...*models.Message) error
-	CreateInBatches(values []*models.Message, batchSize int) error
-	Save(values ...*models.Message) error
-	First() (*models.Message, error)
-	Take() (*models.Message, error)
-	Last() (*models.Message, error)
-	Find() ([]*models.Message, error)
-	FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*models.Message, err error)
-	FindInBatches(result *[]*models.Message, batchSize int, fc func(tx gen.Dao, batch int) error) error
+	Create(values ...*model.Message) error
+	CreateInBatches(values []*model.Message, batchSize int) error
+	Save(values ...*model.Message) error
+	First() (*model.Message, error)
+	Take() (*model.Message, error)
+	Last() (*model.Message, error)
+	Find() ([]*model.Message, error)
+	FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*model.Message, err error)
+	FindInBatches(result *[]*model.Message, batchSize int, fc func(tx gen.Dao, batch int) error) error
 	Pluck(column field.Expr, dest interface{}) error
-	Delete(...*models.Message) (info gen.ResultInfo, err error)
+	Delete(...*model.Message) (info gen.ResultInfo, err error)
 	Update(column field.Expr, value interface{}) (info gen.ResultInfo, err error)
 	UpdateSimple(columns ...field.AssignExpr) (info gen.ResultInfo, err error)
 	Updates(value interface{}) (info gen.ResultInfo, err error)
@@ -189,20 +189,20 @@ type IMessageDo interface {
 	Assign(attrs ...field.AssignExpr) IMessageDo
 	Joins(fields ...field.RelationField) IMessageDo
 	Preload(fields ...field.RelationField) IMessageDo
-	FirstOrInit() (*models.Message, error)
-	FirstOrCreate() (*models.Message, error)
-	FindByPage(offset int, limit int) (result []*models.Message, count int64, err error)
+	FirstOrInit() (*model.Message, error)
+	FirstOrCreate() (*model.Message, error)
+	FindByPage(offset int, limit int) (result []*model.Message, count int64, err error)
 	ScanByPage(result interface{}, offset int, limit int) (count int64, err error)
 	Scan(result interface{}) (err error)
 	Returning(value interface{}, columns ...string) IMessageDo
 	UnderlyingDB() *gorm.DB
 	schema.Tabler
 
-	GetByID(id int64) (result *models.Message, err error)
+	GetByID(id int64) (result *model.Message, err error)
 }
 
 // GetByID SELECT * FROM @@table WHERE id=@id
-func (m messageDo) GetByID(id int64) (result *models.Message, err error) {
+func (m messageDo) GetByID(id int64) (result *model.Message, err error) {
 	var params []interface{}
 
 	var generateSQL strings.Builder
@@ -308,57 +308,57 @@ func (m messageDo) Unscoped() IMessageDo {
 	return m.withDO(m.DO.Unscoped())
 }
 
-func (m messageDo) Create(values ...*models.Message) error {
+func (m messageDo) Create(values ...*model.Message) error {
 	if len(values) == 0 {
 		return nil
 	}
 	return m.DO.Create(values)
 }
 
-func (m messageDo) CreateInBatches(values []*models.Message, batchSize int) error {
+func (m messageDo) CreateInBatches(values []*model.Message, batchSize int) error {
 	return m.DO.CreateInBatches(values, batchSize)
 }
 
 // Save : !!! underlying implementation is different with GORM
 // The method is equivalent to executing the statement: db.Clauses(clause.OnConflict{UpdateAll: true}).Create(values)
-func (m messageDo) Save(values ...*models.Message) error {
+func (m messageDo) Save(values ...*model.Message) error {
 	if len(values) == 0 {
 		return nil
 	}
 	return m.DO.Save(values)
 }
 
-func (m messageDo) First() (*models.Message, error) {
+func (m messageDo) First() (*model.Message, error) {
 	if result, err := m.DO.First(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.Message), nil
+		return result.(*model.Message), nil
 	}
 }
 
-func (m messageDo) Take() (*models.Message, error) {
+func (m messageDo) Take() (*model.Message, error) {
 	if result, err := m.DO.Take(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.Message), nil
+		return result.(*model.Message), nil
 	}
 }
 
-func (m messageDo) Last() (*models.Message, error) {
+func (m messageDo) Last() (*model.Message, error) {
 	if result, err := m.DO.Last(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.Message), nil
+		return result.(*model.Message), nil
 	}
 }
 
-func (m messageDo) Find() ([]*models.Message, error) {
+func (m messageDo) Find() ([]*model.Message, error) {
 	result, err := m.DO.Find()
-	return result.([]*models.Message), err
+	return result.([]*model.Message), err
 }
 
-func (m messageDo) FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*models.Message, err error) {
-	buf := make([]*models.Message, 0, batchSize)
+func (m messageDo) FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*model.Message, err error) {
+	buf := make([]*model.Message, 0, batchSize)
 	err = m.DO.FindInBatches(&buf, batchSize, func(tx gen.Dao, batch int) error {
 		defer func() { results = append(results, buf...) }()
 		return fc(tx, batch)
@@ -366,7 +366,7 @@ func (m messageDo) FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) err
 	return results, err
 }
 
-func (m messageDo) FindInBatches(result *[]*models.Message, batchSize int, fc func(tx gen.Dao, batch int) error) error {
+func (m messageDo) FindInBatches(result *[]*model.Message, batchSize int, fc func(tx gen.Dao, batch int) error) error {
 	return m.DO.FindInBatches(result, batchSize, fc)
 }
 
@@ -392,23 +392,23 @@ func (m messageDo) Preload(fields ...field.RelationField) IMessageDo {
 	return &m
 }
 
-func (m messageDo) FirstOrInit() (*models.Message, error) {
+func (m messageDo) FirstOrInit() (*model.Message, error) {
 	if result, err := m.DO.FirstOrInit(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.Message), nil
+		return result.(*model.Message), nil
 	}
 }
 
-func (m messageDo) FirstOrCreate() (*models.Message, error) {
+func (m messageDo) FirstOrCreate() (*model.Message, error) {
 	if result, err := m.DO.FirstOrCreate(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.Message), nil
+		return result.(*model.Message), nil
 	}
 }
 
-func (m messageDo) FindByPage(offset int, limit int) (result []*models.Message, count int64, err error) {
+func (m messageDo) FindByPage(offset int, limit int) (result []*model.Message, count int64, err error) {
 	result, err = m.Offset(offset).Limit(limit).Find()
 	if err != nil {
 		return
@@ -437,7 +437,7 @@ func (m messageDo) Scan(result interface{}) (err error) {
 	return m.DO.Scan(result)
 }
 
-func (m messageDo) Delete(models ...*models.Message) (result gen.ResultInfo, err error) {
+func (m messageDo) Delete(models ...*model.Message) (result gen.ResultInfo, err error) {
 	return m.DO.Delete(models)
 }
 

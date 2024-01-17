@@ -17,14 +17,14 @@ import (
 
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/zhixunjie/im-fun/internal/logic/data/model/generate/models"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 )
 
 func newContact(db *gorm.DB, opts ...gen.DOOption) contact {
 	_contact := contact{}
 
 	_contact.contactDo.UseDB(db, opts...)
-	_contact.contactDo.UseModel(&models.Contact{})
+	_contact.contactDo.UseModel(&model.Contact{})
 
 	tableName := _contact.contactDo.TableName()
 	_contact.ALL = field.NewAsterisk(tableName)
@@ -167,17 +167,17 @@ type IContactDo interface {
 	Count() (count int64, err error)
 	Scopes(funcs ...func(gen.Dao) gen.Dao) IContactDo
 	Unscoped() IContactDo
-	Create(values ...*models.Contact) error
-	CreateInBatches(values []*models.Contact, batchSize int) error
-	Save(values ...*models.Contact) error
-	First() (*models.Contact, error)
-	Take() (*models.Contact, error)
-	Last() (*models.Contact, error)
-	Find() ([]*models.Contact, error)
-	FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*models.Contact, err error)
-	FindInBatches(result *[]*models.Contact, batchSize int, fc func(tx gen.Dao, batch int) error) error
+	Create(values ...*model.Contact) error
+	CreateInBatches(values []*model.Contact, batchSize int) error
+	Save(values ...*model.Contact) error
+	First() (*model.Contact, error)
+	Take() (*model.Contact, error)
+	Last() (*model.Contact, error)
+	Find() ([]*model.Contact, error)
+	FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*model.Contact, err error)
+	FindInBatches(result *[]*model.Contact, batchSize int, fc func(tx gen.Dao, batch int) error) error
 	Pluck(column field.Expr, dest interface{}) error
-	Delete(...*models.Contact) (info gen.ResultInfo, err error)
+	Delete(...*model.Contact) (info gen.ResultInfo, err error)
 	Update(column field.Expr, value interface{}) (info gen.ResultInfo, err error)
 	UpdateSimple(columns ...field.AssignExpr) (info gen.ResultInfo, err error)
 	Updates(value interface{}) (info gen.ResultInfo, err error)
@@ -189,20 +189,20 @@ type IContactDo interface {
 	Assign(attrs ...field.AssignExpr) IContactDo
 	Joins(fields ...field.RelationField) IContactDo
 	Preload(fields ...field.RelationField) IContactDo
-	FirstOrInit() (*models.Contact, error)
-	FirstOrCreate() (*models.Contact, error)
-	FindByPage(offset int, limit int) (result []*models.Contact, count int64, err error)
+	FirstOrInit() (*model.Contact, error)
+	FirstOrCreate() (*model.Contact, error)
+	FindByPage(offset int, limit int) (result []*model.Contact, count int64, err error)
 	ScanByPage(result interface{}, offset int, limit int) (count int64, err error)
 	Scan(result interface{}) (err error)
 	Returning(value interface{}, columns ...string) IContactDo
 	UnderlyingDB() *gorm.DB
 	schema.Tabler
 
-	GetByID(id int64) (result *models.Contact, err error)
+	GetByID(id int64) (result *model.Contact, err error)
 }
 
 // GetByID SELECT * FROM @@table WHERE id=@id
-func (c contactDo) GetByID(id int64) (result *models.Contact, err error) {
+func (c contactDo) GetByID(id int64) (result *model.Contact, err error) {
 	var params []interface{}
 
 	var generateSQL strings.Builder
@@ -308,57 +308,57 @@ func (c contactDo) Unscoped() IContactDo {
 	return c.withDO(c.DO.Unscoped())
 }
 
-func (c contactDo) Create(values ...*models.Contact) error {
+func (c contactDo) Create(values ...*model.Contact) error {
 	if len(values) == 0 {
 		return nil
 	}
 	return c.DO.Create(values)
 }
 
-func (c contactDo) CreateInBatches(values []*models.Contact, batchSize int) error {
+func (c contactDo) CreateInBatches(values []*model.Contact, batchSize int) error {
 	return c.DO.CreateInBatches(values, batchSize)
 }
 
 // Save : !!! underlying implementation is different with GORM
 // The method is equivalent to executing the statement: db.Clauses(clause.OnConflict{UpdateAll: true}).Create(values)
-func (c contactDo) Save(values ...*models.Contact) error {
+func (c contactDo) Save(values ...*model.Contact) error {
 	if len(values) == 0 {
 		return nil
 	}
 	return c.DO.Save(values)
 }
 
-func (c contactDo) First() (*models.Contact, error) {
+func (c contactDo) First() (*model.Contact, error) {
 	if result, err := c.DO.First(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.Contact), nil
+		return result.(*model.Contact), nil
 	}
 }
 
-func (c contactDo) Take() (*models.Contact, error) {
+func (c contactDo) Take() (*model.Contact, error) {
 	if result, err := c.DO.Take(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.Contact), nil
+		return result.(*model.Contact), nil
 	}
 }
 
-func (c contactDo) Last() (*models.Contact, error) {
+func (c contactDo) Last() (*model.Contact, error) {
 	if result, err := c.DO.Last(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.Contact), nil
+		return result.(*model.Contact), nil
 	}
 }
 
-func (c contactDo) Find() ([]*models.Contact, error) {
+func (c contactDo) Find() ([]*model.Contact, error) {
 	result, err := c.DO.Find()
-	return result.([]*models.Contact), err
+	return result.([]*model.Contact), err
 }
 
-func (c contactDo) FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*models.Contact, err error) {
-	buf := make([]*models.Contact, 0, batchSize)
+func (c contactDo) FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) error) (results []*model.Contact, err error) {
+	buf := make([]*model.Contact, 0, batchSize)
 	err = c.DO.FindInBatches(&buf, batchSize, func(tx gen.Dao, batch int) error {
 		defer func() { results = append(results, buf...) }()
 		return fc(tx, batch)
@@ -366,7 +366,7 @@ func (c contactDo) FindInBatch(batchSize int, fc func(tx gen.Dao, batch int) err
 	return results, err
 }
 
-func (c contactDo) FindInBatches(result *[]*models.Contact, batchSize int, fc func(tx gen.Dao, batch int) error) error {
+func (c contactDo) FindInBatches(result *[]*model.Contact, batchSize int, fc func(tx gen.Dao, batch int) error) error {
 	return c.DO.FindInBatches(result, batchSize, fc)
 }
 
@@ -392,23 +392,23 @@ func (c contactDo) Preload(fields ...field.RelationField) IContactDo {
 	return &c
 }
 
-func (c contactDo) FirstOrInit() (*models.Contact, error) {
+func (c contactDo) FirstOrInit() (*model.Contact, error) {
 	if result, err := c.DO.FirstOrInit(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.Contact), nil
+		return result.(*model.Contact), nil
 	}
 }
 
-func (c contactDo) FirstOrCreate() (*models.Contact, error) {
+func (c contactDo) FirstOrCreate() (*model.Contact, error) {
 	if result, err := c.DO.FirstOrCreate(); err != nil {
 		return nil, err
 	} else {
-		return result.(*models.Contact), nil
+		return result.(*model.Contact), nil
 	}
 }
 
-func (c contactDo) FindByPage(offset int, limit int) (result []*models.Contact, count int64, err error) {
+func (c contactDo) FindByPage(offset int, limit int) (result []*model.Contact, count int64, err error) {
 	result, err = c.Offset(offset).Limit(limit).Find()
 	if err != nil {
 		return
@@ -437,7 +437,7 @@ func (c contactDo) Scan(result interface{}) (err error) {
 	return c.DO.Scan(result)
 }
 
-func (c contactDo) Delete(models ...*models.Contact) (result gen.ResultInfo, err error) {
+func (c contactDo) Delete(models ...*model.Contact) (result gen.ResultInfo, err error) {
 	return c.DO.Delete(models)
 }
 

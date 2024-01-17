@@ -1,4 +1,4 @@
-package model
+package ent
 
 type Online struct {
 	Server    string           `json:"server"`

@@ -41,7 +41,7 @@ func genCode2() {
 	g := gen.NewGenerator(gen.Config{
 		Mode:          gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface, // generate mode
 		OutPath:       "./query",
-		ModelPkgPath:  "./models",
+		ModelPkgPath:  "./model",
 		FieldSignable: true,
 	})
 

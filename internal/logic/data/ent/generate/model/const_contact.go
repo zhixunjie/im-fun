@@ -1,4 +1,4 @@
-package models
+package model
 
 // 联系人状态
 const (
