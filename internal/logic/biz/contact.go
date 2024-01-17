@@ -6,6 +6,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"gorm.io/gorm"
 )
 
 type ContactUseCase struct {
@@ -26,7 +27,7 @@ func (bz *ContactUseCase) TransformSender(ctx context.Context, req *request.Send
 
 	// query contact（区别的地方，获取"消息发送方"的会话）
 	contact, err = bz.repo.QueryContactById(req.SendId, req.PeerId)
-	if err != nil {
+	if err != nil && err != gorm.ErrRecordNotFound {
 		return
 	}
 	// 新增：需要执行的逻辑
@@ -56,7 +57,7 @@ func (bz *ContactUseCase) TransformPeer(ctx context.Context, req *request.SendMs
 
 	// query contact（区别的地方，获取"消息接收方"的会话）
 	contact, err = bz.repo.QueryContactById(req.PeerId, req.SendId)
-	if err != nil {
+	if err != nil && err != gorm.ErrRecordNotFound {
 		return
 	}
 	// 新增：需要执行的逻辑（区别的地方）
