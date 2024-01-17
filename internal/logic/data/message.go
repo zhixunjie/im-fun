@@ -2,7 +2,7 @@ package data
 
 import (
 	"fmt"
-	"github.com/zhixunjie/im-fun/internal/logic/data/model"
+	"github.com/zhixunjie/im-fun/internal/logic/data/model/generate/models"
 )
 
 type MessageRepo struct {
@@ -26,13 +26,13 @@ func (repo *MessageRepo) TableName(id uint64) (dbName string, tbName string) {
 	// - 数据库前缀：message_xxx，规则：id 倒数第三位数字就是分库值
 	// - 数据表前缀：message_xxx，规则：id 的最后两位就是分表值
 	dbName = fmt.Sprintf("messsage_%v", id%1000/100)
-	tbName = fmt.Sprintf("message_%v", id%model.TotalTableMessage)
+	tbName = fmt.Sprintf("message_%v", id%models.TotalTableMessage)
 
 	return dbName, tbName
 }
 
-func (repo *MessageRepo) AddMsg(row *model.Message) error {
-	_, tbName := repo.TableName(row.MsgId)
+func (repo *MessageRepo) AddMsg(row *models.Message) error {
+	_, tbName := repo.TableName(row.MsgID)
 	err := repo.MySQLClient.Table(tbName).Create(&row).Error
 	if err != nil {
 		return err
@@ -41,17 +41,16 @@ func (repo *MessageRepo) AddMsg(row *model.Message) error {
 }
 
 // QueryMsgLogic 查询某条消息的详情
-func (repo *MessageRepo) QueryMsgLogic(msgId uint64) (model.Message, error) {
+func (repo *MessageRepo) QueryMsgLogic(msgId uint64) (models.Message, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
 	return repo.QueryMsgByMsgId(msgId)
 }
 
 // QueryMsgByMsgId 查询某条消息的详情，From：DB
-func (repo *MessageRepo) QueryMsgByMsgId(msgId uint64) (model.Message, error) {
+func (repo *MessageRepo) QueryMsgByMsgId(msgId uint64) (row models.Message, err error) {
 	_, tbName := repo.TableName(msgId)
-	var row model.Message
-	err := repo.MySQLClient.Table(tbName).Where("msg_id=?", msgId).Find(&row).Error
+	err = repo.MySQLClient.Table(tbName).Where("msg_id=?", msgId).Find(&row).Error
 	if err != nil {
 		return row, err
 	}

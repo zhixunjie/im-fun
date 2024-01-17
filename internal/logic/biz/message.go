@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
-	"github.com/zhixunjie/im-fun/internal/logic/data/model"
+	"github.com/zhixunjie/im-fun/internal/logic/data/model/generate/models"
 	"github.com/zhixunjie/im-fun/internal/logic/data/model/request"
 	"github.com/zhixunjie/im-fun/internal/logic/data/model/response"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
@@ -36,13 +36,13 @@ func (bz *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgR
 	}
 
 	// transform contact（send）
-	senderContact, err := contactUseCase.TransformSender(ctx, req, currTimestamp, msg.MsgId)
+	senderContact, err := contactUseCase.TransformSender(ctx, req, currTimestamp, msg.MsgID)
 	if err != nil {
 		return
 	}
 
 	// transform contact（receive）
-	peerContact, err := contactUseCase.TransformPeer(ctx, req, currTimestamp, msg.MsgId)
+	peerContact, err := contactUseCase.TransformPeer(ctx, req, currTimestamp, msg.MsgID)
 	if err != nil {
 		return
 	}
@@ -55,11 +55,11 @@ func (bz *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgR
 	// build response
 	resp = response.SendMsgResp{
 		Data: response.SendMsgRespData{
-			MsgId:        msg.MsgId,
-			SeqId:        msg.SeqId,
+			MsgId:        msg.MsgID,
+			SeqId:        msg.SeqID,
 			CreateTime:   msg.CreatedAt.Unix(),
 			UpdateTime:   msg.UpdatedAt.Unix(),
-			MsgVersionId: msg.VersionId,
+			MsgVersionId: msg.VersionID,
 			MsgSortKey:   msg.SortKey,
 			UnreadCount:  0,
 		},
@@ -68,7 +68,7 @@ func (bz *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgR
 	return
 }
 
-func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.SendMsgReq, currTimestamp int64) (msg model.Message, err error) {
+func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.SendMsgReq, currTimestamp int64) (msg models.Message, err error) {
 	mem := bz.repo.RedisClient
 
 	// gen msg_id
@@ -97,17 +97,17 @@ func (bz *MessageUseCase) transformMessage(ctx context.Context, req *request.Sen
 	}
 
 	// build message
-	msg = model.Message{
-		MsgId:         msgId,
-		SeqId:         req.SeqId,
-		MsgType:       int32(req.MsgBody.MsgType),
+	msg = models.Message{
+		MsgID:         msgId,
+		SeqID:         req.SeqId,
+		MsgType:       uint32(req.MsgBody.MsgType),
 		Content:       string(bufContent),
-		SessionId:     gen_id.SessionId(req.SendId, req.PeerId),
-		SendId:        req.SendId,
-		VersionId:     versionId,
+		SessionID:     gen_id.SessionId(req.SendId, req.PeerId),
+		SenderID:      req.SendId,
+		VersionID:     versionId,
 		SortKey:       versionId, // sort_key的值等同于version_id
-		Status:        model.MsgStatusNormal,
-		HasRead:       model.MsgRead,
+		Status:        models.MsgStatusNormal,
+		HasRead:       models.MsgRead,
 		InvisibleList: string(buf),
 	}
 

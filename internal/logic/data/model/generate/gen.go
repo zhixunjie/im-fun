@@ -39,9 +39,10 @@ func applyTableNames(g *gen.Generator) {
 func genCode2() {
 	// gen.Config: https://gorm.io/zh_CN/gen/dao.html#gen-Config
 	g := gen.NewGenerator(gen.Config{
-		OutPath:      "./query",
-		ModelPkgPath: "./models",
-		Mode:         gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface, // generate mode
+		Mode:          gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface, // generate mode
+		OutPath:       "./query",
+		ModelPkgPath:  "./models",
+		FieldSignable: true,
 	})
 
 	g.UseDB(DB) // reuse your gorm db

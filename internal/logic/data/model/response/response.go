@@ -13,7 +13,7 @@ type SendMsgResp struct {
 
 type SendMsgRespData struct {
 	MsgId        uint64 `json:"msg_id"`
-	SeqId        int64  `json:"seq_id"`
+	SeqId        uint64 `json:"seq_id"`
 	MsgVersionId uint64 `json:"msg_version_id"`
 	MsgSortKey   uint64 `json:"msg_sort_key"`
 	UnreadCount  int64  `json:"unread_count"`

@@ -25,7 +25,7 @@ type ContentEntity interface {
 	GetType() MsgType
 }
 
-type MsgType int32
+type MsgType uint32
 
 const (
 	// MsgTypeNone 基本的消息类型
