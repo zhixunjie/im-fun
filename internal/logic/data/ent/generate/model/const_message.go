@@ -29,10 +29,10 @@ const (
 )
 
 type QueryMsgParams struct {
-	FetchType    FetchType
-	SmallerId    uint64
-	LargerId     uint64
-	VersionId    uint64
-	DelVersionId uint64
-	Limit        int
+	FetchType      FetchType
+	SmallerId      uint64
+	LargerId       uint64
+	PivotVersionId uint64
+	DelVersionId   uint64
+	Limit          int
 }

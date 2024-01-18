@@ -69,25 +69,25 @@ func (repo *MessageRepo) RangeList(params *model.QueryMsgParams) (list []*model.
 	qModel := repo.Db.Message.Table(tbName)
 	sessionId := gen_id.SessionId(params.SmallerId, params.LargerId)
 	delVersionId := params.DelVersionId
-	versionId := params.VersionId
+	pivotVersionId := params.PivotVersionId
 
 	// 需要建立索引：session_id、status、version_id
 	switch params.FetchType {
-	case model.FetchTypeBackward: // 拉取历史消息，范围为：（delVersionId, versionId）
-		if versionId == 0 {
-			versionId = math.MaxInt64
+	case model.FetchTypeBackward: // 拉取历史消息，范围为：（delVersionId, pivotVersionId）
+		if pivotVersionId == 0 {
+			pivotVersionId = math.MaxInt64
 		}
 		list, err = qModel.Where(
 			qModel.SessionID.Eq(sessionId),
 			qModel.Status.Eq(model.MsgStatusNormal),
 			qModel.VersionID.Gt(delVersionId),
-			qModel.VersionID.Lt(versionId),
+			qModel.VersionID.Lt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find()
-	case model.FetchTypeForward: // 拉取最新消息，范围为：（versionId, 正无穷）
+	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
 		list, err = qModel.Where(
 			qModel.SessionID.Eq(sessionId),
 			qModel.Status.Eq(model.MsgStatusNormal),
-			qModel.VersionID.Gt(versionId),
+			qModel.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID).Find()
 	}
 

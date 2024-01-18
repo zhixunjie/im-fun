@@ -173,7 +173,7 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (ms
 // https://redis.io/commands/zcount/
 func (b *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsgReq) (resp response.FetchMsgResp, err error) {
 	logHead := "FetchMessage|"
-	startVersionId := req.VersionId
+	pivotVersionId := req.VersionId
 	limit := 50
 
 	// get contact info
@@ -197,8 +197,8 @@ func (b *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsg
 	case model.FetchTypeBackward: // 拉取历史消息
 	case model.FetchTypeForward: // 拉取最新消息
 		// 避免：拉取到已经删除的信息
-		if startVersionId < delVersionId {
-			startVersionId = delVersionId
+		if pivotVersionId < delVersionId {
+			pivotVersionId = delVersionId
 		}
 	default:
 		return
@@ -207,12 +207,12 @@ func (b *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsg
 	// get message list
 	smallId, largerId := utils.SortNum(req.OwnerId, req.PeerId)
 	list, err := b.repoMessage.RangeList(&model.QueryMsgParams{
-		FetchType:    req.FetchType,
-		SmallerId:    smallId,
-		LargerId:     largerId,
-		VersionId:    startVersionId,
-		DelVersionId: delVersionId,
-		Limit:        limit,
+		FetchType:      req.FetchType,
+		SmallerId:      smallId,
+		LargerId:       largerId,
+		PivotVersionId: pivotVersionId,
+		DelVersionId:   delVersionId,
+		Limit:          limit,
 	})
 	if err != nil {
 		return
