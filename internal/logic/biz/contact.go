@@ -47,11 +47,11 @@ func (b *ContactUseCase) FetchContact(ctx context.Context, req *request.FetchCon
 			PeerID:       item.PeerID,
 			PeerType:     item.PeerType,
 			PeerAck:      item.PeerAck,
-			LastMsg:      nil,
 			VersionID:    item.VersionID,
 			SortKey:      item.SortKey,
 			Status:       item.Status,
 			Labels:       item.Labels,
+			LastMsg:      nil,
 			UnreadMsgNum: 0,
 		})
 	}
