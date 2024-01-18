@@ -22,7 +22,7 @@ func (s *Server) send(ctx *gin.Context) {
 	}
 
 	// biz
-	resp, err := s.BzMessage.SendMessage(ctx, &req)
+	resp, err := s.BzMessage.Send(ctx, &req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + err.Error()})
 		return
@@ -42,7 +42,7 @@ func (s *Server) fetch(ctx *gin.Context) {
 	}
 
 	// biz
-	resp, err := s.BzMessage.FetchMessage(ctx, &req)
+	resp, err := s.BzMessage.Fetch(ctx, &req)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + err.Error()})

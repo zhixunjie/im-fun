@@ -30,8 +30,8 @@ func NewMessageUseCase(repoMessage *data.MessageRepo, repoContact *data.ContactR
 	}
 }
 
-// SendMessage 发送消息
-func (b *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgReq) (resp response.SendMsgResp, err error) {
+// Send 发送消息
+func (b *MessageUseCase) Send(ctx context.Context, req *request.SendMsgReq) (resp response.SendMsgResp, err error) {
 	logHead := "SendMessage|"
 
 	// 1. build message
@@ -168,21 +168,21 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (ms
 	return
 }
 
-// FetchMessage 拉取消息
+// Fetch 拉取消息
 // https://redis.io/commands/zrevrangebyscore/
 // https://redis.io/commands/zcount/
-func (b *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsgReq) (resp response.FetchMsgResp, err error) {
-	//logHead := "FetchMessage|"
+func (b *MessageUseCase) Fetch(ctx context.Context, req *request.FetchMsgReq) (resp response.FetchMsgResp, err error) {
+	//logHead := "Fetch|"
 	pivotVersionId := req.VersionId
 	limit := 50
 
-	// get contact info
+	// get: contact info
 	contactInfo, err := b.repoContact.Info(req.OwnerId, req.PeerId)
 	if err != nil {
 		return
 	}
 
-	// get last msg info
+	// get: last msg info
 	var delVersionId uint64
 	var messageInfo *model.Message
 	if contactInfo.LastDelMsgID > 0 {
