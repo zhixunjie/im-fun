@@ -206,7 +206,7 @@ func (b *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsg
 
 	// get message list
 	smallId, largerId := utils.SortNum(req.OwnerId, req.PeerId)
-	list, err := b.repoMessage.ListWithScope(&model.QueryMsgParams{
+	list, err := b.repoMessage.RangeList(&model.QueryMsgParams{
 		FetchType:    req.FetchType,
 		SmallerId:    smallId,
 		LargerId:     largerId,
