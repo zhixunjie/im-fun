@@ -172,7 +172,7 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (ms
 // https://redis.io/commands/zrevrangebyscore/
 // https://redis.io/commands/zcount/
 func (b *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsgReq) (resp response.FetchMsgResp, err error) {
-	logHead := "FetchMessage|"
+	//logHead := "FetchMessage|"
 	pivotVersionId := req.VersionId
 	limit := 50
 
@@ -193,10 +193,11 @@ func (b *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsg
 		delVersionId = messageInfo.VersionID
 	}
 
+	// set pivotVersionId
 	switch req.FetchType {
 	case model.FetchTypeBackward: // 拉取历史消息
 	case model.FetchTypeForward: // 拉取最新消息
-		// 避免：拉取到已经删除的信息
+		// 避免：拉取最新消息时拉到已删除消息
 		if pivotVersionId < delVersionId {
 			pivotVersionId = delVersionId
 		}
@@ -204,7 +205,7 @@ func (b *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsg
 		return
 	}
 
-	// get message list
+	// get: message list
 	smallId, largerId := utils.SortNum(req.OwnerId, req.PeerId)
 	list, err := b.repoMessage.RangeList(&model.QueryMsgParams{
 		FetchType:      req.FetchType,
@@ -258,6 +259,7 @@ func (b *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsg
 		})
 	}
 
+	// get: nextVersionId
 	var nextVersionId uint64
 	switch req.FetchType {
 	case model.FetchTypeBackward: // 拉取历史消息
@@ -268,7 +270,7 @@ func (b *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsg
 		return
 	}
 
-	// 按照sort_key排序（从小到大）
+	// sort: 按照sort_key排序（从小到大）
 	sort.Slice(retList, func(i, j int) bool {
 		return retList[i].SortKey < retList[j].SortKey
 	})
