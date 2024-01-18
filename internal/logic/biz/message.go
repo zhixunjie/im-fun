@@ -272,7 +272,6 @@ func (b *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsg
 	sort.Slice(retList, func(i, j int) bool {
 		return retList[i].SortKey < retList[j].SortKey
 	})
-	logging.Infof(logHead+"maxVersionId=%v,minVersionId=%v", maxVersionId, minVersionId)
 
 	resp.Data = response.FetchMsgData{
 		MsgList:       retList,
