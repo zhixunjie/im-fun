@@ -68,7 +68,7 @@ func (repo *MessageRepo) RangeList(params *model.QueryMsgParams) (list []*model.
 	_, tbName := repo.TableName(params.LargerId)
 	qModel := repo.Db.Message.Table(tbName)
 	sessionId := gen_id.SessionId(params.SmallerId, params.LargerId)
-	delVersionId := params.DelVersionId
+	delVersionId := params.LastDelMsgVersionId
 	pivotVersionId := params.PivotVersionId
 
 	// 需要建立索引：session_id、status、version_id

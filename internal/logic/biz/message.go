@@ -183,14 +183,14 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.FetchMsgReq) (r
 	}
 
 	// get: last msg info
-	var delVersionId uint64
+	var lastDelMsgVersionId uint64
 	var messageInfo *model.Message
 	if contactInfo.LastDelMsgID > 0 {
 		messageInfo, err = b.repoMessage.Info(contactInfo.LastDelMsgID)
 		if err != nil {
 			return
 		}
-		delVersionId = messageInfo.VersionID
+		lastDelMsgVersionId = messageInfo.VersionID
 	}
 
 	// set pivotVersionId
@@ -198,8 +198,8 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.FetchMsgReq) (r
 	case model.FetchTypeBackward: // 拉取历史消息
 	case model.FetchTypeForward: // 拉取最新消息
 		// 避免：拉取最新消息时拉到已删除消息
-		if pivotVersionId < delVersionId {
-			pivotVersionId = delVersionId
+		if pivotVersionId < lastDelMsgVersionId {
+			pivotVersionId = lastDelMsgVersionId
 		}
 	default:
 		return
@@ -208,12 +208,12 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.FetchMsgReq) (r
 	// get: message list
 	smallId, largerId := utils.SortNum(req.OwnerId, req.PeerId)
 	list, err := b.repoMessage.RangeList(&model.QueryMsgParams{
-		FetchType:      req.FetchType,
-		SmallerId:      smallId,
-		LargerId:       largerId,
-		PivotVersionId: pivotVersionId,
-		DelVersionId:   delVersionId,
-		Limit:          limit,
+		FetchType:           req.FetchType,
+		SmallerId:           smallId,
+		LargerId:            largerId,
+		PivotVersionId:      pivotVersionId,
+		LastDelMsgVersionId: lastDelMsgVersionId,
+		Limit:               limit,
 	})
 	if err != nil {
 		return
