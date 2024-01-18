@@ -6,6 +6,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"gorm.io/gorm"
 	"math"
 )
@@ -74,6 +75,8 @@ func (repo *ContactRepo) Edit(tx *query.Query, row *model.Contact) (err error) {
 }
 
 func (repo *ContactRepo) Build(ctx context.Context, params *model.BuildContactParams) (contact *model.Contact, err error) {
+	logHead := "Build|"
+
 	// get version_id
 	versionId, err := gen_id.ContactVersionId(ctx, repo.RedisClient, params.OwnerId)
 	if err != nil {
@@ -83,11 +86,13 @@ func (repo *ContactRepo) Build(ctx context.Context, params *model.BuildContactPa
 	// query contact
 	contact, err = repo.Info(params.OwnerId, params.PeerId)
 	if err != nil && err != gorm.ErrRecordNotFound {
+		logging.Errorf(logHead+"Info error=%v", err)
 		return
 	}
 
 	// 记录不存在：需要创建contact
 	if err == gorm.ErrRecordNotFound {
+		err = nil
 		contact = &model.Contact{
 			OwnerID: params.OwnerId,
 			PeerID:  params.PeerId,
@@ -108,6 +113,8 @@ func (repo *ContactRepo) Build(ctx context.Context, params *model.BuildContactPa
 }
 
 func (repo *ContactRepo) RangeList(params *model.QueryContactParams) (list []*model.Contact, err error) {
+	logHead := "RangeList|"
+
 	_, tbName := repo.TableName(params.OwnerId)
 	qModel := repo.Db.Contact.Table(tbName)
 	pivotVersionId := params.PivotVersionId
@@ -130,6 +137,10 @@ func (repo *ContactRepo) RangeList(params *model.QueryContactParams) (list []*mo
 			qModel.Status.Eq(uint32(model.ContactStatusNormal)),
 			qModel.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID).Find()
+	}
+	if err != nil {
+		logging.Errorf(logHead+"err=%v", err)
+		return
 	}
 
 	return

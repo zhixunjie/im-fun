@@ -120,6 +120,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.SendMsgReq) (res
 }
 
 func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (msg *model.Message, err error) {
+	logHead := "Build|"
 	mem := b.repoMessage.RedisClient
 
 	// gen msg_id
@@ -132,6 +133,7 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (ms
 	// gen version_id
 	versionId, err := gen_id.MsgVersionId(ctx, mem, smallerId, largeId)
 	if err != nil {
+		logging.Errorf(logHead+"MsgVersionId error=%v", err)
 		return
 	}
 
@@ -140,6 +142,7 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (ms
 	if len(req.InvisibleList) > 0 {
 		buf, err = json.Marshal(req.InvisibleList)
 		if err != nil {
+			logging.Errorf(logHead+"Marshal error=%v", err)
 			return
 		}
 	}
@@ -147,6 +150,7 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (ms
 	// exchange：MsgContent
 	bufContent, err := json.Marshal(req.MsgBody.MsgContent)
 	if err != nil {
+		logging.Errorf(logHead+"Marshal error=%v", err)
 		return
 	}
 
