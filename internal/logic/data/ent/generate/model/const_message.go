@@ -12,11 +12,13 @@ const (
 	MsgRead    = 1 // 已读
 )
 
-// 消息状态
+// MsgStatus 消息状态
+type MsgStatus uint32
+
 const (
-	MsgStatusNormal   = 0 // 正常
-	MsgStatusDel      = 1 // 删除
-	MsgStatusWithdraw = 2 // 后台删除
+	MsgStatusNormal   MsgStatus = iota // 正常
+	MsgStatusDel                       // 删除
+	MsgStatusWithdraw                  // 后台删除
 )
 
 // FetchType 消息拉取方式
@@ -25,7 +27,7 @@ type FetchType = int32
 const (
 	FetchTypeBackward FetchType = iota // 拉取历史消息
 	FetchTypeForward                   // 拉取最新消息
-	FetchTypeBg                        // 后台拉消息
+	FetchTypeBg                        // 后台拉消息（不清除未读数(history)）
 )
 
 type QueryMsgParams struct {

@@ -47,7 +47,7 @@ func (b *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgRe
 			MsgId:    msg.MsgID,
 			OwnerId:  req.SendId,
 			PeerId:   req.PeerId,
-			PeerType: req.PeerType,
+			PeerType: model.PeerType(req.PeerType),
 			PeerAck:  model.PeerNotAck,
 		})
 		if err != nil {
@@ -61,7 +61,7 @@ func (b *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgRe
 			MsgId:    msg.MsgID,
 			OwnerId:  req.PeerId,
 			PeerId:   req.SendId,
-			PeerType: req.SenderType,
+			PeerType: model.PeerType(req.SenderType),
 			PeerAck:  model.PeerAck,
 		})
 		if err != nil {
@@ -160,7 +160,7 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (ms
 		SenderID:      req.SendId,                               // 发送者ID
 		VersionID:     versionId,                                // 版本ID
 		SortKey:       versionId,                                // sort_key的值等同于version_id
-		Status:        model.MsgStatusNormal,                    // 状态正常
+		Status:        uint32(model.MsgStatusNormal),            // 状态正常
 		HasRead:       model.MsgRead,                            // 已读（功能还没做好）
 		InvisibleList: string(buf),
 	}

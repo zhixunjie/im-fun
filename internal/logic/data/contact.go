@@ -88,9 +88,10 @@ func (repo *ContactRepo) Build(ctx context.Context, params *model.BuildContactPa
 	// 记录不存在：需要创建contact
 	if err == gorm.ErrRecordNotFound {
 		contact = &model.Contact{
-			OwnerID:   params.OwnerId,
-			PeerID:    params.PeerId,
-			PeerType:  params.PeerType,
+			OwnerID: params.OwnerId,
+			PeerID:  params.PeerId,
+			//PeerType:  params.PeerType, // 注意：暂时不适用请求参数过来的PeerType（适合于：logic -> base的场景）
+			PeerType:  int32(model.PeerTypeNormal),
 			PeerAck:   params.PeerAck,
 			LastMsgID: params.MsgId,
 			VersionID: versionId,

@@ -79,14 +79,14 @@ func (repo *MessageRepo) RangeList(params *model.QueryMsgParams) (list []*model.
 		}
 		list, err = qModel.Where(
 			qModel.SessionID.Eq(sessionId),
-			qModel.Status.Eq(model.MsgStatusNormal),
+			qModel.Status.Eq(uint32(model.MsgStatusNormal)),
 			qModel.VersionID.Gt(delVersionId),
 			qModel.VersionID.Lt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find()
 	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
 		list, err = qModel.Where(
 			qModel.SessionID.Eq(sessionId),
-			qModel.Status.Eq(model.MsgStatusNormal),
+			qModel.Status.Eq(uint32(model.MsgStatusNormal)),
 			qModel.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID).Find()
 	}
