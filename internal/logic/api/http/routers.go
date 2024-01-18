@@ -10,7 +10,7 @@ func (s *Server) SetupRouter() {
 	g1 := router.Group("/message")
 	{
 		g1.POST("/send", s.send)
-		g1.GET("/fetch", s.fetch)
+		g1.POST("/fetch", s.fetch)
 	}
 
 	// push

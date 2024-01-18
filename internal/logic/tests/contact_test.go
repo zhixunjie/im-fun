@@ -9,7 +9,7 @@ import (
 )
 
 func TestQueryContactLogic(t *testing.T) {
-	res, err := wire.GetContactRepo(conf.Conf).QueryContactLogic(1001, 1002)
+	res, err := wire.GetContactRepo(conf.Conf).InfoWithCache(1001, 1002)
 	if err != nil {
 		log.Fatal()
 	}

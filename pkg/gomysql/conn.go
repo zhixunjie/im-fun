@@ -43,7 +43,7 @@ func CreatePool(cfg *Config) (*gorm.DB, error) {
 	var config = &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 	}
-	//setLogger(config)
+	setLogger(config)
 
 	// open connection
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=true&loc=Local", cfg.UserName, cfg.Password, cfg.Addr, cfg.Port, cfg.Database)

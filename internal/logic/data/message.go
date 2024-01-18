@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
+	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"math"
 )
 
 type MessageRepo struct {
@@ -32,7 +34,7 @@ func (repo *MessageRepo) TableName(id uint64) (dbName string, tbName string) {
 	return dbName, tbName
 }
 
-func (repo *MessageRepo) AddMsg(tx *query.Query, row *model.Message) (err error) {
+func (repo *MessageRepo) Create(tx *query.Query, row *model.Message) (err error) {
 	_, tbName := repo.TableName(row.MsgID)
 	qModel := tx.Message
 
@@ -43,21 +45,51 @@ func (repo *MessageRepo) AddMsg(tx *query.Query, row *model.Message) (err error)
 	return
 }
 
-// QueryMsgLogic 查询某条消息的详情
-func (repo *MessageRepo) QueryMsgLogic(msgId uint64) (*model.Message, error) {
+// InfoWithCache 查询某条消息的详情
+func (repo *MessageRepo) InfoWithCache(msgId uint64) (*model.Message, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
-	return repo.QueryMsgByMsgId(msgId)
+	return repo.Info(msgId)
 }
 
-// QueryMsgByMsgId 查询某条消息的详情
-func (repo *MessageRepo) QueryMsgByMsgId(msgId uint64) (row *model.Message, err error) {
+// Info 查询某条消息的详情
+func (repo *MessageRepo) Info(msgId uint64) (row *model.Message, err error) {
 	_, tbName := repo.TableName(msgId)
-	qModel := repo.Db.Message
+	qModel := repo.Db.Message.Table(tbName)
 
-	row, err = qModel.Table(tbName).Where(qModel.MsgID.Eq(msgId)).Take()
+	row, err = qModel.Where(qModel.MsgID.Eq(msgId)).Take()
 	if err != nil {
 		return
 	}
+	return
+}
+
+func (repo *MessageRepo) ListWithScope(params *model.QueryMsgParams) (list []*model.Message, err error) {
+	_, tbName := repo.TableName(params.LargerId)
+	qModel := repo.Db.Message.Table(tbName)
+	sessionId := gen_id.SessionId(params.SmallerId, params.LargerId)
+	delVersionId := params.DelVersionId
+	versionId := params.VersionId
+
+	// 需要建立索引：session_id、status、version_id
+	switch params.FetchType {
+	case model.FetchTypeBackward: // 拉取历史消息，范围为：（delVersionId, versionId）
+		if versionId == 0 {
+			versionId = math.MaxInt64
+		}
+		list, err = qModel.Where(
+			qModel.SessionID.Eq(sessionId),
+			qModel.Status.Eq(model.MsgStatusNormal),
+			qModel.VersionID.Gt(delVersionId),
+			qModel.VersionID.Lt(versionId),
+		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find()
+	case model.FetchTypeForward: // 拉取最新消息，范围为：（versionId, 正无穷）
+		list, err = qModel.Where(
+			qModel.SessionID.Eq(sessionId),
+			qModel.Status.Eq(model.MsgStatusNormal),
+			qModel.VersionID.Gt(versionId),
+		).Limit(params.Limit).Order(qModel.VersionID).Find()
+	}
+
 	return
 }

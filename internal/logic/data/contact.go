@@ -33,15 +33,15 @@ func (repo *ContactRepo) TableName(ownerId uint64) (dbName string, tbName string
 	return dbName, tbName
 }
 
-// QueryContactLogic 查询某个会话的信息
-func (repo *ContactRepo) QueryContactLogic(ownerId uint64, peerId uint64) (*model.Contact, error) {
+// InfoWithCache 查询某个会话的信息
+func (repo *ContactRepo) InfoWithCache(ownerId uint64, peerId uint64) (*model.Contact, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
-	return repo.QueryContactById(ownerId, peerId)
+	return repo.Info(ownerId, peerId)
 }
 
-// QueryContactById 查询某个会话的信息
-func (repo *ContactRepo) QueryContactById(ownerId uint64, peerId uint64) (row *model.Contact, err error) {
+// Info 查询某个会话的信息
+func (repo *ContactRepo) Info(ownerId uint64, peerId uint64) (row *model.Contact, err error) {
 	_, tbName := repo.TableName(ownerId)
 	qModel := repo.Db.Contact.Table(tbName)
 
@@ -52,18 +52,18 @@ func (repo *ContactRepo) QueryContactById(ownerId uint64, peerId uint64) (row *m
 	return
 }
 
-// EditContact 插入/更新记录
-func (repo *ContactRepo) EditContact(tx *query.Query, row *model.Contact) (err error) {
+// Edit 插入/更新记录
+func (repo *ContactRepo) Edit(tx *query.Query, row *model.Contact) (err error) {
 	_, tbName := repo.TableName(row.OwnerID)
-	qModel := tx.Contact
+	qModel := tx.Contact.Table(tbName)
 
 	if row.ID == 0 {
-		err = qModel.Table(tbName).Create(row)
+		err = qModel.Create(row)
 		if err != nil {
 			return
 		}
 	} else {
-		_, err = qModel.Table(tbName).Updates(row)
+		_, err = qModel.Updates(row)
 		if err != nil {
 			return
 		}
@@ -72,7 +72,7 @@ func (repo *ContactRepo) EditContact(tx *query.Query, row *model.Contact) (err e
 	return
 }
 
-func (repo *ContactRepo) BuildContact(ctx context.Context, params *model.BuildContactParams) (contact *model.Contact, err error) {
+func (repo *ContactRepo) Build(ctx context.Context, params *model.BuildContactParams) (contact *model.Contact, err error) {
 	// get version_id
 	versionId, err := gen_id.ContactVersionId(ctx, repo.RedisClient, params.OwnerId)
 	if err != nil {
@@ -80,7 +80,7 @@ func (repo *ContactRepo) BuildContact(ctx context.Context, params *model.BuildCo
 	}
 
 	// query contact
-	contact, err = repo.QueryContactById(params.OwnerId, params.PeerId)
+	contact, err = repo.Info(params.OwnerId, params.PeerId)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return
 	}

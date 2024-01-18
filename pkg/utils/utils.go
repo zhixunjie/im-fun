@@ -30,3 +30,19 @@ func PrettyPrint(str []byte) {
 
 	fmt.Println(prettyJSON.String())
 }
+
+func Max[T int64 | uint64](a, b T) T {
+	if a > b {
+		return a
+	}
+
+	return b
+}
+
+func Min[T int64 | uint64](a, b T) T {
+	if a < b {
+		return a
+	}
+
+	return b
+}

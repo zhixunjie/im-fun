@@ -2,6 +2,7 @@ package request
 
 import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 )
 
 type PingReq struct {
@@ -20,9 +21,9 @@ type SendMsgReq struct {
 }
 
 type FetchMsgReq struct {
-	OwnerId   uint64 `json:"owner_id"`
-	PeerId    uint64 `json:"peer_id"`
-	PeerType  int32  `json:"peer_type"`
-	FetchType string `json:"fetch_type"`
-	VersionId uint64 `json:"version_id"`
+	FetchType model.FetchType `json:"fetch_type"`
+	OwnerId   uint64          `json:"owner_id"`
+	PeerId    uint64          `json:"peer_id"`
+	PeerType  int32           `json:"peer_type"`
+	VersionId uint64          `json:"version_id"`
 }
