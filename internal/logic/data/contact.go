@@ -1,9 +1,12 @@
 package data
 
 import (
+	"context"
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
+	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"gorm.io/gorm"
 )
 
 type ContactRepo struct {
@@ -42,18 +45,15 @@ func (repo *ContactRepo) QueryContactById(ownerId uint64, peerId uint64) (row *m
 	_, tbName := repo.TableName(ownerId)
 	qModel := repo.Db.Contact.Table(tbName)
 
-	row, err = qModel.Where(
-		qModel.OwnerID.Eq(ownerId),
-		qModel.PeerID.Eq(peerId),
-	).Take()
+	row, err = qModel.Where(qModel.OwnerID.Eq(ownerId), qModel.PeerID.Eq(peerId)).Take()
 	if err != nil {
 		return
 	}
 	return
 }
 
-// AddOrUpdateContact 插入/更新记录
-func (repo *ContactRepo) AddOrUpdateContact(tx *query.Query, row *model.Contact) (err error) {
+// EditContact 插入/更新记录
+func (repo *ContactRepo) EditContact(tx *query.Query, row *model.Contact) (err error) {
 	_, tbName := repo.TableName(row.OwnerID)
 	qModel := tx.Contact
 
@@ -69,5 +69,38 @@ func (repo *ContactRepo) AddOrUpdateContact(tx *query.Query, row *model.Contact)
 		}
 	}
 
+	return
+}
+
+func (repo *ContactRepo) BuildContact(ctx context.Context, params *model.BuildContactParams) (contact *model.Contact, err error) {
+	// get version_id
+	versionId, err := gen_id.ContactVersionId(ctx, repo.RedisClient, params.OwnerId)
+	if err != nil {
+		return
+	}
+
+	// query contact
+	contact, err = repo.QueryContactById(params.OwnerId, params.PeerId)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return
+	}
+
+	// 记录不存在：需要创建contact
+	if err == gorm.ErrRecordNotFound {
+		contact = &model.Contact{
+			OwnerID:   params.OwnerId,
+			PeerID:    params.PeerId,
+			PeerType:  params.PeerType,
+			PeerAck:   params.PeerAck,
+			LastMsgID: params.MsgId,
+			VersionID: versionId,
+			SortKey:   versionId,
+			Status:    model.ContactStatusNormal,
+		}
+	} else {
+		contact.LastMsgID = params.MsgId // 双方聊天记录中，最新一次发送的消息id
+		contact.VersionID = versionId    // 版本号（用于拉取会话框）
+		contact.SortKey = versionId      // sort_key的值等同于version_id
+	}
 	return
 }

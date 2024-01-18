@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/spf13/cast"
+	"time"
 )
 
 // MsgId 生成msg_id
 // - msg_id要求全局唯一
 // - msg_id跟largerId的后4位是相同的（slotId其实就是largerId）
-func MsgId(ctx context.Context, mem *redis.Client, slotId uint64, currTimestamp int64) (uint64, error) {
+func MsgId(ctx context.Context, mem *redis.Client, slotId uint64) (uint64, error) {
 	// 每秒一个Key，在Key上面进行+1操作
-	key := keyMsgId(currTimestamp)
+	ts := time.Now().Unix()
+	key := keyMsgId(ts)
 	expireSec := 2
 	incr, err := incNum(ctx, mem, key, expireSec)
 	if err != nil {
@@ -21,7 +23,7 @@ func MsgId(ctx context.Context, mem *redis.Client, slotId uint64, currTimestamp 
 
 	// msg_id的组成部分：[ 10位：相对时间戳 | 6位：自增id | 4位：槽id ]
 	// 槽id的作用：使用msg_id也能定位到对应的数据库和数据表
-	timeOffset := currTimestamp - baseTimeStampOffset
+	timeOffset := ts - baseTimeStampOffset
 	idStr := fmt.Sprintf("%d%06d%04d", timeOffset, incr%1000000, slotId%10000)
 
 	return cast.ToUint64(idStr), nil

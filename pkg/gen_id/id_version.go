@@ -5,17 +5,19 @@ import (
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/spf13/cast"
+	"time"
 )
 
 // ContactVersionId 获取"会话表"的version_id
 // 注意：version_id不需要全局唯一，只要在同一个用户中唯一即可
-func ContactVersionId(ctx context.Context, mem *redis.Client, currTimestamp int64, ownerId uint64) (id uint64, err error) {
+func ContactVersionId(ctx context.Context, mem *redis.Client, ownerId uint64) (id uint64, err error) {
 	// key:
 	// - ownerId：contact's owner
 	// - verIdTimeKey = timeStamp / 128
 	//   - 每隔128，verIdTimeKey的值增加1，所以KEY随着随着时间的过去，会不断增大（我们就是需要它能不断增大的）
 	//   - 128秒内，使用同一KEY进行累加，如果128秒的请求数超出100w（同一个用户下），那么version_id的值就有问题了
-	verIdTimeKey := currTimestamp >> TimeStampKeyShift
+	ts := time.Now().Unix()
+	verIdTimeKey := ts >> TimeStampKeyShift
 	key := keyContactVersion(ownerId, verIdTimeKey)
 
 	// IncrBy
@@ -31,7 +33,7 @@ func ContactVersionId(ctx context.Context, mem *redis.Client, currTimestamp int6
 		}
 	}
 	// version_id的组成部分：[ 10位：当前时间戳 | 6位：自增id ]
-	idStr := fmt.Sprintf("%d%06d", currTimestamp, value%1000000)
+	idStr := fmt.Sprintf("%d%06d", ts, value%1000000)
 	id = cast.ToUint64(idStr)
 
 	return
@@ -39,13 +41,14 @@ func ContactVersionId(ctx context.Context, mem *redis.Client, currTimestamp int6
 
 // MsgVersionId 获取"消息表"的version_id
 // 注意：version_id不需要全局唯一，只要在同一个会话中唯一即可
-func MsgVersionId(ctx context.Context, mem *redis.Client, currTimestamp int64, smallerId, largerId uint64) (id uint64, err error) {
+func MsgVersionId(ctx context.Context, mem *redis.Client, smallerId, largerId uint64) (id uint64, err error) {
 	// key:
 	// - smallerId、largerId：people that in chatting
 	// - verIdTimeKey = timeStamp / 128
 	//   - 每隔128，verIdTimeKey的值增加1，所以KEY随着随着时间的过去，会不断增大（我们就是需要它能不断增大的）
 	//   - 128秒内，使用同一KEY进行累加，如果128秒的请求数超出100w（同一个会话下），那么version_id的值就有问题了
-	verIdTimeKey := currTimestamp >> TimeStampKeyShift
+	ts := time.Now().Unix()
+	verIdTimeKey := ts >> TimeStampKeyShift
 	key := keyMsgVersion(smallerId, largerId, verIdTimeKey)
 
 	// IncrBy
@@ -61,7 +64,7 @@ func MsgVersionId(ctx context.Context, mem *redis.Client, currTimestamp int64, s
 		}
 	}
 	// version_id的组成部分：[ 10位：当前时间戳 | 6位：自增id ]
-	idStr := fmt.Sprintf("%d%06d", currTimestamp, value%1000000)
+	idStr := fmt.Sprintf("%d%06d", ts, value%1000000)
 	id = cast.ToUint64(idStr)
 
 	return

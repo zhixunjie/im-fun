@@ -13,74 +13,83 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/utils"
 	"go.uber.org/zap"
-	"time"
 )
 
 type MessageUseCase struct {
-	repo           *data.MessageRepo
-	contactUseCase *ContactUseCase
+	repo        *data.MessageRepo
+	repoContact *data.ContactRepo
 }
 
-func NewMessageUseCase(repo *data.MessageRepo, contactUseCase *ContactUseCase) *MessageUseCase {
+func NewMessageUseCase(repo *data.MessageRepo, repoContact *data.ContactRepo) *MessageUseCase {
 	return &MessageUseCase{
-		repo:           repo,
-		contactUseCase: contactUseCase,
+		repo:        repo,
+		repoContact: repoContact,
 	}
 }
 
 // SendMessage 发送消息
-func (messageUseCase *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgReq) (resp response.SendMsgResp, err error) {
+func (b *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgReq) (resp response.SendMsgResp, err error) {
 	logHead := "SendMessage|"
-	currTimestamp := time.Now().Unix()
-	contactUseCase := messageUseCase.contactUseCase
 
-	// transform message
-	msg, err := messageUseCase.TransForm(ctx, req, currTimestamp)
+	// build message
+	msg, err := b.BuildMessage(ctx, req)
 	if err != nil {
 		return
 	}
 
-	// transform contact（sender）
+	// build contact（sender）
 	var senderContact, peerContact *model.Contact
 	if !lo.Contains[uint64](req.InvisibleList, req.SendId) {
-		senderContact, err = contactUseCase.Transform(ctx, req.SendId, req.PeerId, req.PeerType, currTimestamp, msg.MsgID)
+		senderContact, err = b.repoContact.BuildContact(ctx, &model.BuildContactParams{
+			MsgId:    msg.MsgID,
+			OwnerId:  req.SendId,
+			PeerId:   req.PeerId,
+			PeerType: req.PeerType,
+			PeerAck:  model.PeerNotAck,
+		})
 		if err != nil {
 			return
 		}
 	}
 
-	// transform contact（receive）
+	// build contact（receive）
 	if !lo.Contains[uint64](req.InvisibleList, req.PeerId) {
-		peerContact, err = contactUseCase.Transform(ctx, req.PeerId, req.SendId, req.SenderType, currTimestamp, msg.MsgID)
+		peerContact, err = b.repoContact.BuildContact(ctx, &model.BuildContactParams{
+			MsgId:    msg.MsgID,
+			OwnerId:  req.PeerId,
+			PeerId:   req.SendId,
+			PeerType: req.SenderType,
+			PeerAck:  model.PeerAck,
+		})
 		if err != nil {
 			return
 		}
 	}
 
 	// DB操作
-	err = messageUseCase.repo.Db.Transaction(func(tx *query.Query) error {
+	err = b.repo.Db.Transaction(func(tx *query.Query) error {
 		var errTx error
 
 		// 1. add message
-		errTx = messageUseCase.repo.AddMsg(tx, msg)
+		errTx = b.repo.AddMsg(tx, msg)
 		if errTx != nil {
 			logging.Error(logHead+"AddMsg error=%v", err)
 			return errTx
 		}
 		// 2. add contact(sender)
 		if senderContact != nil {
-			errTx = contactUseCase.repo.AddOrUpdateContact(tx, senderContact)
+			errTx = b.repoContact.EditContact(tx, senderContact)
 			if errTx != nil {
-				logging.Error(logHead+"AddOrUpdateContact error=%v", err)
+				logging.Error(logHead+"EditContact error=%v", err)
 				return errTx
 			}
 		}
 
 		// 3. add contact(peer)
 		if peerContact != nil {
-			errTx = contactUseCase.repo.AddOrUpdateContact(tx, peerContact)
+			errTx = b.repoContact.EditContact(tx, peerContact)
 			if errTx != nil {
-				logging.Error(logHead+"AddOrUpdateContact error=%v", err)
+				logging.Error(logHead+"EditContact error=%v", err)
 				return errTx
 			}
 		}
@@ -109,18 +118,18 @@ func (messageUseCase *MessageUseCase) SendMessage(ctx context.Context, req *requ
 	return
 }
 
-func (messageUseCase *MessageUseCase) TransForm(ctx context.Context, req *request.SendMsgReq, currTimestamp int64) (msg *model.Message, err error) {
-	mem := messageUseCase.repo.RedisClient
+func (b *MessageUseCase) BuildMessage(ctx context.Context, req *request.SendMsgReq) (msg *model.Message, err error) {
+	mem := b.repo.RedisClient
 
 	// gen msg_id
-	smallerId, largeId := utils.GetSortNum(req.SendId, req.PeerId)
-	msgId, err := gen_id.MsgId(ctx, mem, largeId, currTimestamp)
+	smallerId, largeId := utils.SortNum(req.SendId, req.PeerId)
+	msgId, err := gen_id.MsgId(ctx, mem, largeId)
 	if err != nil {
 		return
 	}
 
 	// gen version_id
-	versionId, err := gen_id.MsgVersionId(ctx, mem, currTimestamp, smallerId, largeId)
+	versionId, err := gen_id.MsgVersionId(ctx, mem, smallerId, largeId)
 	if err != nil {
 		return
 	}
@@ -159,7 +168,7 @@ func (messageUseCase *MessageUseCase) TransForm(ctx context.Context, req *reques
 }
 
 // FetchMessage 拉取消息
-func (messageUseCase *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsgReq) (resp response.FetchMsgResp, err error) {
+func (b *MessageUseCase) FetchMessage(ctx context.Context, req *request.FetchMsgReq) (resp response.FetchMsgResp, err error) {
 	// https://redis.io/commands/zrevrangebyscore/
 	// https://redis.io/commands/zcount/
 
