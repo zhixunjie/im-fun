@@ -19,8 +19,7 @@ func NewContactUseCase(contactRepo *data.ContactRepo) *ContactUseCase {
 	return &ContactUseCase{contactRepo: contactRepo}
 }
 
-func (b *ContactUseCase) FetchSession(ctx context.Context, req *request.FetchSessionReq) (resp response.FetchSessionResp, err error) {
-	//logHead := "FetchSession|"
+func (b *ContactUseCase) FetchContact(ctx context.Context, req *request.FetchContactReq) (resp response.FetchContactResp, err error) {
 	limit := 50
 
 	// 会话只会拉取最新的
@@ -62,7 +61,7 @@ func (b *ContactUseCase) FetchSession(ctx context.Context, req *request.FetchSes
 		return retList[i].SortKey < retList[j].SortKey
 	})
 
-	resp.Data = response.FetchSessionData{
+	resp.Data = response.FetchContactData{
 		ContactList:   retList,
 		NextVersionId: maxVersionId,
 		HasMore:       len(list) == limit,

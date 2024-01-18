@@ -54,16 +54,16 @@ func (s *Server) fetchMessage(ctx *gin.Context) {
 	return
 }
 
-func (s *Server) fetchSession(ctx *gin.Context) {
+func (s *Server) fetchContact(ctx *gin.Context) {
 	// request
-	var req request.FetchSessionReq
+	var req request.FetchContactReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.JsonError(ctx, err)
 		return
 	}
 
 	// biz
-	resp, err := s.BzContact.FetchSession(ctx, &req)
+	resp, err := s.BzContact.FetchContact(ctx, &req)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + err.Error()})

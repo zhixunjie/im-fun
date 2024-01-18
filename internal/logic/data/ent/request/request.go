@@ -28,7 +28,7 @@ type FetchMsgReq struct {
 	VersionId uint64          `json:"version_id"`
 }
 
-type FetchSessionReq struct {
+type FetchContactReq struct {
 	OwnerId   uint64 `json:"owner_id"`
 	VersionId uint64 `json:"version_id"`
 }

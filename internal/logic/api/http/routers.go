@@ -14,9 +14,9 @@ func (s *Server) SetupRouter() {
 	}
 
 	// contact
-	g2 := router.Group("/session")
+	g2 := router.Group("/contact")
 	{
-		g2.POST("/fetch", s.fetchSession)
+		g2.POST("/fetch", s.fetchContact)
 	}
 
 	// push

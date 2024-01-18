@@ -46,12 +46,12 @@ type Msg struct {
 	HasRead   uint32         `json:"has_read"`
 }
 
-type FetchSessionResp struct {
+type FetchContactResp struct {
 	Base
-	Data FetchSessionData `json:"data"`
+	Data FetchContactData `json:"data"`
 }
 
-type FetchSessionData struct {
+type FetchContactData struct {
 	ContactList   []*Contact `json:"contact_list"`
 	NextVersionId uint64     `json:"next_version_id"` // 最大的版本ID
 	HasMore       bool       `json:"has_more"`
