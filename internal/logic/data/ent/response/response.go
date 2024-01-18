@@ -62,10 +62,10 @@ type Contact struct {
 	PeerID       uint64 `json:"peer_id"`
 	PeerType     int32  `json:"peer_type"`
 	PeerAck      uint32 `json:"peer_ack"`
-	LastMsg      *Msg   `json:"last_msg"`
 	VersionID    uint64 `json:"version_id"`
 	SortKey      uint64 `json:"sort_key"`
 	Status       uint32 `json:"status"`
 	Labels       string `json:"labels"`
+	LastMsg      *Msg   `json:"last_msg"`
 	UnreadMsgNum int64  `json:"unread_msg_num"` // 当前会话框的未读信息数
 }
