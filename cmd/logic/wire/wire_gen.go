@@ -23,7 +23,7 @@ func InitGrpc(c *conf.Config) *grpc.Server {
 	contactRepo := data.NewContactRepo(dataData)
 	contactUseCase := biz.NewContactUseCase(contactRepo)
 	messageRepo := data.NewMessageRepo(dataData)
-	messageUseCase := biz.NewMessageUseCase(messageRepo, contactUseCase)
+	messageUseCase := biz.NewMessageUseCase(messageRepo, contactRepo)
 	server := grpc2.NewServer(c, bizBiz, contactUseCase, messageUseCase)
 	return server
 }
@@ -34,7 +34,7 @@ func InitHttp(c *conf.Config) *http.Server {
 	contactRepo := data.NewContactRepo(dataData)
 	contactUseCase := biz.NewContactUseCase(contactRepo)
 	messageRepo := data.NewMessageRepo(dataData)
-	messageUseCase := biz.NewMessageUseCase(messageRepo, contactUseCase)
+	messageUseCase := biz.NewMessageUseCase(messageRepo, contactRepo)
 	server := http.NewServer(c, bizBiz, contactUseCase, messageUseCase)
 	return server
 }
@@ -55,8 +55,7 @@ func GetMessageUseCase(c *conf.Config) *biz.MessageUseCase {
 	dataData := data.NewData(c)
 	messageRepo := data.NewMessageRepo(dataData)
 	contactRepo := data.NewContactRepo(dataData)
-	contactUseCase := biz.NewContactUseCase(contactRepo)
-	messageUseCase := biz.NewMessageUseCase(messageRepo, contactUseCase)
+	messageUseCase := biz.NewMessageUseCase(messageRepo, contactRepo)
 	return messageUseCase
 }
 
