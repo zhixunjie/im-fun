@@ -7,6 +7,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"gorm.io/gorm"
+	"math"
 )
 
 type ContactRepo struct {
@@ -103,5 +104,33 @@ func (repo *ContactRepo) Build(ctx context.Context, params *model.BuildContactPa
 		contact.VersionID = versionId    // 版本号（用于拉取会话框）
 		contact.SortKey = versionId      // sort_key的值等同于version_id
 	}
+	return
+}
+
+func (repo *ContactRepo) RangeList(params *model.QueryContactParams) (list []*model.Contact, err error) {
+	_, tbName := repo.TableName(params.OwnerId)
+	qModel := repo.Db.Contact.Table(tbName)
+	pivotVersionId := params.PivotVersionId
+	ownerId := params.OwnerId
+
+	// 需要建立索引：owner_id、status、version_id
+	switch params.FetchType {
+	case model.FetchTypeBackward: // 拉取历史消息，范围为：（负无穷, pivotVersionId）
+		if pivotVersionId == 0 {
+			pivotVersionId = math.MaxInt64
+		}
+		list, err = qModel.Where(
+			qModel.OwnerID.Eq(ownerId),
+			qModel.Status.Eq(uint32(model.ContactStatusNormal)),
+			qModel.VersionID.Lt(pivotVersionId),
+		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find()
+	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
+		list, err = qModel.Where(
+			qModel.OwnerID.Eq(ownerId),
+			qModel.Status.Eq(uint32(model.ContactStatusNormal)),
+			qModel.VersionID.Gt(pivotVersionId),
+		).Limit(params.Limit).Order(qModel.VersionID).Find()
+	}
+
 	return
 }

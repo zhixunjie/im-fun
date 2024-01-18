@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) send(ctx *gin.Context) {
+func (s *Server) sendMessage(ctx *gin.Context) {
 	// request
 	var req request.SendMsgReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -33,7 +33,7 @@ func (s *Server) send(ctx *gin.Context) {
 	return
 }
 
-func (s *Server) fetch(ctx *gin.Context) {
+func (s *Server) fetchMessage(ctx *gin.Context) {
 	// request
 	var req request.FetchMsgReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -43,6 +43,27 @@ func (s *Server) fetch(ctx *gin.Context) {
 
 	// biz
 	resp, err := s.BzMessage.Fetch(ctx, &req)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + err.Error()})
+		return
+	}
+
+	// resp
+	ctx.JSON(http.StatusOK, resp)
+	return
+}
+
+func (s *Server) fetchSession(ctx *gin.Context) {
+	// request
+	var req request.FetchSessionReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		response.JsonError(ctx, err)
+		return
+	}
+
+	// biz
+	resp, err := s.BzContact.FetchSession(ctx, &req)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + err.Error()})

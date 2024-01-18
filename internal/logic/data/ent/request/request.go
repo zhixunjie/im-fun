@@ -27,3 +27,8 @@ type FetchMsgReq struct {
 	PeerType  int32           `json:"peer_type"`
 	VersionId uint64          `json:"version_id"`
 }
+
+type FetchSessionReq struct {
+	OwnerId   uint64 `json:"owner_id"`
+	VersionId uint64 `json:"version_id"`
+}

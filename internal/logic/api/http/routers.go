@@ -9,8 +9,14 @@ func (s *Server) SetupRouter() {
 	// message
 	g1 := router.Group("/message")
 	{
-		g1.POST("/send", s.send)
-		g1.POST("/fetch", s.fetch)
+		g1.POST("/send", s.sendMessage)
+		g1.POST("/fetch", s.fetchMessage)
+	}
+
+	// contact
+	g2 := router.Group("/session")
+	{
+		g2.POST("/fetch", s.fetchSession)
 	}
 
 	// push

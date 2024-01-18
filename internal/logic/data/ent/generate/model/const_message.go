@@ -38,3 +38,18 @@ type QueryMsgParams struct {
 	LastDelMsgVersionId uint64
 	Limit               int
 }
+
+type QueryContactParams struct {
+	FetchType      FetchType
+	OwnerId        uint64
+	PivotVersionId uint64
+	Limit          int
+}
+
+type BuildContactParams struct {
+	MsgId    uint64
+	OwnerId  uint64
+	PeerId   uint64
+	PeerType PeerType
+	PeerAck  uint32
+}
