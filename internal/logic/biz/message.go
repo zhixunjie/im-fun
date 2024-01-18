@@ -105,13 +105,11 @@ func (b *MessageUseCase) SendMessage(ctx context.Context, req *request.SendMsgRe
 	// build response
 	resp = response.SendMsgResp{
 		Data: response.SendMsgRespData{
-			MsgId:        msg.MsgID,
-			SeqId:        msg.SeqID,
-			CreateTime:   msg.CreatedAt.Unix(),
-			UpdateTime:   msg.UpdatedAt.Unix(),
-			MsgVersionId: msg.VersionID,
-			MsgSortKey:   msg.SortKey,
-			UnreadCount:  0,
+			MsgId:       msg.MsgID,
+			SeqId:       msg.SeqID,
+			VersionId:   msg.VersionID,
+			SortKey:     msg.SortKey,
+			UnreadCount: 0,
 		},
 	}
 
