@@ -4,7 +4,6 @@ import (
 	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
-	"sync/atomic"
 	"time"
 )
 
@@ -40,7 +39,7 @@ func (b *Bucket) broadcast(p *protocol.Proto) {
 // BroadcastRoom
 // 房间广播：发送一个Proto到某个房间ID（即：SendToAllChan => Proto => ROOM）
 func (b *Bucket) BroadcastRoom(req *pb.SendToRoomReq) {
-	num := atomic.AddUint64(&b.routineCounter, 1) % uint64(b.conf.RoutineAmount)
+	num := b.routineCounter.Add(1) % uint64(b.conf.RoutineAmount)
 	b.routines[num] <- req
 }
 

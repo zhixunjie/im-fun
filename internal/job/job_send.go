@@ -8,7 +8,7 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
-func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, message []byte) (err error) {
+func (b *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, message []byte) (err error) {
 	logHead := "SendToUserKeys|"
 
 	// write to proto body（proto的body里面嵌套proto）
@@ -24,7 +24,7 @@ func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, 
 	proto.Body = writer.Buffer()
 
 	// push to comet
-	if cm, ok := job.allCometInvoker[serverId]; ok {
+	if cm, ok := b.cometInvokers[serverId]; ok {
 		params := pb.SendToUserKeysReq{
 			UserKeys: userKeys,
 			Proto:    proto,
@@ -37,7 +37,7 @@ func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, 
 	return
 }
 
-func (job *Job) SendToRoom(subId int32, roomId string, batchMessage []byte) (err error) {
+func (b *Job) SendToRoom(subId int32, roomId string, batchMessage []byte) (err error) {
 	logHead := "SendToRoom|"
 
 	// write to proto batchMessage（proto的body里面嵌套proto）
@@ -50,8 +50,8 @@ func (job *Job) SendToRoom(subId int32, roomId string, batchMessage []byte) (err
 		Body: batchMessage,
 	}
 
-	// push to every comet
-	for serverId, cm := range job.allCometInvoker {
+	// push to every comet's server
+	for serverId, cm := range b.cometInvokers {
 		params := pb.SendToRoomReq{
 			RoomId: roomId,
 			Proto:  proto,
@@ -63,7 +63,7 @@ func (job *Job) SendToRoom(subId int32, roomId string, batchMessage []byte) (err
 	return
 }
 
-func (job *Job) SendToAll(subId int32, speed int32, message []byte) (err error) {
+func (b *Job) SendToAll(subId int32, speed int32, message []byte) (err error) {
 	logHead := "SendToAll|"
 
 	// write to proto body（proto的body里面嵌套proto）
@@ -76,8 +76,8 @@ func (job *Job) SendToAll(subId int32, speed int32, message []byte) (err error) 
 	}
 
 	// push to every comet
-	speed = speed / int32(len(job.allCometInvoker))
-	for serverId, cm := range job.allCometInvoker {
+	speed = speed / int32(len(b.cometInvokers))
+	for serverId, cm := range b.cometInvokers {
 		params := pb.SendToAllReq{
 			Proto: proto,
 			SubId: subId,
@@ -90,8 +90,8 @@ func (job *Job) SendToAll(subId int32, speed int32, message []byte) (err error) 
 	return
 }
 
-func (job *Job) Close() {
-	if job.consumer != nil {
-		job.consumer.Close()
+func (b *Job) Close() {
+	if b.consumerGroup != nil {
+		b.consumerGroup.Close()
 	}
 }

@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	mCount int64
-	aCount int64
+	mCount atomic.Int64
+	aCount atomic.Int64
 )
 
 func DashBoard() {
@@ -30,20 +30,20 @@ func DashBoard() {
 	for {
 		select {
 		case <-ticker1.C:
-			msgCount := atomic.LoadInt64(&mCount)
+			msgCount := mCount.Load()
 			if msgCount-lastCount1 > qps {
 				qps = msgCount - lastCount1
 			}
 			lastCount1 = msgCount
 		case <-ticker5.C:
-			msgCount := atomic.LoadInt64(&mCount)
-			aliveCount := atomic.LoadInt64(&aCount)
+			msgCount := mCount.Load()
+			aliveCount := aCount.Load()
 			fmt.Println(fmt.Sprintf("%s aliveCount=%d msgTotal=%d,qpm=%v,最近%v秒内最大的qps:%d",
 				time.Now().Format("2006-01-02 15:04:05"),
 				aliveCount, msgCount, qpm, interval60, qps))
 			//lastCount5 = msgCount
 		case <-ticker60.C:
-			msgCount := atomic.LoadInt64(&mCount)
+			msgCount := mCount.Load()
 			qpm = msgCount - lastCount60
 			lastCount60 = msgCount
 			// reset qps

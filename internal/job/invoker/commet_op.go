@@ -1,41 +1,22 @@
-package job
+package invoker
 
 import (
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	pb "github.com/zhixunjie/im-fun/api/pb"
+	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-	"sync/atomic"
 	"time"
 )
 
-func (c *CometInvoker) SendToUserKeys(arg *pb.SendToUserKeysReq) (err error) {
-	idx := atomic.AddUint64(&c.pushChanNum, 1) % c.routineNum
-	c.chUserKeys[idx] <- arg
-	return
-}
-
-func (c *CometInvoker) SendToRoom(arg *pb.SendToRoomReq) (err error) {
-	idx := atomic.AddUint64(&c.roomChanNum, 1) % c.routineNum
-	c.chRoom[idx] <- arg
-	return
-}
-
-func (c *CometInvoker) SendToAll(arg *pb.SendToAllReq) (err error) {
-	c.chAll <- arg
-	return
-}
-
-func (c *CometInvoker) Process(i int) {
-	logHead := "Process|"
+func (c *CometInvoker) Run(i int) {
+	logHead := "Run|"
 
 	// loop to send msg to allComet
 	for {
 		select {
 		case <-c.ctx.Done():
 			return
-		case msg := <-c.chUserKeys[i]:
+		case msg := <-c.chUser[i]:
 			_, err := c.rpcClient.SendToUserKeys(context.Background(), msg)
 			if err != nil {
 				logging.Errorf(logHead+"conf.rpcClient.SendToUsers(%s),serverId=%s,error=%v",
@@ -57,19 +38,36 @@ func (c *CometInvoker) Process(i int) {
 	}
 }
 
+func (c *CometInvoker) SendToUserKeys(arg *pb.SendToUserKeysReq) (err error) {
+	idx := c.pushChanNum.Add(1) % c.RoutineNum
+	c.chUser[idx] <- arg
+	return
+}
+
+func (c *CometInvoker) SendToRoom(arg *pb.SendToRoomReq) (err error) {
+	idx := c.roomChanNum.Add(1) % c.RoutineNum
+	c.chRoom[idx] <- arg
+	return
+}
+
+func (c *CometInvoker) SendToAll(arg *pb.SendToAllReq) (err error) {
+	c.chAll <- arg
+	return
+}
+
 func (c *CometInvoker) Close() (err error) {
 	finish := make(chan bool)
-	closePushChan := c.chUserKeys
-	closeRoomChan := c.chRoom
-	closeBroadcastChan := c.chAll
+	sendUserChan := c.chUser
+	sendRoomChan := c.chRoom
+	sendAllChan := c.chAll
 
 	go func() {
 		for {
-			n := len(closeBroadcastChan)
-			for _, ch := range closePushChan {
+			n := len(sendAllChan)
+			for _, ch := range sendUserChan {
 				n += len(ch)
 			}
-			for _, ch := range closeRoomChan {
+			for _, ch := range sendRoomChan {
 				n += len(ch)
 			}
 			if n == 0 {
@@ -81,10 +79,11 @@ func (c *CometInvoker) Close() (err error) {
 	}()
 	select {
 	case <-finish:
-		logrus.Info("close allComet finish")
+		logging.Info("close all CometInvoker finish")
 	case <-time.After(5 * time.Second):
-		err = fmt.Errorf("close allComet timeout (server:%s push:%d room:%d broadcast:%d)",
-			c.serverId, len(closePushChan), len(closeRoomChan), len(closeBroadcastChan))
+		format := "serverId=%v,sendUserChan=%d,sendRoomChan=%d,sendAllChan=%d"
+		err = fmt.Errorf("close all CometInvoker timeout"+format, c.serverId, len(sendUserChan), len(sendRoomChan), len(sendAllChan))
+		logging.Error(err)
 	}
 	c.cancel()
 	return

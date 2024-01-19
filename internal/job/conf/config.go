@@ -31,6 +31,6 @@ type Room struct {
 }
 
 type CometInvoker struct {
-	ChanNum    int `yaml:"chanNum"`    // 每个协程对应多个Channel，这里设置每个Channel的缓冲区大小
-	RoutineNum int `yaml:"routineNum"` // 协程数目，用于消费Channel的消息
+	RoutineNum     int `yaml:"routineNum"`     // 协程数目，用于消费Channel的消息
+	ChanBufferSize int `yaml:"chanBufferSize"` // 每个协程对应多个Channel，这里设置单个Channel的缓冲区大小
 }

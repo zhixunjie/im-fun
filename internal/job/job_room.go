@@ -15,27 +15,27 @@ var (
 	ErrRoomFull = errors.New("room proto chan full")
 )
 
-type Room struct {
-	conf  *conf.Room
-	job   *Job
-	id    string               // 房间Id
-	proto chan *protocol.Proto // 有缓冲的Channel
+type RoomJob struct {
+	conf   *conf.Room
+	job    *Job
+	roomId string               // 房间Id
+	proto  chan *protocol.Proto // 有缓冲的Channel
 }
 
-func NewRoom(job *Job, roomId string) (r *Room) {
+func NewRoom(job *Job, roomId string) (r *RoomJob) {
 	c := job.conf.Room
-	r = &Room{
-		conf:  c,
-		id:    roomId,
-		job:   job,
-		proto: make(chan *protocol.Proto, c.Batch*2),
+	r = &RoomJob{
+		conf:   c,
+		roomId: roomId,
+		job:    job,
+		proto:  make(chan *protocol.Proto, c.Batch*2),
 	}
 	go r.receiveFromCh(c.Batch, time.Duration(c.Duration))
 	return
 }
 
 // SendToCh 向房间发送消息
-func (r *Room) SendToCh(msg []byte) error {
+func (r *RoomJob) SendToCh(msg []byte) error {
 	var p = &protocol.Proto{
 		Ver:  protocol.ProtoVersion,
 		Op:   int32(protocol.OpBatchMsg),
@@ -52,8 +52,8 @@ func (r *Room) SendToCh(msg []byte) error {
 	}
 }
 
-func (r *Room) receiveFromCh(accumulate int, interval time.Duration) {
-	logHead := fmt.Sprintf("receive|roowId=%v,", r.id)
+func (r *RoomJob) receiveFromCh(accumulate int, interval time.Duration) {
+	logHead := fmt.Sprintf("receive|roowId=%v,", r.roomId)
 
 	duration := interval * 100
 	timer := time.NewTicker(duration)
@@ -69,8 +69,10 @@ func (r *Room) receiveFromCh(accumulate int, interval time.Duration) {
 		if len(content) == 0 {
 			return
 		}
+
 		// send room msg
-		_ = r.job.SendToRoom(0, r.id, content)
+		_ = r.job.SendToRoom(0, r.roomId, content)
+
 		// reset
 		counter = 0
 		writer.Reset()
@@ -105,31 +107,31 @@ func (r *Room) receiveFromCh(accumulate int, interval time.Duration) {
 	}
 end:
 	logging.Infof(logHead + "delete room")
-	r.job.DelRoom(r.id)
+	r.job.DelRoom(r.roomId)
 }
 
-// Job's Operation about Room
+// Job's Operation about RoomJob
 
-func (job *Job) CreateOrGetRoom(roomId string) *Room {
-	job.rwMutex.RLock()
-	room, ok := job.rooms[roomId]
-	job.rwMutex.RUnlock()
+func (b *Job) CreateOrGetRoom(roomId string) *RoomJob {
+	b.rwMutex.RLock()
+	room, ok := b.roomJobs[roomId]
+	b.rwMutex.RUnlock()
 	if !ok {
-		job.rwMutex.Lock()
-		if room, ok = job.rooms[roomId]; !ok {
-			room = NewRoom(job, roomId)
-			job.rooms[roomId] = room
+		b.rwMutex.Lock()
+		if room, ok = b.roomJobs[roomId]; !ok {
+			room = NewRoom(b, roomId)
+			b.roomJobs[roomId] = room
 		}
-		job.rwMutex.Unlock()
-		logging.Infof("create a room=%s,active=%d", roomId, len(job.rooms))
+		b.rwMutex.Unlock()
+		logging.Infof("create a room=%s,active=%d", roomId, len(b.roomJobs))
 	} else {
-		logging.Infof("get a room=%s,active=%d", roomId, len(job.rooms))
+		logging.Infof("get a room=%s,active=%d", roomId, len(b.roomJobs))
 	}
 	return room
 }
 
-func (job *Job) DelRoom(roomId string) {
-	job.rwMutex.Lock()
-	delete(job.rooms, roomId)
-	job.rwMutex.Unlock()
+func (b *Job) DelRoom(roomId string) {
+	b.rwMutex.Lock()
+	delete(b.roomJobs, roomId)
+	b.rwMutex.Unlock()
 }

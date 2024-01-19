@@ -5,6 +5,7 @@ import (
 	"github.com/Shopify/sarama"
 	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/job/conf"
+	"github.com/zhixunjie/im-fun/internal/job/invoker"
 	"github.com/zhixunjie/im-fun/pkg/kafka"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"google.golang.org/protobuf/proto"
@@ -13,43 +14,43 @@ import (
 )
 
 type Job struct {
-	conf            *conf.Config
-	consumer        *kafka.ConsumerGroup
-	allCometInvoker map[string]*CometInvoker
+	conf          *conf.Config
+	consumerGroup *kafka.ConsumerGroup             // KAFKA：消息者组
+	cometInvokers map[string]*invoker.CometInvoker // 记录：所有的CometInvoker
 
-	rooms   map[string]*Room
-	rwMutex sync.RWMutex
+	roomJobs map[string]*RoomJob
+	rwMutex  sync.RWMutex
 }
 
 func NewJob(conf *conf.Config) *Job {
-	job := &Job{
-		conf:            conf,
-		allCometInvoker: map[string]*CometInvoker{},
-		rooms:           make(map[string]*Room),
+	b := &Job{
+		conf:          conf,
+		cometInvokers: map[string]*invoker.CometInvoker{},
+		roomJobs:      make(map[string]*RoomJob),
 	}
 
-	// make consumer
-	tmp, err := kafka.NewConsumerGroup(&conf.Kafka[0], func(msg *sarama.ConsumerMessage) {
-		job.Consume(msg)
+	// 1. make consumer group
+	var err error
+	b.consumerGroup, err = kafka.NewConsumerGroup(&conf.Kafka[0], func(msg *sarama.ConsumerMessage) {
+		b.Consume(msg)
 	})
 	if err != nil {
 		panic(err)
 	}
-	job.consumer = tmp
 
-	// make comet
+	// 2. make comet invoker
 	defHost, _ := os.Hostname()
-	cm, err := NewCometInvoker(defHost, conf.CometInvoker)
+	cmt, err := invoker.NewCometInvoker(defHost, conf.CometInvoker)
 	if err != nil {
 		panic(err)
 	}
-	job.allCometInvoker[defHost] = cm
+	b.cometInvokers[defHost] = cmt
 
-	return job
+	return b
 }
 
 // Consume messages, watch signals
-func (job *Job) Consume(msg *sarama.ConsumerMessage) {
+func (b *Job) Consume(msg *sarama.ConsumerMessage) {
 	logHead := "Consume|"
 	var err error
 
@@ -63,11 +64,11 @@ func (job *Job) Consume(msg *sarama.ConsumerMessage) {
 	// deal msg
 	switch message.Type {
 	case pb.KafkaSendMsg_UserKeys:
-		err = job.SendToUserKeys(message.SubId, message.ServerId, message.UserKeys, message.Msg)
+		err = b.SendToUserKeys(message.SubId, message.ServerId, message.UserKeys, message.Msg)
 	case pb.KafkaSendMsg_UserRoom:
-		err = job.CreateOrGetRoom(message.RoomId).SendToCh(message.Msg)
+		err = b.CreateOrGetRoom(message.RoomId).SendToCh(message.Msg)
 	case pb.KafkaSendMsg_UserAll:
-		err = job.SendToAll(message.SubId, message.Speed, message.Msg)
+		err = b.SendToAll(message.SubId, message.Speed, message.Msg)
 	default:
 		err = fmt.Errorf("unknown send type: %s", message.Type)
 	}

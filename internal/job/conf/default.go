@@ -12,7 +12,7 @@ func defaultConfig() *Config {
 			Addr: "127.0.0.1:7171",
 		},
 		Kafka:        DefaultKafka(),
-		CometInvoker: &CometInvoker{ChanNum: 1024, RoutineNum: 32},
+		CometInvoker: &CometInvoker{RoutineNum: 32, ChanBufferSize: 1024},
 		Room: &Room{
 			Batch:    20,
 			Duration: newtime.Duration(time.Millisecond * 500),

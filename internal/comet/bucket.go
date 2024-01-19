@@ -5,6 +5,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/logging"
+	"go.uber.org/atomic"
 	"sync"
 )
 
@@ -15,7 +16,7 @@ type Bucket struct {
 	chs    map[string]*channel.Channel // map：model.UserInfo.UserKey => GetChannelByUserKey
 
 	// room
-	routineCounter uint64
+	routineCounter atomic.Uint64
 	rooms          map[string]*channel.Room // map: RoomId => Room
 	routines       []chan *pb.SendToRoomReq // deal with proto to room
 

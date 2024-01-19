@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"net"
-	"sync/atomic"
 )
 
 func Start(userId int64, addr string) {
@@ -20,11 +19,11 @@ func Start(userId int64, addr string) {
 	}
 
 	// quit
-	atomic.AddInt64(&aCount, 1)
+	aCount.Add(1)
 	quit := make(chan bool, 1)
 	defer func() {
 		close(quit)
-		atomic.AddInt64(&aCount, -1)
+		aCount.Add(-1)
 	}()
 
 	// init

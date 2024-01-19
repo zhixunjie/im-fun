@@ -10,7 +10,6 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"io"
 	"net"
-	"sync/atomic"
 	"time"
 )
 
@@ -119,7 +118,7 @@ func Reader(ctx context.Context, conn net.Conn, rd *bufio.Reader, userId int64, 
 					}
 					PrintProto(logHead+"receive msg", batchProto)
 				}
-				atomic.AddInt64(&mCount, 1)
+				mCount.Add(1)
 			}
 		default:
 			PrintProto(logHead+"receive unknown msg", proto)
