@@ -94,7 +94,7 @@ func ProtoReady(logHead string, ch *channel.Channel) error {
 			}
 		default:
 			// 2.2 write msg to client directly
-			//if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
+			//if err = ch.ConnectionReaderWriter.WriteProto(proto); err != nil {
 			//	logging.Errorf(logHead+"WriteTCP err=%v", err)
 			//	return ErrTCPWriteError
 			//}

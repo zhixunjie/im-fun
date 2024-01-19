@@ -9,7 +9,7 @@ import (
 
 // 连接的读写操作（适配TCP与WebSocket连接）
 
-type ConnReaderWriter interface {
+type ConnectionReaderWriter interface {
 	ReadProto(proto *Proto) (err error)
 	WriteProto(proto *Proto) (err error)
 	WriteProtoHeart(proto *Proto, online int32) (err error)

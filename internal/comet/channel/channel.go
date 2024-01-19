@@ -25,7 +25,7 @@ type Channel struct {
 	// use bufio to reuse buffer
 	Writer           *bufio.Writer
 	Reader           *bufio.Reader
-	ConnReaderWriter protocol.ConnReaderWriter
+	ConnReaderWriter protocol.ConnectionReaderWriter
 
 	// User Info
 	UserInfo *UserInfo
