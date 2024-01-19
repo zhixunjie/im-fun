@@ -23,9 +23,9 @@ type Channel struct {
 	Prev   *Channel
 
 	// use bufio to reuse buffer
-	Writer           *bufio.Writer
-	Reader           *bufio.Reader
-	ConnReaderWriter protocol.ConnectionReaderWriter
+	Writer         *bufio.Writer
+	Reader         *bufio.Reader
+	ConnReadWriter protocol.ConnReadWriter
 
 	// User Info
 	UserInfo *UserInfo
@@ -70,14 +70,14 @@ func NewChannel(conf *conf.Config, conn *net.TCPConn, traceId int64, connType in
 	// set connection's reader and writer
 	ch.Reader = reader
 	ch.Writer = writer
-	ch.ConnReaderWriter = protocol.NewTcpConnReaderWriter(reader, writer)
+	ch.ConnReadWriter = protocol.NewTcpConnReaderWriter(reader, writer)
 
 	return ch
 }
 
 func (c *Channel) SetWebSocketConnReaderWriter(wsConn *websocket.Conn) {
 	c.ConnComponent.WsConn = wsConn
-	c.ConnReaderWriter = protocol.NewWsConnReaderWriter(wsConn)
+	c.ConnReadWriter = protocol.NewWsConnReaderWriter(wsConn)
 }
 
 func (c *Channel) CleanPath1() {

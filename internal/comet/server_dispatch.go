@@ -34,7 +34,7 @@ func (s *Server) dispatch(logHead string, ch *channel.Channel) {
 		case protocol.OpBatchMsg:
 			// case2: write msg to client
 			// 数据流：client -> [logic] -> [job] -> [comet] -> ch.Waiting()
-			if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
+			if err = ch.ConnReadWriter.WriteProto(proto); err != nil {
 				logging.Errorf(logHead+"WriteProto err=%v", err)
 				goto fail
 			}
@@ -47,7 +47,7 @@ func (s *Server) dispatch(logHead string, ch *channel.Channel) {
 			logging.Errorf(logHead + "unknown proto")
 			goto fail
 		}
-		if err = ch.ConnReaderWriter.Flush(); err != nil {
+		if err = ch.ConnReadWriter.Flush(); err != nil {
 			goto fail
 		}
 	}
@@ -88,13 +88,13 @@ func ProtoReady(logHead string, ch *channel.Channel) error {
 			if ch.Room != nil {
 				online = ch.Room.OnlineNum()
 			}
-			if err = ch.ConnReaderWriter.WriteProtoHeart(proto, online); err != nil {
+			if err = ch.ConnReadWriter.WriteProtoHeart(proto, online); err != nil {
 				logging.Errorf(logHead+"WriteTCPHeart err=%v", err)
 				return ErrTCPWriteError
 			}
 		default:
 			// 2.2 write msg to client directly
-			//if err = ch.ConnectionReaderWriter.WriteProto(proto); err != nil {
+			//if err = ch.ConnReadWriter.WriteProto(proto); err != nil {
 			//	logging.Errorf(logHead+"WriteTCP err=%v", err)
 			//	return ErrTCPWriteError
 			//}

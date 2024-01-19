@@ -170,7 +170,7 @@ func (s *Server) serveTCP(logHead string, ch *channel.Channel, connType int) {
 		// read msg from client
 		// note：if there is no msg，it will block here
 		//logging.Infof(logHead + "waiting proto from client...")
-		if err = ch.ConnReaderWriter.ReadProto(proto); err != nil {
+		if err = ch.ConnReadWriter.ReadProto(proto); err != nil {
 			//logging.Errorf(logHead+"ReadProto err=%v", err)
 			goto fail
 		}
@@ -217,7 +217,7 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 	}
 	// 一直读取，直到读取到的Proto的操作类型为protocol.OpAuth
 	for {
-		if err = ch.ConnReaderWriter.ReadProto(proto); err != nil {
+		if err = ch.ConnReadWriter.ReadProto(proto); err != nil {
 			logging.Errorf(logHead+"ReadProto err=%v", err)
 			return
 		}
@@ -248,11 +248,11 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 	proto.Op = int32(protocol.OpAuthReply)
 	proto.Seq = int32(gen_id.SeqId())
 	proto.Body = nil
-	if err = ch.ConnReaderWriter.WriteProto(proto); err != nil {
+	if err = ch.ConnReadWriter.WriteProto(proto); err != nil {
 		logging.Errorf(logHead+"WriteTCP UserInfo=%v, err=%v", ch.UserInfo, err)
 		return
 	}
-	err = ch.ConnReaderWriter.Flush()
+	err = ch.ConnReadWriter.Flush()
 	return
 }
 
