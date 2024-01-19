@@ -16,7 +16,7 @@ import (
 type Channel struct {
 	ConnComponent
 
-	// The Room that Channel(User) is In
+	// the Room that Channel(User) is in
 	Room   *Room
 	signal chan *protocol.Proto
 	Next   *Channel
@@ -27,7 +27,7 @@ type Channel struct {
 	Reader         *bufio.Reader
 	ConnReadWriter protocol.ConnReadWriter
 
-	// User Info
+	// user info
 	UserInfo *UserInfo
 
 	// use to get proto，reduce GC
