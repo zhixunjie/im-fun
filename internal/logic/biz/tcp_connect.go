@@ -7,6 +7,14 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
+//type TcpUseCase struct {
+//	contactRepo *data.TcpRepo
+//}
+//
+//func NewTcpUseCase(contactRepo *data.TcpRepo) *TcpUseCase {
+//	return &TcpUseCase{contactRepo: contactRepo}
+//}
+
 // Connect connected a conn.
 func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (hb int64, err error) {
 	logHead := "Connect|"
