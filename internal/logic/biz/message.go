@@ -119,6 +119,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.SendMsgReq) (res
 	return
 }
 
+// Build 构建消息体
 func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (msg *model.Message, err error) {
 	logHead := "Build|"
 	mem := b.repoMessage.RedisClient
@@ -178,8 +179,6 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (ms
 }
 
 // Fetch 拉取消息
-// https://redis.io/commands/zrevrangebyscore/
-// https://redis.io/commands/zcount/
 func (b *MessageUseCase) Fetch(ctx context.Context, req *request.FetchMsgReq) (resp response.FetchMsgResp, err error) {
 	//logHead := "Fetch|"
 	pivotVersionId := req.VersionId
