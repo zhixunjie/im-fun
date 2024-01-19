@@ -9,8 +9,8 @@ type PingReq struct {
 	Id int `json:"id"`
 }
 
-// SendMsgReq 发送消息-请求
-type SendMsgReq struct {
+// MessageSendReq 发送消息-请求
+type MessageSendReq struct {
 	SeqId         uint64         `json:"seq_id"`         // 消息唯一ID（客户端）
 	SendId        uint64         `json:"send_id"`        // 发送者ID
 	SenderType    int32          `json:"send_type"`      // 发送者类型
@@ -20,7 +20,7 @@ type SendMsgReq struct {
 	MsgBody       format.MsgBody `json:"msg_body"`       // 消息体
 }
 
-type FetchMsgReq struct {
+type MessageFetchReq struct {
 	FetchType model.FetchType `json:"fetch_type"`
 	OwnerId   uint64          `json:"owner_id"`
 	PeerId    uint64          `json:"peer_id"`
@@ -28,7 +28,7 @@ type FetchMsgReq struct {
 	VersionId uint64          `json:"version_id"`
 }
 
-type FetchContactReq struct {
+type ContactFetchReq struct {
 	OwnerId   uint64 `json:"owner_id"`
 	VersionId uint64 `json:"version_id"`
 }

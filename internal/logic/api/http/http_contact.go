@@ -7,16 +7,16 @@ import (
 	"net/http"
 )
 
-func (s *Server) fetchContact(ctx *gin.Context) {
+func (s *Server) ContactFetch(ctx *gin.Context) {
 	// request
-	var req request.FetchContactReq
+	var req request.ContactFetchReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.JsonError(ctx, err)
 		return
 	}
 
 	// biz
-	resp, err := s.BzContact.FetchContact(ctx, &req)
+	resp, err := s.BzContact.Fetch(ctx, &req)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"msg": "error: " + err.Error()})

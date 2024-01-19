@@ -19,7 +19,8 @@ func NewContactUseCase(contactRepo *data.ContactRepo) *ContactUseCase {
 	return &ContactUseCase{contactRepo: contactRepo}
 }
 
-func (b *ContactUseCase) FetchContact(ctx context.Context, req *request.FetchContactReq) (resp response.FetchContactResp, err error) {
+// Fetch 拉取会话
+func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq) (resp response.ContactFetchRsp, err error) {
 	limit := 50
 
 	// 会话只会拉取最新的

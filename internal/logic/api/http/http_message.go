@@ -8,9 +8,9 @@ import (
 	"net/http"
 )
 
-func (s *Server) sendMessage(ctx *gin.Context) {
+func (s *Server) MessageSend(ctx *gin.Context) {
 	// request
-	var req request.SendMsgReq
+	var req request.MessageSendReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.JsonError(ctx, err)
 		return
@@ -33,9 +33,9 @@ func (s *Server) sendMessage(ctx *gin.Context) {
 	return
 }
 
-func (s *Server) fetchMessage(ctx *gin.Context) {
+func (s *Server) MessageFetch(ctx *gin.Context) {
 	// request
-	var req request.FetchMsgReq
+	var req request.MessageFetchReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.JsonError(ctx, err)
 		return

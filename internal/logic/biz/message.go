@@ -31,7 +31,7 @@ func NewMessageUseCase(repoMessage *data.MessageRepo, repoContact *data.ContactR
 }
 
 // Send 发送消息
-func (b *MessageUseCase) Send(ctx context.Context, req *request.SendMsgReq) (resp response.SendMsgResp, err error) {
+func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) (rsp response.MessageSendRsp, err error) {
 	logHead := "SendMessage|"
 
 	// 1. build message
@@ -106,7 +106,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.SendMsgReq) (res
 	logging.Info(logHead + "mysql tx success")
 
 	// 6.build response
-	resp = response.SendMsgResp{
+	rsp = response.MessageSendRsp{
 		Data: response.SendMsgRespData{
 			MsgId:       msg.MsgID,
 			SeqId:       msg.SeqID,
@@ -120,7 +120,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.SendMsgReq) (res
 }
 
 // Build 构建消息体
-func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (msg *model.Message, err error) {
+func (b *MessageUseCase) Build(ctx context.Context, req *request.MessageSendReq) (msg *model.Message, err error) {
 	logHead := "Build|"
 	mem := b.repoMessage.RedisClient
 
@@ -179,7 +179,7 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (ms
 }
 
 // Fetch 拉取消息
-func (b *MessageUseCase) Fetch(ctx context.Context, req *request.FetchMsgReq) (resp response.FetchMsgResp, err error) {
+func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq) (rsp response.MessageFetchRsp, err error) {
 	//logHead := "Fetch|"
 	pivotVersionId := req.VersionId
 	limit := 50
@@ -283,7 +283,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.FetchMsgReq) (r
 		return retList[i].SortKey < retList[j].SortKey
 	})
 
-	resp.Data = response.FetchMsgData{
+	rsp.Data = response.FetchMsgData{
 		MsgList:       retList,
 		NextVersionId: nextVersionId,
 		HasMore:       len(list) == limit,
