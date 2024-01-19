@@ -14,7 +14,6 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/utils"
-	"go.uber.org/zap"
 	"math"
 	"sort"
 )
@@ -98,7 +97,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		return nil
 	})
 	if err != nil {
-		logging.Error(logHead+"mysql tx error", zap.Error(err))
+		logging.Error(logHead + "mysql tx error,err=%v")
 		return
 	}
 	logging.Info(logHead + "mysql tx success")
