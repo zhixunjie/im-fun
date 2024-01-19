@@ -7,6 +7,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"
+	"gorm.io/gen"
 	"gorm.io/gorm"
 	"math"
 )
@@ -39,43 +40,52 @@ func (repo *ContactRepo) TableName(ownerId uint64) (dbName string, tbName string
 func (repo *ContactRepo) InfoWithCache(ownerId uint64, peerId uint64) (*model.Contact, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
-	return repo.Info(ownerId, peerId)
+	return repo.Info("InfoWithCache|", ownerId, peerId)
 }
 
 // Info 查询某个会话的信息
-func (repo *ContactRepo) Info(ownerId uint64, peerId uint64) (row *model.Contact, err error) {
+func (repo *ContactRepo) Info(logHead string, ownerId uint64, peerId uint64) (row *model.Contact, err error) {
 	_, tbName := repo.TableName(ownerId)
 	qModel := repo.Db.Contact.Table(tbName)
 
 	row, err = qModel.Where(qModel.OwnerID.Eq(ownerId), qModel.PeerID.Eq(peerId)).Take()
 	if err != nil {
+		logging.Errorf(logHead+"Take err=%v", err)
 		return
 	}
 	return
 }
 
 // Edit 插入/更新记录
-func (repo *ContactRepo) Edit(tx *query.Query, row *model.Contact) (err error) {
+func (repo *ContactRepo) Edit(logHead string, tx *query.Query, row *model.Contact) (err error) {
+	logHead += fmt.Sprintf("Edit,row=%v|", row)
+
 	_, tbName := repo.TableName(row.OwnerID)
 	qModel := tx.Contact.Table(tbName)
 
+	// insert or update ?
 	if row.ID == 0 {
 		err = qModel.Create(row)
 		if err != nil {
+			logging.Errorf(logHead+"Create fail,err=%v", err)
 			return
 		}
+		logging.Infof(logHead + "Create success")
 	} else {
-		_, err = qModel.Updates(row)
+		var res gen.ResultInfo
+		res, err = qModel.Where(qModel.ID.Eq(row.ID)).Limit(1).Updates(row)
 		if err != nil {
+			logging.Errorf(logHead+"Updates fail,err=%v", err)
 			return
 		}
+		logging.Infof(logHead+"Updates success,RowsAffected=%v", res.RowsAffected)
 	}
 
 	return
 }
 
-func (repo *ContactRepo) Build(ctx context.Context, params *model.BuildContactParams) (contact *model.Contact, err error) {
-	logHead := "Build|"
+func (repo *ContactRepo) Build(ctx context.Context, logHead string, params *model.BuildContactParams) (contact *model.Contact, err error) {
+	logHead += "Build|"
 	mem := repo.RedisClient
 
 	// get version_id
@@ -85,11 +95,12 @@ func (repo *ContactRepo) Build(ctx context.Context, params *model.BuildContactPa
 		OwnerId:        params.OwnerId,
 	})
 	if err != nil {
+		logging.Errorf(logHead+"gen VersionId error=%v", err)
 		return
 	}
 
 	// query contact
-	contact, err = repo.Info(params.OwnerId, params.PeerId)
+	contact, err = repo.Info(logHead, params.OwnerId, params.PeerId)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		logging.Errorf(logHead+"Info error=%v", err)
 		return

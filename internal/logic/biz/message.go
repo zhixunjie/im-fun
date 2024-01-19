@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/samber/lo"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
@@ -32,10 +33,10 @@ func NewMessageUseCase(repoMessage *data.MessageRepo, repoContact *data.ContactR
 
 // Send 发送消息
 func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) (rsp response.MessageSendRsp, err error) {
-	logHead := "SendMessage|"
+	logHead := fmt.Sprintf("Send,SenderId=%v,ReceiverId=%v|", req.SenderId, req.ReceiverId)
 
 	// 1. build message
-	msg, err := b.Build(ctx, req)
+	msg, err := b.Build(ctx, logHead, req)
 	if err != nil {
 		return
 	}
@@ -43,7 +44,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	// 2. build contact（sender）
 	var senderContact, peerContact *model.Contact
 	if !lo.Contains[uint64](req.InvisibleList, req.SenderId) {
-		senderContact, err = b.repoContact.Build(ctx, &model.BuildContactParams{
+		senderContact, err = b.repoContact.Build(ctx, logHead, &model.BuildContactParams{
 			LastMsgId:    msg.MsgID,
 			OwnerId:      req.SenderId,
 			PeerId:       req.ReceiverId,
@@ -57,7 +58,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 
 	// 3. build contact（receive）
 	if !lo.Contains[uint64](req.InvisibleList, req.ReceiverId) {
-		peerContact, err = b.repoContact.Build(ctx, &model.BuildContactParams{
+		peerContact, err = b.repoContact.Build(ctx, logHead, &model.BuildContactParams{
 			LastMsgId:    msg.MsgID,
 			OwnerId:      req.ReceiverId,
 			PeerId:       req.SenderId,
@@ -74,25 +75,22 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		var errTx error
 
 		// 5.1 add message
-		errTx = b.repoMessage.Create(tx, msg)
+		errTx = b.repoMessage.Create(logHead, tx, msg)
 		if errTx != nil {
-			logging.Error(logHead+"AddMsg error=%v", err)
 			return errTx
 		}
 		// 5.2 add contact(sender)
 		if senderContact != nil {
-			errTx = b.repoContact.Edit(tx, senderContact)
+			errTx = b.repoContact.Edit(logHead, tx, senderContact)
 			if errTx != nil {
-				logging.Error(logHead+"EditContact error=%v", err)
 				return errTx
 			}
 		}
 
 		// 5.3 add contact(peer)
 		if peerContact != nil {
-			errTx = b.repoContact.Edit(tx, peerContact)
+			errTx = b.repoContact.Edit(logHead, tx, peerContact)
 			if errTx != nil {
-				logging.Error(logHead+"EditContact error=%v", err)
 				return errTx
 			}
 		}
@@ -120,14 +118,15 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 }
 
 // Build 构建消息体
-func (b *MessageUseCase) Build(ctx context.Context, req *request.MessageSendReq) (msg *model.Message, err error) {
-	logHead := "Build|"
+func (b *MessageUseCase) Build(ctx context.Context, logHead string, req *request.MessageSendReq) (msg *model.Message, err error) {
+	logHead += "Build|"
 	mem := b.repoMessage.RedisClient
 
 	// gen msg_id
 	smallerId, largeId := utils.SortNum(req.SenderId, req.ReceiverId)
 	msgId, err := gen_id.MsgId(ctx, mem, largeId)
 	if err != nil {
+		logging.Errorf(logHead+"gen MsgId error=%v", err)
 		return
 	}
 
@@ -139,7 +138,7 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.MessageSendReq)
 		LargerId:       largeId,
 	})
 	if err != nil {
-		logging.Errorf(logHead+"MsgVersionId error=%v", err)
+		logging.Errorf(logHead+"gen VersionId error=%v", err)
 		return
 	}
 
@@ -180,12 +179,12 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.MessageSendReq)
 
 // Fetch 拉取消息
 func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq) (rsp response.MessageFetchRsp, err error) {
-	//logHead := "Fetch|"
+	logHead := "Fetch|"
 	pivotVersionId := req.VersionId
 	limit := 50
 
 	// get: contact info
-	contactInfo, err := b.repoContact.Info(req.OwnerId, req.PeerId)
+	contactInfo, err := b.repoContact.Info(logHead, req.OwnerId, req.PeerId)
 	if err != nil {
 		return
 	}

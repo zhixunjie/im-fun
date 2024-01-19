@@ -5,6 +5,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"math"
 )
 
@@ -34,14 +35,18 @@ func (repo *MessageRepo) TableName(id uint64) (dbName string, tbName string) {
 	return dbName, tbName
 }
 
-func (repo *MessageRepo) Create(tx *query.Query, row *model.Message) (err error) {
+func (repo *MessageRepo) Create(logHead string, tx *query.Query, row *model.Message) (err error) {
+	logHead += "Create|"
 	_, tbName := repo.TableName(row.MsgID)
 	qModel := tx.Message
 
 	err = qModel.Table(tbName).Create(row)
 	if err != nil {
+		logging.Errorf(logHead+"Create fail err=%v", err)
 		return
 	}
+	logging.Infof(logHead+"Create success,row=%v", row)
+
 	return
 }
 
