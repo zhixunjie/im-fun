@@ -11,8 +11,8 @@ type Room struct {
 	Id        string
 	rwLock    sync.RWMutex
 	linklist  *Channel // linklist: ch1 -> ch2 -> ch3 （every connection has a channel）
-	Online    int32    // dirty read is ok
-	AllOnline int32
+	Online    int32    // 单台机器，单个房间的在线人数：dirty read is ok
+	AllOnline int32    // 单台机器，所有房间的在线人数
 }
 
 // NewRoom new a room struct, store channel room info.
