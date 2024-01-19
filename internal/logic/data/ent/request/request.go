@@ -16,8 +16,8 @@ type MessageSendReq struct {
 	ReceiverId              uint64                `json:"receiver_id"`                // 消息接收者ID
 	SenderContactPeerType   model.ContactPeerType `json:"sender_contact_peer_type"`   // 消息发送者的联系人类型
 	ReceiverContactPeerType model.ContactPeerType `json:"receiver_contact_peer_type"` // 消息接收者的联系人类型
-	InvisibleList           []uint64              `json:"invisible_list"`             // 不可见的列表
 	MsgBody                 format.MsgBody        `json:"msg_body"`                   // 消息体
+	InvisibleList           []uint64              `json:"invisible_list"`             // 不可见的列表
 }
 
 type MessageFetchReq struct {
