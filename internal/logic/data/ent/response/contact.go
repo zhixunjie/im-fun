@@ -2,13 +2,14 @@ package response
 
 import "github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 
+// ContactFetchRsp 拉取会话列表（by version_id）
 type ContactFetchRsp struct {
 	Base
 	Data FetchContactData `json:"data"`
 }
 
 type FetchContactData struct {
-	ContactList   []*ContactEntity `json:"contact_list"`
+	ContactList   []*ContactEntity `json:"contact_list"`    // 联系人列表
 	NextVersionId model.BigIntType `json:"next_version_id"` // 最大的版本ID
 	HasMore       bool             `json:"has_more"`
 }
@@ -23,5 +24,5 @@ type ContactEntity struct {
 	Status       model.ContactStatus   `json:"status"`
 	Labels       string                `json:"labels"`
 	LastMsg      *MsgEntity            `json:"last_msg"`
-	UnreadMsgNum int64                 `json:"unread_msg_num"` // 当前会话框的未读信息数
+	UnreadMsgNum model.BigIntType      `json:"unread_msg_num"` // 当前会话框的未读信息数
 }

@@ -5,7 +5,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 )
 
-// MessageSendRsp 发送消息-响应
+// MessageSendRsp 发送消息给某个用户
 type MessageSendRsp struct {
 	Base
 	Data SendMsgRespData `json:"data"`
@@ -19,13 +19,14 @@ type SendMsgRespData struct {
 	UnreadCount int64  `json:"unread_count"`
 }
 
+// MessageFetchRsp 拉取消息列表（by version_id）
 type MessageFetchRsp struct {
 	Base
 	Data FetchMsgData `json:"data"`
 }
 
 type FetchMsgData struct {
-	MsgList       []*MsgEntity `json:"msg_list"`        // 获取得到的所有消息
+	MsgList       []*MsgEntity `json:"msg_list"`        // 消息列表
 	NextVersionId uint64       `json:"next_version_id"` // 最大的版本id
 	HasMore       bool         `json:"has_more"`
 }
