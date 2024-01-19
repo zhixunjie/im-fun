@@ -30,9 +30,9 @@ type MsgType uint32
 const (
 	// MsgTypeNone 基本的消息类型
 	MsgTypeNone     MsgType = iota
+	MsgTypeCustom           // 自定义消息
 	MsgTypeText             // 文本消息
 	MsgTypeTips             // 提示消息
-	MsgTypeCustom           // 自定义消息
 	MsgTypeImage            // 图片消息
 	MsgTypeAudio            // 音频消息
 	MsgTypeVideo            // 视频消息
