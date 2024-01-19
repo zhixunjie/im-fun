@@ -9,28 +9,29 @@ import (
 	"time"
 )
 
-// Logic -> Job -> Comet
+// Logic -> Job -> CometInvoker
 
-type Comet struct {
+type CometInvoker struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
 	serverId  string
 	rpcClient pb.CometClient
 
+	// number
 	pushChanNum uint64
 	roomChanNum uint64
 	routineNum  uint64
 
 	// send msg
-	chUserKeys []chan *pb.SendToUserKeysReq // send msg to some user
-	chRoom     []chan *pb.SendToRoomReq     // send msg to the room
-	chAll      chan *pb.SendToAllReq        // send msg to all user
+	chUserKeys []chan *pb.SendToUserKeysReq // send msg: to some user
+	chRoom     []chan *pb.SendToRoomReq     // send msg: to the room
+	chAll      chan *pb.SendToAllReq        // send msg: to all user
 }
 
-func NewComet(serverId string, c *conf.Comet) (*Comet, error) {
+func NewComet(serverId string, c *conf.Comet) (*CometInvoker, error) {
 	routineNum := c.RoutineNum
-	cmt := &Comet{
+	cmt := &CometInvoker{
 		serverId:   serverId,
 		chUserKeys: make([]chan *pb.SendToUserKeysReq, routineNum),
 		chRoom:     make([]chan *pb.SendToRoomReq, routineNum),

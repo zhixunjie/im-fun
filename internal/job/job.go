@@ -15,16 +15,16 @@ import (
 type Job struct {
 	conf     *conf.Config
 	consumer *kafka.ConsumerGroup
-	allComet map[string]*Comet
+	allComet map[string]*CometInvoker
 
 	rooms   map[string]*Room
 	rwMutex sync.RWMutex
 }
 
-func New(conf *conf.Config) *Job {
+func NewJob(conf *conf.Config) *Job {
 	job := &Job{
 		conf:     conf,
-		allComet: map[string]*Comet{},
+		allComet: map[string]*CometInvoker{},
 		rooms:    make(map[string]*Room),
 	}
 

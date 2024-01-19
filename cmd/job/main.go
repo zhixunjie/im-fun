@@ -20,7 +20,7 @@ func main() {
 	if err := conf.InitConfig("cmd/job/job.yaml"); err != nil {
 		panic(err)
 	}
-	j := job.New(conf.Conf)
+	j := job.NewJob(conf.Conf)
 
 	// signal
 	c := make(chan os.Signal, 1)

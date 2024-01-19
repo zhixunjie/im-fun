@@ -10,24 +10,24 @@ import (
 	"time"
 )
 
-func (c *Comet) SendToUserKeys(arg *pb.SendToUserKeysReq) (err error) {
+func (c *CometInvoker) SendToUserKeys(arg *pb.SendToUserKeysReq) (err error) {
 	idx := atomic.AddUint64(&c.pushChanNum, 1) % c.routineNum
 	c.chUserKeys[idx] <- arg
 	return
 }
 
-func (c *Comet) SendToRoom(arg *pb.SendToRoomReq) (err error) {
+func (c *CometInvoker) SendToRoom(arg *pb.SendToRoomReq) (err error) {
 	idx := atomic.AddUint64(&c.roomChanNum, 1) % c.routineNum
 	c.chRoom[idx] <- arg
 	return
 }
 
-func (c *Comet) SendToAll(arg *pb.SendToAllReq) (err error) {
+func (c *CometInvoker) SendToAll(arg *pb.SendToAllReq) (err error) {
 	c.chAll <- arg
 	return
 }
 
-func (c *Comet) Process(i int) {
+func (c *CometInvoker) Process(i int) {
 	logHead := "Process|"
 
 	// loop to send msg to allComet
@@ -57,7 +57,7 @@ func (c *Comet) Process(i int) {
 	}
 }
 
-func (c *Comet) Close() (err error) {
+func (c *CometInvoker) Close() (err error) {
 	finish := make(chan bool)
 	closePushChan := c.chUserKeys
 	closeRoomChan := c.chRoom
