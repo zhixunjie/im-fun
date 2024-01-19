@@ -26,7 +26,7 @@ type MessageFetchRsp struct {
 
 type FetchMsgData struct {
 	MsgList       []*MsgEntity `json:"msg_list"`        // 获取得到的所有消息
-	NextVersionId uint64       `json:"next_version_id"` // 最大的版本ID
+	NextVersionId uint64       `json:"next_version_id"` // 最大的版本id
 	HasMore       bool         `json:"has_more"`
 }
 
