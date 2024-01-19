@@ -29,7 +29,7 @@ type CometInvoker struct {
 	chAll      chan *pb.SendToAllReq        // send msg: to all user
 }
 
-func NewComet(serverId string, c *conf.Comet) (*CometInvoker, error) {
+func NewCometInvoker(serverId string, c *conf.CometInvoker) (*CometInvoker, error) {
 	routineNum := c.RoutineNum
 	cmt := &CometInvoker{
 		serverId:   serverId,

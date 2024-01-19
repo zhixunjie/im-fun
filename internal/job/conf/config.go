@@ -17,7 +17,7 @@ type Config struct {
 	Debug     bool                      `yaml:"debug"`
 	Discovery *Discovery                `yaml:"discovery"`
 	Kafka     []kafka.ConsumerGroupConf `yaml:"kafka"`
-	Comet     *Comet                    `yaml:"comet"`
+	Comet     *CometInvoker             `yaml:"comet"`
 	Room      *Room                     `yaml:"room"`
 }
 
@@ -30,7 +30,7 @@ type Room struct {
 	Duration newtime.Duration `yaml:"duration"`
 }
 
-type Comet struct {
+type CometInvoker struct {
 	ChanNum    int `yaml:"chanNum"`    // 每个协程对应多个Channel，这里设置每个Channel的缓冲区大小
 	RoutineNum int `yaml:"routineNum"` // 协程数目，用于消费Channel的消息
 }

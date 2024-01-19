@@ -13,9 +13,9 @@ import (
 )
 
 type Job struct {
-	conf     *conf.Config
-	consumer *kafka.ConsumerGroup
-	allComet map[string]*CometInvoker
+	conf            *conf.Config
+	consumer        *kafka.ConsumerGroup
+	allCometInvoker map[string]*CometInvoker
 
 	rooms   map[string]*Room
 	rwMutex sync.RWMutex
@@ -23,9 +23,9 @@ type Job struct {
 
 func NewJob(conf *conf.Config) *Job {
 	job := &Job{
-		conf:     conf,
-		allComet: map[string]*CometInvoker{},
-		rooms:    make(map[string]*Room),
+		conf:            conf,
+		allCometInvoker: map[string]*CometInvoker{},
+		rooms:           make(map[string]*Room),
 	}
 
 	// make consumer
@@ -39,11 +39,11 @@ func NewJob(conf *conf.Config) *Job {
 
 	// make comet
 	defHost, _ := os.Hostname()
-	cm, err := NewComet(defHost, conf.Comet)
+	cm, err := NewCometInvoker(defHost, conf.Comet)
 	if err != nil {
 		panic(err)
 	}
-	job.allComet[defHost] = cm
+	job.allCometInvoker[defHost] = cm
 
 	return job
 }

@@ -24,7 +24,7 @@ func (job *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, 
 	proto.Body = writer.Buffer()
 
 	// push to comet
-	if cm, ok := job.allComet[serverId]; ok {
+	if cm, ok := job.allCometInvoker[serverId]; ok {
 		params := pb.SendToUserKeysReq{
 			UserKeys: userKeys,
 			Proto:    proto,
@@ -51,7 +51,7 @@ func (job *Job) SendToRoom(subId int32, roomId string, batchMessage []byte) (err
 	}
 
 	// push to every comet
-	for serverId, cm := range job.allComet {
+	for serverId, cm := range job.allCometInvoker {
 		params := pb.SendToRoomReq{
 			RoomId: roomId,
 			Proto:  proto,
@@ -76,8 +76,8 @@ func (job *Job) SendToAll(subId int32, speed int32, message []byte) (err error) 
 	}
 
 	// push to every comet
-	speed = speed / int32(len(job.allComet))
-	for serverId, cm := range job.allComet {
+	speed = speed / int32(len(job.allCometInvoker))
+	for serverId, cm := range job.allCometInvoker {
 		params := pb.SendToAllReq{
 			Proto: proto,
 			SubId: subId,
