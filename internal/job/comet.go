@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// Logic -> Job -> CometInvoker
+// Logic -> Job -> CometInvoker -> Comet
 
 type CometInvoker struct {
 	ctx    context.Context
