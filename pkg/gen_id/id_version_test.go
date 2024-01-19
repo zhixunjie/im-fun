@@ -10,21 +10,25 @@ import (
 
 func TestVersionIdContact(t *testing.T) {
 	ctx := context.Background()
-	redisClient, err := goredis.CreatePool("127.0.0.1:6379", "", 0)
+	mem, err := goredis.CreatePool("127.0.0.1:6379", "", 0)
 	if err != nil {
-		logging.Errorf("redisClient,err=%v", err)
+		logging.Errorf("mem,err=%v", err)
 		panic(err)
 	}
 	ownerId := uint64(1001)
 
 	for i := 0; i < 10; i++ {
-		fmt.Println(ContactVersionId(ctx, redisClient, ownerId))
+		fmt.Println(VersionId(ctx, &GenVersionParams{
+			Mem:            mem,
+			GenVersionType: GenVersionTypeContact,
+			OwnerId:        ownerId,
+		}))
 	}
 }
 
 func TestVersionIdMsg(t *testing.T) {
 	ctx := context.Background()
-	redisClient, err := goredis.CreatePool("127.0.0.1:6379", "", 0)
+	mem, err := goredis.CreatePool("127.0.0.1:6379", "", 0)
 	if err != nil {
 		logging.Errorf("redisClient,err=%v", err)
 		panic(err)
@@ -33,6 +37,11 @@ func TestVersionIdMsg(t *testing.T) {
 	largerId := uint64(1002)
 
 	for i := 0; i < 10; i++ {
-		fmt.Println(MsgVersionId(ctx, redisClient, smallerId, largerId))
+		fmt.Println(VersionId(ctx, &GenVersionParams{
+			Mem:            mem,
+			GenVersionType: GenVersionTypeMsg,
+			SmallerId:      smallerId,
+			LargerId:       largerId,
+		}))
 	}
 }

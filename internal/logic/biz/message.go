@@ -131,16 +131,21 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (ms
 	}
 
 	// gen version_id
-	versionId, err := gen_id.MsgVersionId(ctx, mem, smallerId, largeId)
+	versionId, err := gen_id.VersionId(ctx, &gen_id.GenVersionParams{
+		Mem:            mem,
+		GenVersionType: gen_id.GenVersionTypeMsg,
+		SmallerId:      smallerId,
+		LargerId:       largeId,
+	})
 	if err != nil {
 		logging.Errorf(logHead+"MsgVersionId error=%v", err)
 		return
 	}
 
 	// exchange：InvisibleList
-	var buf []byte
+	var bInvisibleList []byte
 	if len(req.InvisibleList) > 0 {
-		buf, err = json.Marshal(req.InvisibleList)
+		bInvisibleList, err = json.Marshal(req.InvisibleList)
 		if err != nil {
 			logging.Errorf(logHead+"Marshal error=%v", err)
 			return
@@ -148,7 +153,7 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (ms
 	}
 
 	// exchange：MsgContent
-	bufContent, err := json.Marshal(req.MsgBody.MsgContent)
+	bContent, err := json.Marshal(req.MsgBody.MsgContent)
 	if err != nil {
 		logging.Errorf(logHead+"Marshal error=%v", err)
 		return
@@ -159,14 +164,14 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.SendMsgReq) (ms
 		MsgID:         msgId,
 		SeqID:         req.SeqId,
 		MsgType:       uint32(req.MsgBody.MsgType),
-		Content:       string(bufContent),
+		Content:       string(bContent),
 		SessionID:     gen_id.SessionId(req.SendId, req.PeerId), // 会话ID
 		SenderID:      req.SendId,                               // 发送者ID
 		VersionID:     versionId,                                // 版本ID
 		SortKey:       versionId,                                // sort_key的值等同于version_id
 		Status:        uint32(model.MsgStatusNormal),            // 状态正常
 		HasRead:       model.MsgRead,                            // 已读（功能还没做好）
-		InvisibleList: string(buf),
+		InvisibleList: string(bInvisibleList),
 	}
 
 	return

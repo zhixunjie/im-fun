@@ -20,9 +20,9 @@ func (s *Server) SetupRouter() {
 	// contact
 	g2 := router.Group("/contact")
 	{
-		g2.POST("/fetch", s.fetchContact)  // version_id拉取：会话列表 TODO 结合缓存机制优化
-		g1.POST("/delete", s.fetchContact) // TODO 删除一个会话
-		g1.POST("/stick", s.fetchContact)  // TODO 会话置顶
+		g2.POST("/fetch", s.fetchContact)     // version_id拉取：会话列表 TODO 结合缓存机制优化
+		g2.POST("/delete", s.fetchContact)    // TODO 删除一个会话
+		g2.POST("/top/stick", s.fetchContact) // TODO 会话置顶
 	}
 
 	// push

@@ -8,64 +8,46 @@ import (
 	"time"
 )
 
-// ContactVersionId 获取"会话表"的version_id
-// 注意：version_id不需要全局唯一，只要在同一个用户中唯一即可
-func ContactVersionId(ctx context.Context, mem *redis.Client, ownerId uint64) (id uint64, err error) {
-	// key:
-	// - ownerId：contact's owner
-	// - verIdTimeKey = timeStamp / 128
-	//   - 每隔128，verIdTimeKey的值增加1，所以KEY随着随着时间的过去，会不断增大（我们就是需要它能不断增大的）
-	//   - 128秒内，使用同一KEY进行累加，如果128秒的请求数超出100w（同一个用户下），那么version_id的值就有问题了
-	ts := time.Now().Unix()
-	verIdTimeKey := ts >> TimeStampKeyShift
-	key := keyContactVersion(ownerId, verIdTimeKey)
+type GenVersionType int
 
-	// IncrBy
-	value, err := mem.IncrBy(ctx, key, 1).Result()
-	if err != nil {
-		return
-	}
-	if value == 1 {
-		_, err = mem.Do(ctx, "EXPIRE", key, TimeStampKeyExpire).Result()
-		if err != nil {
-			mem.Do(ctx, "EXPIRE", key, TimeStampKeyExpire)
-			return
-		}
-	}
-	// version_id的组成部分：[ 10位：当前时间戳 | 6位：自增id ]
-	idStr := fmt.Sprintf("%d%06d", ts, value%1000000)
-	id = cast.ToUint64(idStr)
+const (
+	GenVersionTypeMsg GenVersionType = iota
+	GenVersionTypeContact
+)
 
-	return
+type GenVersionParams struct {
+	Mem                 *redis.Client
+	GenVersionType      GenVersionType
+	OwnerId             uint64
+	SmallerId, LargerId uint64
 }
 
-// MsgVersionId 获取"消息表"的version_id
-// 注意：version_id不需要全局唯一，只要在同一个会话中唯一即可
-func MsgVersionId(ctx context.Context, mem *redis.Client, smallerId, largerId uint64) (id uint64, err error) {
-	// key:
-	// - smallerId、largerId：people that in chatting
-	// - verIdTimeKey = timeStamp / 128
-	//   - 每隔128，verIdTimeKey的值增加1，所以KEY随着随着时间的过去，会不断增大（我们就是需要它能不断增大的）
-	//   - 128秒内，使用同一KEY进行累加，如果128秒的请求数超出100w（同一个会话下），那么version_id的值就有问题了
+// VersionId 获取"消息表/会话表"的version_id
+func VersionId(ctx context.Context, params *GenVersionParams) (versionId uint64, err error) {
+	// 每隔128，verIdTimeKey的值增加1（随着时间过去，KEY会不断增大）
 	ts := time.Now().Unix()
-	verIdTimeKey := ts >> TimeStampKeyShift
-	key := keyMsgVersion(smallerId, largerId, verIdTimeKey)
+	verIdTimeKey := ts >> versionKeyShift
 
-	// IncrBy
-	value, err := mem.IncrBy(ctx, key, 1).Result()
+	var key string
+	switch params.GenVersionType {
+	case GenVersionTypeMsg:
+		// smallerId、largerId：people that in chatting
+		// 不需要全局唯一，只要在「同一个会话」中唯一即可
+		key = keyMsgVersion(params.SmallerId, params.LargerId, verIdTimeKey)
+	case GenVersionTypeContact:
+		// ownerId：contact's owner
+		// 不需要全局唯一，只要在「同一个用户」中唯一即可
+		key = keyContactVersion(params.OwnerId, verIdTimeKey)
+	}
+
+	// incr
+	afterIncr, err := incNum(ctx, params.Mem, key, versionKeyExpire)
 	if err != nil {
 		return
 	}
-	if value == 1 {
-		_, err = mem.Do(ctx, "EXPIRE", key, TimeStampKeyExpire).Result()
-		if err != nil {
-			mem.Do(ctx, "EXPIRE", key, TimeStampKeyExpire)
-			return
-		}
-	}
+
 	// version_id的组成部分：[ 10位：当前时间戳 | 6位：自增id ]
-	idStr := fmt.Sprintf("%d%06d", ts, value%1000000)
-	id = cast.ToUint64(idStr)
+	versionId = cast.ToUint64(fmt.Sprintf("%d%06d", ts, afterIncr%1000000))
 
 	return
 }

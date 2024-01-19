@@ -76,9 +76,14 @@ func (repo *ContactRepo) Edit(tx *query.Query, row *model.Contact) (err error) {
 
 func (repo *ContactRepo) Build(ctx context.Context, params *model.BuildContactParams) (contact *model.Contact, err error) {
 	logHead := "Build|"
+	mem := repo.RedisClient
 
 	// get version_id
-	versionId, err := gen_id.ContactVersionId(ctx, repo.RedisClient, params.OwnerId)
+	versionId, err := gen_id.VersionId(ctx, &gen_id.GenVersionParams{
+		Mem:            mem,
+		GenVersionType: gen_id.GenVersionTypeContact,
+		OwnerId:        params.OwnerId,
+	})
 	if err != nil {
 		return
 	}
