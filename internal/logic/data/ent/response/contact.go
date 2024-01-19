@@ -15,14 +15,14 @@ type FetchContactData struct {
 }
 
 type ContactEntity struct {
-	OwnerID      model.BigIntType      `json:"owner_id"`
-	PeerID       model.BigIntType      `json:"peer_id"`
-	PeerType     model.ContactPeerType `json:"peer_type"`
-	PeerAck      model.PeerAckStatus   `json:"peer_ack"`
-	VersionID    model.BigIntType      `json:"version_id"`
-	SortKey      model.BigIntType      `json:"sort_key"`
-	Status       model.ContactStatus   `json:"status"`
-	Labels       string                `json:"labels"`
-	LastMsg      *MsgEntity            `json:"last_msg"`
-	UnreadMsgNum model.BigIntType      `json:"unread_msg_num"` // 当前会话框的未读信息数
+	OwnerID      model.BigIntType    `json:"owner_id"`
+	PeerID       model.BigIntType    `json:"peer_id"`
+	PeerType     model.PeerType      `json:"peer_type"`
+	PeerAck      model.PeerAckStatus `json:"peer_ack"`
+	VersionID    model.BigIntType    `json:"version_id"`
+	SortKey      model.BigIntType    `json:"sort_key"`
+	Status       model.ContactStatus `json:"status"`
+	Labels       string              `json:"labels"`
+	LastMsg      *MsgEntity          `json:"last_msg"`
+	UnreadMsgNum model.BigIntType    `json:"unread_msg_num"` // 当前会话框的未读信息数
 }

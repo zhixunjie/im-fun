@@ -23,10 +23,10 @@ func NewContactRepo(data *Data) *ContactRepo {
 }
 
 func (repo *ContactRepo) TableName(ownerId uint64) (dbName string, tbName string) {
-	//// 临时写死
-	//if true {
-	//	return "", "contact_0"
-	//}
+	// 临时写死
+	if true {
+		return "", "contact"
+	}
 	// 分表规则：
 	// - 数据库前缀：message_xxx，规则：owner_id 倒数第三位数字就是分库值
 	// - 数据表前缀：contact_xxx，规则：owner_id 的最后两位就是分表值
@@ -110,10 +110,9 @@ func (repo *ContactRepo) Build(ctx context.Context, logHead string, params *mode
 	if err == gorm.ErrRecordNotFound {
 		err = nil
 		contact = &model.Contact{
-			OwnerID: params.OwnerId,
-			PeerID:  params.PeerId,
-			//ContactPeerType:  params.ContactPeerType, // 注意：暂时不适用请求参数过来的PeerType（适合于：logic -> base的场景）
-			PeerType:  int32(model.PeerTypeNormalUser),
+			OwnerID:   params.OwnerId,
+			PeerID:    params.PeerId,
+			PeerType:  int32(params.InitPeerType),
 			PeerAck:   params.InitPeerAck,
 			LastMsgID: params.LastMsgId,
 			VersionID: versionId,

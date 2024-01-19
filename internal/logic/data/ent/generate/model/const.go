@@ -21,17 +21,14 @@ const (
 
 // =========================
 
-// ContactPeerType 联系人类型
+// PeerType 联系人类型
 // 0-99业务自己扩展，100之后保留
-type ContactPeerType int32
+type PeerType int32
 
 const (
-	PeerTypeNormalUser ContactPeerType = 0   // 会话框的对方是普通用户（peer_id等于用户id）
-	PeerTypeSystemUser ContactPeerType = 100 // 会话框的对方是系统用户（peer_id等于 SystemUid ）
-	PeerTypeGroup      ContactPeerType = 101 // 会话框的对方是群组（peer_id等于群组id）
-
-	// SystemUid 系统用户的用户ID
-	SystemUid = 100000
+	PeerTypeNormalUser PeerType = 0   // 对方是普通用户
+	PeerTypeSystemUser PeerType = 100 // 对方是系统用户
+	PeerTypeGroup      PeerType = 101 // 对方是群组
 )
 
 // =========================
@@ -100,6 +97,6 @@ type BuildContactParams struct {
 	OwnerId      BigIntType
 	PeerId       BigIntType
 	LastMsgId    BigIntType
-	InitPeerType ContactPeerType
+	InitPeerType PeerType
 	InitPeerAck  uint32
 }

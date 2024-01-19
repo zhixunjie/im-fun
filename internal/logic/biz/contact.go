@@ -48,7 +48,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 		retList = append(retList, &response.ContactEntity{
 			OwnerID:      item.OwnerID,
 			PeerID:       item.PeerID,
-			PeerType:     model.ContactPeerType(item.PeerType),
+			PeerType:     model.PeerType(item.PeerType),
 			PeerAck:      model.PeerAckStatus(item.PeerAck),
 			VersionID:    item.VersionID,
 			SortKey:      item.SortKey,
