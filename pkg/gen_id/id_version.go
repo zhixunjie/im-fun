@@ -51,11 +51,3 @@ func VersionId(ctx context.Context, params *GenVersionParams) (versionId uint64,
 
 	return
 }
-
-func keyContactVersion(ownerId uint64, verIdTimeKey int64) string {
-	return fmt.Sprintf(RedisPrefix+"cvid_%v_%v", ownerId, verIdTimeKey)
-}
-
-func keyMsgVersion(smallerId, largerId uint64, verIdTimeKey int64) string {
-	return fmt.Sprintf(RedisPrefix+"mvid_%v_%v_%v", smallerId, largerId, verIdTimeKey)
-}

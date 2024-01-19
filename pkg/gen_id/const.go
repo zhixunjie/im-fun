@@ -1,5 +1,7 @@
 package gen_id
 
+import "fmt"
+
 const (
 	RedisPrefix = "m0_"
 )
@@ -16,3 +18,15 @@ const (
 	versionKeyShift  = 7                      // 生成 version_id 时，每隔2^7次方秒对应一个redis key
 	versionKeyExpire = 1<<versionKeyShift + 3 // 生成 version_id 时，redis key的有效期
 )
+
+func keyMsgId(timestamp int64) string {
+	return fmt.Sprintf(RedisPrefix+"mid_%v", timestamp)
+}
+
+func keyContactVersion(ownerId uint64, verIdTimeKey int64) string {
+	return fmt.Sprintf(RedisPrefix+"cvid_%v_%v", ownerId, verIdTimeKey)
+}
+
+func keyMsgVersion(smallerId, largerId uint64, verIdTimeKey int64) string {
+	return fmt.Sprintf(RedisPrefix+"mvid_%v_%v_%v", smallerId, largerId, verIdTimeKey)
+}

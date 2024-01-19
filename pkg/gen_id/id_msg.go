@@ -47,7 +47,3 @@ func incNum(ctx context.Context, mem *redis.Client, key string, expireSec int) (
 	}
 	return
 }
-
-func keyMsgId(timestamp int64) string {
-	return fmt.Sprintf(RedisPrefix+"mid_%v", timestamp)
-}
