@@ -84,8 +84,8 @@ RFC：
 
 > 用于参考 or 直接拿来用
 
+- [gorilla](research/websocket库_gorilla.md)  ：历史悠久，star 多（推荐使用🔥🔥🔥）。
 - [nhooyr](research/websocket库_nhooyr.md) ：比较新的包，star 少。
-- [gorilla](research/websocket库_gorilla.md)  ：历史悠久，star 多。
 
 ---
 
@@ -100,5 +100,5 @@ RFC：
 
 **结论**：
 
+- 如果追求更全面的功能，可以看看gorilla（由于它又恢复维护了，所以重新推荐使用🔥🔥🔥）。
 - 使用nhooyr，比较容易看懂，但是功能还不够全面。
-- 如果追求更全面的功能，可以看看gorilla。
