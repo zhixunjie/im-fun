@@ -18,14 +18,14 @@ const (
 
 // =========================
 
-// PeerType 联系人类型
+// ContactPeerType 联系人类型
 // 0-99业务自己扩展，100之后保留
-type PeerType int32
+type ContactPeerType int32
 
 const (
-	PeerTypeNormalUser PeerType = 0   // 普通用户（peer_id等于用户id）
-	PeerTypeSystemUser PeerType = 100 // 系统用户（peer_id等于100000）
-	PeerTypeGroup      PeerType = 101 // 群组（peer_id等于群组id）
+	PeerTypeNormalUser ContactPeerType = 0   // 会话框的对方是普通用户（peer_id等于用户id）
+	PeerTypeSystemUser ContactPeerType = 100 // 会话框的对方是系统用户（peer_id等于 SystemUid ）
+	PeerTypeGroup      ContactPeerType = 101 // 会话框的对方是群组（peer_id等于群组id）
 
 	// SystemUid 系统用户的用户ID
 	SystemUid = 100000
@@ -94,9 +94,9 @@ type FetchContactRangeParams struct {
 }
 
 type BuildContactParams struct {
-	MsgId    uint64
-	OwnerId  uint64
-	PeerId   uint64
-	PeerType PeerType
-	PeerAck  uint32
+	OwnerId      uint64
+	PeerId       uint64
+	LastMsgId    uint64
+	InitPeerType ContactPeerType
+	InitPeerAck  uint32
 }

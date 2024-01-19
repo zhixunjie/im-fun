@@ -42,13 +42,13 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 
 	// 2. build contact（sender）
 	var senderContact, peerContact *model.Contact
-	if !lo.Contains[uint64](req.InvisibleList, req.SendId) {
+	if !lo.Contains[uint64](req.InvisibleList, req.SenderId) {
 		senderContact, err = b.repoContact.Build(ctx, &model.BuildContactParams{
-			MsgId:    msg.MsgID,
-			OwnerId:  req.SendId,
-			PeerId:   req.PeerId,
-			PeerType: model.PeerType(req.PeerType),
-			PeerAck:  uint32(model.PeerNotAck),
+			LastMsgId:    msg.MsgID,
+			OwnerId:      req.SenderId,
+			PeerId:       req.ReceiverId,
+			InitPeerType: req.ReceiverContactPeerType,
+			InitPeerAck:  uint32(model.PeerNotAck),
 		})
 		if err != nil {
 			return
@@ -56,13 +56,13 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	}
 
 	// 3. build contact（receive）
-	if !lo.Contains[uint64](req.InvisibleList, req.PeerId) {
+	if !lo.Contains[uint64](req.InvisibleList, req.ReceiverId) {
 		peerContact, err = b.repoContact.Build(ctx, &model.BuildContactParams{
-			MsgId:    msg.MsgID,
-			OwnerId:  req.PeerId,
-			PeerId:   req.SendId,
-			PeerType: model.PeerType(req.SenderType),
-			PeerAck:  uint32(model.PeerAcked),
+			LastMsgId:    msg.MsgID,
+			OwnerId:      req.ReceiverId,
+			PeerId:       req.SenderId,
+			InitPeerType: req.SenderContactPeerType,
+			InitPeerAck:  uint32(model.PeerAcked),
 		})
 		if err != nil {
 			return
@@ -125,7 +125,7 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.MessageSendReq)
 	mem := b.repoMessage.RedisClient
 
 	// gen msg_id
-	smallerId, largeId := utils.SortNum(req.SendId, req.PeerId)
+	smallerId, largeId := utils.SortNum(req.SenderId, req.ReceiverId)
 	msgId, err := gen_id.MsgId(ctx, mem, largeId)
 	if err != nil {
 		return
@@ -166,12 +166,12 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.MessageSendReq)
 		SeqID:         req.SeqId,
 		MsgType:       uint32(req.MsgBody.MsgType),
 		Content:       string(bContent),
-		SessionID:     gen_id.SessionId(req.SendId, req.PeerId), // 会话ID
-		SenderID:      req.SendId,                               // 发送者ID
-		VersionID:     versionId,                                // 版本ID
-		SortKey:       versionId,                                // sort_key的值等同于version_id
-		Status:        uint32(model.MsgStatusNormal),            // 状态正常
-		HasRead:       uint32(model.MsgRead),                    // 已读（功能还没做好）
+		SessionID:     gen_id.SessionId(req.SenderId, req.ReceiverId), // 会话ID
+		SenderID:      req.SenderId,                                   // 发送者ID
+		VersionID:     versionId,                                      // 版本ID
+		SortKey:       versionId,                                      // sort_key的值等同于version_id
+		Status:        uint32(model.MsgStatusNormal),                  // 状态正常
+		HasRead:       uint32(model.MsgRead),                          // 已读（功能还没做好）
 		InvisibleList: string(bInvisibleList),
 	}
 

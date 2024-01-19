@@ -101,18 +101,18 @@ func (repo *ContactRepo) Build(ctx context.Context, params *model.BuildContactPa
 		contact = &model.Contact{
 			OwnerID: params.OwnerId,
 			PeerID:  params.PeerId,
-			//PeerType:  params.PeerType, // 注意：暂时不适用请求参数过来的PeerType（适合于：logic -> base的场景）
+			//ContactPeerType:  params.ContactPeerType, // 注意：暂时不适用请求参数过来的PeerType（适合于：logic -> base的场景）
 			PeerType:  int32(model.PeerTypeNormalUser),
-			PeerAck:   params.PeerAck,
-			LastMsgID: params.MsgId,
+			PeerAck:   params.InitPeerAck,
+			LastMsgID: params.LastMsgId,
 			VersionID: versionId,
 			SortKey:   versionId,
 			Status:    model.ContactStatusNormal,
 		}
 	} else {
-		contact.LastMsgID = params.MsgId // 双方聊天记录中，最新一次发送的消息id
-		contact.VersionID = versionId    // 版本号（用于拉取会话框）
-		contact.SortKey = versionId      // sort_key的值等同于version_id
+		contact.LastMsgID = params.LastMsgId // 双方聊天记录中，最新一次发送的消息id
+		contact.VersionID = versionId        // 版本号（用于拉取会话框）
+		contact.SortKey = versionId          // sort_key的值等同于version_id
 	}
 	return
 }

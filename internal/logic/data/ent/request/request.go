@@ -11,20 +11,19 @@ type PingReq struct {
 
 // MessageSendReq 发送消息-请求
 type MessageSendReq struct {
-	SeqId         uint64         `json:"seq_id"`         // 消息唯一ID（客户端）
-	SendId        uint64         `json:"send_id"`        // 发送者ID
-	SenderType    int32          `json:"send_type"`      // 发送者类型
-	PeerId        uint64         `json:"peer_id"`        // 接收者ID
-	PeerType      int32          `json:"peer_type"`      // 接收者类型
-	InvisibleList []uint64       `json:"invisible_list"` // 不可见的列表
-	MsgBody       format.MsgBody `json:"msg_body"`       // 消息体
+	SeqId                   uint64                `json:"seq_id"`                     // 消息唯一ID（客户端）
+	SenderId                uint64                `json:"sender_id"`                  // 消息发送者ID
+	ReceiverId              uint64                `json:"receiver_id"`                // 消息接收者ID
+	SenderContactPeerType   model.ContactPeerType `json:"sender_contact_peer_type"`   // 消息发送者的联系人类型
+	ReceiverContactPeerType model.ContactPeerType `json:"receiver_contact_peer_type"` // 消息接收者的联系人类型
+	InvisibleList           []uint64              `json:"invisible_list"`             // 不可见的列表
+	MsgBody                 format.MsgBody        `json:"msg_body"`                   // 消息体
 }
 
 type MessageFetchReq struct {
 	FetchType model.FetchType `json:"fetch_type"`
 	OwnerId   uint64          `json:"owner_id"`
 	PeerId    uint64          `json:"peer_id"`
-	PeerType  int32           `json:"peer_type"`
 	VersionId uint64          `json:"version_id"`
 }
 
