@@ -6,6 +6,17 @@ option go_package = "github.com/zhixunjie/im-fun/api/pb;pb";
 
 import "protocol.proto";
 
+service Comet {
+  // send msg with user keys
+  rpc SendToUserKeys(SendToUserKeysReq) returns (SendToUserKeysReply);
+  // send msg with room's user
+  rpc SendToRoom(SendToRoomReq) returns (SendToRoomReply);
+  // send msg with every user
+  rpc SendToAll(SendToAllReq) returns (SendToAllReply);
+  // get all rooms
+  rpc GetAllRoomId(GetAllRoomIdReq) returns (GetAllRoomIdReply);
+}
+
 // users
 message SendToUserKeysReq {
   repeated string userKeys = 1;
@@ -38,15 +49,4 @@ message GetAllRoomIdReq{}
 
 message GetAllRoomIdReply {
   map<string, bool> rooms = 1;
-}
-
-service Comet {
-  // send msg with user keys
-  rpc SendToUserKeys(SendToUserKeysReq) returns (SendToUserKeysReply);
-  // send msg with room's user
-  rpc SendToRoom(SendToRoomReq) returns (SendToRoomReply);
-  // send msg with every user
-  rpc SendToAll(SendToAllReq) returns (SendToAllReply);
-  // get all rooms
-  rpc GetAllRoomId(GetAllRoomIdReq) returns (GetAllRoomIdReply);
 }

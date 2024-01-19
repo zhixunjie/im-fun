@@ -6,11 +6,15 @@ const (
 	TotalTableContact = 100 // contact表：分表个数（一共10个数据库，每个数据库100个表）
 )
 
+// ==============================================
+
 // 消息读取状态
 const (
 	MsgNotRead = 0 // 未读
 	MsgRead    = 1 // 已读
 )
+
+// ==============================================
 
 // MsgStatus 消息状态
 type MsgStatus uint32
@@ -21,6 +25,8 @@ const (
 	MsgStatusWithdraw                  // 后台删除
 )
 
+// ==============================================
+
 // FetchType 消息拉取方式
 type FetchType = int32
 
@@ -29,6 +35,8 @@ const (
 	FetchTypeForward                   // 拉取最新消息
 	FetchTypeBg                        // 后台拉消息（不清除未读数(history)）
 )
+
+// ==============================================
 
 type QueryMsgParams struct {
 	FetchType           FetchType

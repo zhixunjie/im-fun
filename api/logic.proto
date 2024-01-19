@@ -6,6 +6,21 @@ option go_package = "github.com/zhixunjie/im-fun/api/pb;pb";
 
 import "protocol.proto";
 
+service Logic {
+  // Connect
+  rpc Connect(ConnectReq) returns (ConnectReply);
+  // Disconnect
+  rpc Disconnect(DisconnectReq) returns (DisconnectReply);
+  // Heartbeat
+  rpc Heartbeat(HeartbeatReq) returns (HeartbeatReply);
+  // RenewOnline
+  rpc RenewOnline(OnlineReq) returns (OnlineReply);
+  // Receive
+  rpc Receive(ReceiveReq) returns (ReceiveReply);
+  // ServerList
+  rpc Nodes(NodesReq) returns (NodesReply);
+}
+
 message KafkaSendMsg {
   enum Type {
     UserKeys = 0;
@@ -91,19 +106,4 @@ message Backoff {
   int32  base_delay = 2;
   float  factor = 3;
   float  jitter = 4;
-}
-
-service Logic {
-  // Connect
-  rpc Connect(ConnectReq) returns (ConnectReply);
-  // Disconnect
-  rpc Disconnect(DisconnectReq) returns (DisconnectReply);
-  // Heartbeat
-  rpc Heartbeat(HeartbeatReq) returns (HeartbeatReply);
-  // RenewOnline
-  rpc RenewOnline(OnlineReq) returns (OnlineReply);
-  // Receive
-  rpc Receive(ReceiveReq) returns (ReceiveReply);
-  // ServerList
-  rpc Nodes(NodesReq) returns (NodesReply);
 }

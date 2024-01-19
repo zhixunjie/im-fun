@@ -5,10 +5,10 @@ package imfun.protocol;
 option go_package = "github.com/zhixunjie/im-fun/api/protocol;protocol";
 
 message Proto {
-  // Header部分
+  // ====== Header ======
   int32 ver = 1;  // 版本号
   int32 op = 2;   // 操作类型
   int32 seq = 3;  // 序列号
-  // Body部分
+  // ======  Body  ======
   bytes body = 4; // 消息体
 }
