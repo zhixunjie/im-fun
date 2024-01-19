@@ -64,7 +64,7 @@ func (repo *MessageRepo) Info(msgId uint64) (row *model.Message, err error) {
 	return
 }
 
-func (repo *MessageRepo) RangeList(params *model.QueryMsgParams) (list []*model.Message, err error) {
+func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*model.Message, err error) {
 	_, tbName := repo.TableName(params.LargerId)
 	qModel := repo.Db.Message.Table(tbName)
 	sessionId := gen_id.SessionId(params.SmallerId, params.LargerId)

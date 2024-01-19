@@ -24,7 +24,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	limit := 50
 
 	// 会话只会拉取最新的
-	list, err := b.contactRepo.RangeList(&model.QueryContactParams{
+	list, err := b.contactRepo.RangeList(&model.FetchContactRangeParams{
 		FetchType:      model.FetchTypeForward,
 		OwnerId:        req.OwnerId,
 		PivotVersionId: req.VersionId,

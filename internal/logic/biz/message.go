@@ -48,7 +48,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			OwnerId:  req.SendId,
 			PeerId:   req.PeerId,
 			PeerType: model.PeerType(req.PeerType),
-			PeerAck:  model.PeerNotAck,
+			PeerAck:  uint32(model.PeerNotAck),
 		})
 		if err != nil {
 			return
@@ -62,7 +62,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			OwnerId:  req.PeerId,
 			PeerId:   req.SendId,
 			PeerType: model.PeerType(req.SenderType),
-			PeerAck:  model.PeerAck,
+			PeerAck:  uint32(model.PeerAcked),
 		})
 		if err != nil {
 			return
@@ -171,7 +171,7 @@ func (b *MessageUseCase) Build(ctx context.Context, req *request.MessageSendReq)
 		VersionID:     versionId,                                // 版本ID
 		SortKey:       versionId,                                // sort_key的值等同于version_id
 		Status:        uint32(model.MsgStatusNormal),            // 状态正常
-		HasRead:       model.MsgRead,                            // 已读（功能还没做好）
+		HasRead:       uint32(model.MsgRead),                    // 已读（功能还没做好）
 		InvisibleList: string(bInvisibleList),
 	}
 
@@ -215,7 +215,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 
 	// get: message list
 	smallId, largerId := utils.SortNum(req.OwnerId, req.PeerId)
-	list, err := b.repoMessage.RangeList(&model.QueryMsgParams{
+	list, err := b.repoMessage.RangeList(&model.FetchMsgRangeParams{
 		FetchType:           req.FetchType,
 		SmallerId:           smallId,
 		LargerId:            largerId,

@@ -102,7 +102,7 @@ func (repo *ContactRepo) Build(ctx context.Context, params *model.BuildContactPa
 			OwnerID: params.OwnerId,
 			PeerID:  params.PeerId,
 			//PeerType:  params.PeerType, // 注意：暂时不适用请求参数过来的PeerType（适合于：logic -> base的场景）
-			PeerType:  int32(model.PeerTypeNormal),
+			PeerType:  int32(model.PeerTypeNormalUser),
 			PeerAck:   params.PeerAck,
 			LastMsgID: params.MsgId,
 			VersionID: versionId,
@@ -117,7 +117,7 @@ func (repo *ContactRepo) Build(ctx context.Context, params *model.BuildContactPa
 	return
 }
 
-func (repo *ContactRepo) RangeList(params *model.QueryContactParams) (list []*model.Contact, err error) {
+func (repo *ContactRepo) RangeList(params *model.FetchContactRangeParams) (list []*model.Contact, err error) {
 	logHead := "RangeList|"
 
 	_, tbName := repo.TableName(params.OwnerId)
