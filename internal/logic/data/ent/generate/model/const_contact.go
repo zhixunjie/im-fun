@@ -4,8 +4,8 @@ package model
 type ContactStatus uint32
 
 const (
-	ContactStatusNormal = 0 // 正常
-	ContactStatusDel    = 1 // 删除
+	ContactStatusNormal  = 0 // 正常
+	ContactStatusDeleted = 1 // 已删除
 )
 
 // ==============================================

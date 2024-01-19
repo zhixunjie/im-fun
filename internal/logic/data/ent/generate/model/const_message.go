@@ -21,8 +21,8 @@ type MsgStatus uint32
 
 const (
 	MsgStatusNormal   MsgStatus = iota // 正常
-	MsgStatusDel                       // 删除
-	MsgStatusWithdraw                  // 后台删除
+	MsgStatusDeleted                   // 已删除
+	MsgStatusWithdraw                  // 已撤回
 )
 
 // ==============================================
@@ -33,7 +33,7 @@ type FetchType = int32
 const (
 	FetchTypeBackward FetchType = iota // 拉取历史消息
 	FetchTypeForward                   // 拉取最新消息
-	FetchTypeBg                        // 后台拉消息（不清除未读数(history)）
+	FetchTypeInBg                      // 后台拉消息（不清除未读数(history)）
 )
 
 // ==============================================
