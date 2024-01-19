@@ -6,7 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/zhixunjie/im-fun/benchmarks/send"
-	"github.com/zhixunjie/im-fun/internal/logic/data/model/request"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/pkg/http"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"math/rand"

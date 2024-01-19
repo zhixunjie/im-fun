@@ -19,15 +19,18 @@ require (
 	github.com/google/wire v0.5.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/prometheus/client_golang v1.16.0
+	github.com/samber/lo v1.39.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.8.1
 	github.com/zhenjl/cityhash v0.0.0-20131128155616-cdd6a94144ab
+	go.uber.org/zap v1.17.0
 	golang.org/x/net v0.20.0
 	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gen v0.3.25
+	gorm.io/plugin/dbresolver v1.5.0
 	nhooyr.io/websocket v1.8.7
 )
 
@@ -79,14 +82,12 @@ require (
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
-	github.com/samber/lo v1.39.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.9 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.7 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.7 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	go.uber.org/zap v1.17.0 // indirect
 	golang.org/x/arch v0.0.0-20210923205945-b76863e36670 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3 // indirect
@@ -97,5 +98,4 @@ require (
 	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd // indirect
 	gorm.io/datatypes v1.1.1-0.20230130040222-c43177d3cf8c // indirect
 	gorm.io/hints v1.1.0 // indirect
-	gorm.io/plugin/dbresolver v1.5.0 // indirect
 )
