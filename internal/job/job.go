@@ -13,6 +13,9 @@ import (
 	"sync"
 )
 
+// Logic -> Job -> invoker.CometInvoker -> RPC To Comet -> Comet
+
+// Job 任务（消费KAFKA，执行指定行为）
 type Job struct {
 	conf          *conf.Config
 	consumerGroup *kafka.ConsumerGroup             // KAFKA：消息者组

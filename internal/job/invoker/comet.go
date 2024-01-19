@@ -12,6 +12,7 @@ import (
 
 // Logic -> Job -> CometInvoker -> RPC To Comet -> Comet
 
+// CometInvoker 调用comet的服务
 type CometInvoker struct {
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -20,9 +21,9 @@ type CometInvoker struct {
 	rpcClient pb.CometClient
 
 	// counter
-	pushChanNum atomic.Uint64
-	roomChanNum atomic.Uint64
-	RoutineNum  uint64
+	counterToUser atomic.Uint64
+	counterToRoom atomic.Uint64
+	RoutineNum    uint64
 
 	// send msg
 	chUser []chan *pb.SendToUserKeysReq // send msg: to some user

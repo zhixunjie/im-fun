@@ -39,13 +39,13 @@ func (c *CometInvoker) Run(i int) {
 }
 
 func (c *CometInvoker) SendToUserKeys(arg *pb.SendToUserKeysReq) (err error) {
-	idx := c.pushChanNum.Add(1) % c.RoutineNum
+	idx := c.counterToUser.Add(1) % c.RoutineNum
 	c.chUser[idx] <- arg
 	return
 }
 
 func (c *CometInvoker) SendToRoom(arg *pb.SendToRoomReq) (err error) {
-	idx := c.roomChanNum.Add(1) % c.RoutineNum
+	idx := c.counterToRoom.Add(1) % c.RoutineNum
 	c.chRoom[idx] <- arg
 	return
 }

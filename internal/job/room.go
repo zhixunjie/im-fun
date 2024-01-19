@@ -15,20 +15,21 @@ var (
 	ErrRoomFull = errors.New("room proto chan full")
 )
 
+// RoomJob 房间任务
 type RoomJob struct {
-	conf   *conf.Room
-	job    *Job
-	roomId string               // 房间Id
-	proto  chan *protocol.Proto // 有缓冲的Channel
+	roomId  string               // 房间ID
+	conf    *conf.Room           // 相关配置
+	job     *Job                 // 依赖于Job对象
+	protoCh chan *protocol.Proto // 有缓冲的Channel
 }
 
-func NewRoom(job *Job, roomId string) (r *RoomJob) {
-	c := job.conf.Room
+func NewRoom(b *Job, roomId string) (r *RoomJob) {
+	c := b.conf.Room
 	r = &RoomJob{
-		conf:   c,
-		roomId: roomId,
-		job:    job,
-		proto:  make(chan *protocol.Proto, c.Batch*2),
+		roomId:  roomId,
+		conf:    c,
+		job:     b,
+		protoCh: make(chan *protocol.Proto, c.Batch*2),
 	}
 	go r.receiveFromCh(c.Batch, time.Duration(c.Duration))
 	return
@@ -36,6 +37,8 @@ func NewRoom(job *Job, roomId string) (r *RoomJob) {
 
 // SendToCh 向房间发送消息
 func (r *RoomJob) SendToCh(msg []byte) error {
+	logHead := fmt.Sprintf("SendToCh|msg=%s,", msg)
+
 	var p = &protocol.Proto{
 		Ver:  protocol.ProtoVersion,
 		Op:   int32(protocol.OpBatchMsg),
@@ -43,17 +46,19 @@ func (r *RoomJob) SendToCh(msg []byte) error {
 		Body: msg,
 	}
 
-	// try to put into channel, otherwise return ErrRoomFull
+	// try to put into channel, otherwise return ErrRoomFull.
 	select {
-	case r.proto <- p:
+	case r.protoCh <- p:
+		logging.Infof(logHead + "send success")
 		return nil
 	default:
+		logging.Infof(logHead + "send error")
 		return ErrRoomFull
 	}
 }
 
 func (r *RoomJob) receiveFromCh(accumulate int, interval time.Duration) {
-	logHead := fmt.Sprintf("receive|roowId=%v,", r.roomId)
+	logHead := fmt.Sprintf("receiveFromCh|roowId=%v,", r.roomId)
 
 	duration := interval * 100
 	timer := time.NewTicker(duration)
@@ -83,7 +88,7 @@ func (r *RoomJob) receiveFromCh(accumulate int, interval time.Duration) {
 	logging.Infof(logHead + "create room")
 	for {
 		select {
-		case proto = <-r.proto:
+		case proto = <-r.protoCh:
 			if proto != nil {
 				logging.Infof(logHead+"get proto=%v,n=%v", proto, counter)
 				protocol.WriteProtoToWriter(proto, writer)
