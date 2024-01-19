@@ -11,13 +11,13 @@ type PingReq struct {
 
 // MessageSendReq 发送消息给某个用户
 type MessageSendReq struct {
-	SeqId                   model.BigIntType `json:"seq_id"`                     // 消息唯一id（客户端）
-	SenderId                model.BigIntType `json:"sender_id"`                  // 消息发送者id
-	ReceiverId              model.BigIntType `json:"receiver_id"`                // 消息接收者id
-	SenderContactPeerType   model.PeerType   `json:"sender_contact_peer_type"`   // 消息发送者的联系人类型
-	ReceiverContactPeerType model.PeerType   `json:"receiver_contact_peer_type"` // 消息接收者的联系人类型
-	MsgBody                 format.MsgBody   `json:"msg_body"`                   // 消息体
-	InvisibleList           []uint64         `json:"invisible_list"`             // 不可见的列表
+	SeqId         model.BigIntType `json:"seq_id"`                     // 消息唯一id（客户端）
+	SenderId      model.BigIntType `json:"sender_id"`                  // 消息发送者id
+	ReceiverId    model.BigIntType `json:"receiver_id"`                // 消息接收者id
+	SenderType    model.PeerType   `json:"sender_contact_peer_type"`   // 消息发送者的联系人类型
+	ReceiverType  model.PeerType   `json:"receiver_contact_peer_type"` // 消息接收者的联系人类型
+	MsgBody       format.MsgBody   `json:"msg_body"`                   // 消息体
+	InvisibleList []uint64         `json:"invisible_list"`             // 不可见的列表
 }
 
 // MessageFetchReq 拉取消息列表（by version_id）

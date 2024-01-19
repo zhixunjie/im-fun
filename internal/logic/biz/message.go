@@ -47,7 +47,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			LastMsgId:    msg.MsgID,
 			OwnerId:      req.SenderId,
 			PeerId:       req.ReceiverId,
-			InitPeerType: req.ReceiverContactPeerType,
+			InitPeerType: req.ReceiverType,
 			InitPeerAck:  uint32(model.PeerNotAck),
 		})
 		if err != nil {
@@ -58,10 +58,10 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	// 3. build contact（receive）
 	if !lo.Contains[uint64](req.InvisibleList, req.ReceiverId) {
 		peerContact, err = b.repoContact.Build(ctx, logHead, &model.BuildContactParams{
-			LastMsgId:    msg.MsgID,
 			OwnerId:      req.ReceiverId,
 			PeerId:       req.SenderId,
-			InitPeerType: req.SenderContactPeerType,
+			LastMsgId:    msg.MsgID,
+			InitPeerType: req.SenderType,
 			InitPeerAck:  uint32(model.PeerAcked),
 		})
 		if err != nil {
