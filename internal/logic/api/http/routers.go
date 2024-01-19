@@ -7,30 +7,30 @@ func (s *Server) SetupRouter() {
 	router.GET("/ping", s.ping)
 
 	// message
-	g1 := router.Group("/message")
+	message := router.Group("/message")
 	{
-		g1.POST("/send", s.MessageSend)           // 发送消息（普通消息） TODO 结合缓存机制优化
-		g1.POST("/send/system", s.MessageSend)    // TODO 发送消息（系统消息）
-		g1.POST("/fetch", s.MessageFetch)         // version_id拉取：消息列表 TODO 结合缓存机制优化
-		g1.POST("/clean", s.MessageFetch)         // TODO 清空聊天记录
-		g1.POST("/has/read", s.MessageFetch)      // TODO 消息已读
-		g1.POST("/update/status", s.MessageFetch) // TODO 修改消息状态：消息删除 & 撤回消息
+		message.POST("/send", s.MessageSend)           // 发送消息（普通消息） TODO 结合缓存机制优化
+		message.POST("/send/system", s.MessageSend)    // TODO 发送消息（系统消息）
+		message.POST("/fetch", s.MessageFetch)         // version_id拉取：消息列表 TODO 结合缓存机制优化
+		message.POST("/clean", s.MessageFetch)         // TODO 清空聊天记录
+		message.POST("/has/read", s.MessageFetch)      // TODO 消息已读
+		message.POST("/update/status", s.MessageFetch) // TODO 修改消息状态：消息删除 & 撤回消息
 	}
 
 	// contact
-	g2 := router.Group("/contact")
+	contact := router.Group("/contact")
 	{
-		g2.POST("/fetch", s.ContactFetch)     // version_id拉取：会话列表 TODO 结合缓存机制优化
-		g2.POST("/delete", s.ContactFetch)    // TODO 删除一个会话
-		g2.POST("/top/stick", s.ContactFetch) // TODO 会话置顶
+		contact.POST("/fetch", s.ContactFetch)     // version_id拉取：会话列表 TODO 结合缓存机制优化
+		contact.POST("/delete", s.ContactFetch)    // TODO 删除一个会话
+		contact.POST("/top/stick", s.ContactFetch) // TODO 会话置顶
 	}
 
 	// push
-	group := s.engine.Group("/im")
+	im := s.engine.Group("/im")
 	{
-		group.POST("/send/user/keys", s.sendToUserKeys) // 发送：给指定的用户key
-		group.POST("/send/user/ids", s.sendToUserIds)   // 发送：给指定的用户id
-		group.POST("/send/user/room", s.sendToRoom)     // 广播：给房间的所有用户
-		group.POST("/send/user/all", s.sendToAll)       // 广播：给所有用户
+		im.POST("/send/user/keys", s.sendToUserKeys) // 发送：给指定的用户key
+		im.POST("/send/user/ids", s.sendToUserIds)   // 发送：给指定的用户id
+		im.POST("/send/user/room", s.sendToRoom)     // 广播：给房间的所有用户
+		im.POST("/send/user/all", s.sendToAll)       // 广播：给所有用户
 	}
 }
