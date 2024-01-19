@@ -14,11 +14,11 @@ func InitConfig(path string) (err error) {
 }
 
 type Config struct {
-	Debug     bool                      `yaml:"debug"`
-	Discovery *Discovery                `yaml:"discovery"`
-	Kafka     []kafka.ConsumerGroupConf `yaml:"kafka"`
-	Comet     *CometInvoker             `yaml:"comet"`
-	Room      *Room                     `yaml:"room"`
+	Debug        bool                      `yaml:"debug"`
+	Discovery    *Discovery                `yaml:"discovery"`
+	Kafka        []kafka.ConsumerGroupConf `yaml:"kafka"`
+	CometInvoker *CometInvoker             `yaml:"comet_invoker"`
+	Room         *Room                     `yaml:"room"`
 }
 
 type Discovery struct {

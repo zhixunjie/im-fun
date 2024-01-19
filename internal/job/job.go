@@ -39,7 +39,7 @@ func NewJob(conf *conf.Config) *Job {
 
 	// make comet
 	defHost, _ := os.Hostname()
-	cm, err := NewCometInvoker(defHost, conf.Comet)
+	cm, err := NewCometInvoker(defHost, conf.CometInvoker)
 	if err != nil {
 		panic(err)
 	}
