@@ -23,7 +23,7 @@ func InitTCP(server *Server, numCPU, connType int) (listener *net.TCPListener, e
 	var addrS []string
 
 	// 同时支持TCP和WebSocket
-	logHead := channel.GetLogHeadByConnType(connType)
+	logHead := channel.LogHeadByConnType(connType)
 	if connType == channel.ConnTypeWebSocket {
 		addrS = conf.Conf.Connect.Websocket.Bind
 	} else {

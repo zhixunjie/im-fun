@@ -165,7 +165,7 @@ const (
 	ConnTypeWebSocket
 )
 
-func GetLogHeadByConnType(connType int) string {
+func LogHeadByConnType(connType int) string {
 	if connType == ConnTypeWebSocket {
 		return "WebSocket|"
 	}
