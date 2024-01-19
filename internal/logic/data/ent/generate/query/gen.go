@@ -16,39 +16,59 @@ import (
 )
 
 var (
-	Q       = new(Query)
-	Contact *contact
-	Message *message
+	Q         = new(Query)
+	Contact   *contact
+	Group     *group
+	GroupUser *groupUser
+	Message   *message
+	Robot     *robot
+	User      *user
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
 	Contact = &Q.Contact
+	Group = &Q.Group
+	GroupUser = &Q.GroupUser
 	Message = &Q.Message
+	Robot = &Q.Robot
+	User = &Q.User
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:      db,
-		Contact: newContact(db, opts...),
-		Message: newMessage(db, opts...),
+		db:        db,
+		Contact:   newContact(db, opts...),
+		Group:     newGroup(db, opts...),
+		GroupUser: newGroupUser(db, opts...),
+		Message:   newMessage(db, opts...),
+		Robot:     newRobot(db, opts...),
+		User:      newUser(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	Contact contact
-	Message message
+	Contact   contact
+	Group     group
+	GroupUser groupUser
+	Message   message
+	Robot     robot
+	User      user
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:      db,
-		Contact: q.Contact.clone(db),
-		Message: q.Message.clone(db),
+		db:        db,
+		Contact:   q.Contact.clone(db),
+		Group:     q.Group.clone(db),
+		GroupUser: q.GroupUser.clone(db),
+		Message:   q.Message.clone(db),
+		Robot:     q.Robot.clone(db),
+		User:      q.User.clone(db),
 	}
 }
 
@@ -62,21 +82,33 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:      db,
-		Contact: q.Contact.replaceDB(db),
-		Message: q.Message.replaceDB(db),
+		db:        db,
+		Contact:   q.Contact.replaceDB(db),
+		Group:     q.Group.replaceDB(db),
+		GroupUser: q.GroupUser.replaceDB(db),
+		Message:   q.Message.replaceDB(db),
+		Robot:     q.Robot.replaceDB(db),
+		User:      q.User.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	Contact IContactDo
-	Message IMessageDo
+	Contact   IContactDo
+	Group     IGroupDo
+	GroupUser IGroupUserDo
+	Message   IMessageDo
+	Robot     IRobotDo
+	User      IUserDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Contact: q.Contact.WithContext(ctx),
-		Message: q.Message.WithContext(ctx),
+		Contact:   q.Contact.WithContext(ctx),
+		Group:     q.Group.WithContext(ctx),
+		GroupUser: q.GroupUser.WithContext(ctx),
+		Message:   q.Message.WithContext(ctx),
+		Robot:     q.Robot.WithContext(ctx),
+		User:      q.User.WithContext(ctx),
 	}
 }
 

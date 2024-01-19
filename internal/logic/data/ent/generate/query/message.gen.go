@@ -60,8 +60,8 @@ type message struct {
 	SenderID      field.Uint64 // 私信发送者id
 	VersionID     field.Uint64 // 版本id（用于拉取消息）
 	SortKey       field.Uint64 // 消息展示顺序（按顺序展示消息）
-	Status        field.Uint32 // 消息状态。0：正常，1：被审核删除，2：撤销
-	HasRead       field.Uint32 // 消息接收者是否已读消息。0：未读，1：已读
+	Status        field.Uint32 // 消息状态。0：正常，1：已删除，2：已撤回
+	HasRead       field.Uint32 // 接收方是否已读，0：未读，1：已读
 	InvisibleList field.String // 发送方看到消息发出去了，但是对于在列表的用户是不可见的
 	CreatedAt     field.Time   // 创建时间
 	UpdatedAt     field.Time   // 更新时间

@@ -15,7 +15,8 @@ type Contact struct {
 	ID           uint64    `gorm:"column:id;primaryKey;autoIncrement:true;comment:自增id,主键" json:"id"`                    // 自增id,主键
 	OwnerID      uint64    `gorm:"column:owner_id;not null;comment:会话拥有者" json:"owner_id"`                               // 会话拥有者
 	PeerID       uint64    `gorm:"column:peer_id;not null;comment:联系人（对方用户）" json:"peer_id"`                             // 联系人（对方用户）
-	PeerType     int32     `gorm:"column:peer_type;not null;comment:联系人类型，0：普通，100：系统，101：群组" json:"peer_type"`          // 联系人类型，0：普通，100：系统，101：群组
+	OwnerType    uint32    `gorm:"column:owner_type;not null;comment:用户类型（owner_id）" json:"owner_type"`                  // 用户类型（owner_id）
+	PeerType     uint32    `gorm:"column:peer_type;not null;comment:用户类型（peer_id）" json:"peer_type"`                     // 用户类型（peer_id）
 	PeerAck      uint32    `gorm:"column:peer_ack;not null;comment:peer_id是否给owner发过消息，0：未发过，1：发过" json:"peer_ack"`      // peer_id是否给owner发过消息，0：未发过，1：发过
 	LastMsgID    uint64    `gorm:"column:last_msg_id;not null;comment:聊天记录中，最新一条发送的私信id" json:"last_msg_id"`             // 聊天记录中，最新一条发送的私信id
 	LastDelMsgID uint64    `gorm:"column:last_del_msg_id;not null;comment:聊天记录中，最后一次删除联系人时的私信id" json:"last_del_msg_id"` // 聊天记录中，最后一次删除联系人时的私信id

@@ -31,6 +31,10 @@ func applyTableNames(g *gen.Generator) {
 		func(Querier) {},
 		g.GenerateModel("contact"),
 		g.GenerateModel("message"),
+		g.GenerateModel("user"),
+		g.GenerateModel("robot"),
+		g.GenerateModel("group"),
+		g.GenerateModel("group_user"),
 	)
 
 }
