@@ -178,7 +178,7 @@ func (b *MessageUseCase) Build(ctx context.Context, logHead string, req *request
 
 // Fetch 拉取消息
 func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq) (rsp response.MessageFetchRsp, err error) {
-	logHead := "Fetch|"
+	logHead := fmt.Sprintf("Fetch,req=%v", req)
 	pivotVersionId := req.VersionId
 	limit := 50
 

@@ -128,8 +128,8 @@ func (repo *ContactRepo) Build(ctx context.Context, logHead string, params *mode
 	return
 }
 
-func (repo *ContactRepo) RangeList(params *model.FetchContactRangeParams) (list []*model.Contact, err error) {
-	logHead := "RangeList|"
+func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRangeParams) (list []*model.Contact, err error) {
+	logHead += "RangeList|"
 
 	_, tbName := repo.TableName(params.OwnerId)
 	qModel := repo.Db.Contact.Table(tbName)

@@ -1,0 +1,159 @@
+syntax = "proto3";
+option objc_class_prefix = "PB3";
+
+package pb;
+
+// ======================= Contact DTO =======================
+
+//  拉取会话列表（by version_id）
+message ContactFetchReq {
+  uint64 version_id = 1;           // 版本id
+  uint64 owner_id = 2;             // 会话拥有者
+}
+
+message ContactFetchRsp {
+  repeated ContactEntity contact_list = 1;  // 联系人列表
+  uint64 next_version_id = 2;           // 最大的版本ID
+  bool has_more = 3;
+}
+
+message ContactEntity{
+  uint64 owner_id = 1;
+  uint64 peer_id = 2;
+  ContactPeerType peer_type = 3;
+  uint64 version_id = 4;
+  uint64 sort_key = 5;
+  ContactStatus status = 6;
+  uint64 unread_msg_num = 8;
+  MsgEntity last_msg = 7;
+}
+
+// ======================= Message DTO =======================
+
+// 发送消息给某个用户
+message MessageSendReq {
+  uint64 seq_id = 1;                                // 消息唯一id（客户端）
+  uint64 sender_id = 2;                             // 发送者id
+  uint64 receiver_id = 3;                           // 消息接收者id
+  ContactPeerType  sender_contact_peer_type = 4;    // 消息发送者的联系人类型
+  ContactPeerType  receiver_contact_peer_type = 5;  // 消息接收者的联系人类型
+  MsgBody msg_body = 6;                             // 消息体
+}
+
+message MessageSendRsp {
+  uint64 msg_id = 1;
+  uint64 seq_id = 2;
+  uint64 version_id = 3;
+  uint64 sort_key = 4;
+  int64 unread_count = 5;
+}
+
+// 拉取消息列表（by version_id）
+message MessageFetchReq {
+  MessageFetchType fetch_type = 1; // 消息拉取方式
+  uint64 version_id = 2;           // 版本id
+  uint64 owner_id = 3;             // 会话拥有者
+  uint64 peer_id = 4;              // 会话联系人
+}
+
+message MessageFetchRsp {
+  repeated MsgEntity msg_list = 1;  // 联系人列表
+  uint64 next_version_id = 2;       // 最大的版本ID
+  bool has_more = 3;
+}
+
+message MsgEntity{
+  uint64 msg_id = 1;
+  uint64 seq_id = 2;
+  MsgBody msg_body = 3;                             // 消息体
+  string session_id = 4;                            // 会话id
+  uint64 sender_id = 5;                             // 消息发送者id
+  uint64 version_id = 6;                            // 版本id
+  uint64 sort_key = 7;
+  MessageStatus status = 8;
+  MessageReadState has_read = 9;
+}
+// ======================= MsgBody =======================
+
+// 消息体，设计参考：
+// - https://cloud.tencent.com/document/product/269/2720
+// - https://cloud.tencent.com/document/product/269/2282
+message MsgBody {
+  ImMsgType msg_type = 1;       // 消息类型
+  MsgContent msg_content = 2; // 消息内容
+}
+
+// 消息类型
+enum ImMsgType {
+  MsgTypeNone = 0;
+  MsgTypeCustom = 1;    // 自定义消息
+  MsgTypeText = 2;      // 文本消息
+  MsgTypeTips = 3;      // 提示消息
+  MsgTypeImage = 4;     // 图片消息
+  MsgTypeAudio = 5;     // 音频消息
+  MsgTypeVideo = 6;     // 视频消息
+  MsgTypeFile = 7;      // 文件消息
+  MsgTypeFace = 8;      // 表情消息
+  MsgTypeLocation = 9;  // 位置消息
+}
+
+message MsgContent {
+  CustomContent custom_content = 1; // 自定义消息
+  TextContent text_content = 2;     // 文本消息
+  TipsContent tips_content = 3;     // 提示消息
+}
+
+message CustomContent {
+  string data = 1; // 自定义消息（一般会采用JSON格式）
+}
+
+message TextContent {
+  string text = 1; // 文本内容
+}
+
+message TipsContent {
+  string text = 1;
+}
+// ======================= 枚举值: Contact =======================
+
+// 联系人状态
+enum ContactStatus {
+  Normal = 0;  // 正常
+  Deleted = 1; // 已删除
+}
+
+// 联系人类型
+// 0-99业务自己扩展，100之后保留
+enum ContactPeerType {
+  NormalUser = 0;    // 对方是用户
+  CharacterUser = 1; // 对方是角色
+  SystemUser = 100;  // 对方是系统管理员
+  Group = 101;       // 对方是群组
+}
+
+// 是否给owner发过消息
+enum ContactPeerAckStatus {
+  NotAck = 0;
+  Acked = 1;
+}
+
+// ======================= 枚举值: Message =======================
+
+// 消息读取状态
+enum MessageReadState {
+  NotRead = 0; // 未读
+  Read = 1;    // 已读
+}
+
+// 消息状态
+enum MessageStatus {
+  NormalMsg = 0;   // 正常
+  DeletedMsg = 1;  // 已删除
+  WithdrawMsg = 2; // 已撤回
+}
+
+// 消息拉取方式
+enum MessageFetchType {
+  Backward = 0; // 拉取历史消息
+  Forward = 1;  // 拉取最新消息
+}

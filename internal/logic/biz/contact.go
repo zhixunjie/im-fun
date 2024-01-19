@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
@@ -21,10 +22,11 @@ func NewContactUseCase(contactRepo *data.ContactRepo) *ContactUseCase {
 
 // Fetch 拉取会话
 func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq) (resp response.ContactFetchRsp, err error) {
+	logHead := fmt.Sprintf("Fetch,req=%v", req)
 	limit := 50
 
 	// 会话只会拉取最新的
-	list, err := b.contactRepo.RangeList(&model.FetchContactRangeParams{
+	list, err := b.contactRepo.RangeList(logHead, &model.FetchContactRangeParams{
 		FetchType:      model.FetchTypeForward,
 		OwnerId:        req.OwnerId,
 		PivotVersionId: req.VersionId,
