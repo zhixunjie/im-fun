@@ -1,6 +1,9 @@
 package response
 
-import "github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
+import (
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
+)
 
 // MessageSendRsp 发送消息-响应
 type MessageSendRsp struct {
@@ -22,19 +25,19 @@ type MessageFetchRsp struct {
 }
 
 type FetchMsgData struct {
-	MsgList       []*Msg `json:"msg_list"`        // 获取得到的所有消息
-	NextVersionId uint64 `json:"next_version_id"` // 最大的版本ID
-	HasMore       bool   `json:"has_more"`
+	MsgList       []*MsgEntity `json:"msg_list"`        // 获取得到的所有消息
+	NextVersionId uint64       `json:"next_version_id"` // 最大的版本ID
+	HasMore       bool         `json:"has_more"`
 }
 
-type Msg struct {
-	MsgID     uint64         `json:"msg_id"`
-	SeqID     uint64         `json:"seq_id"`
-	MsgBody   format.MsgBody `json:"msg_body"`
-	SessionID string         `json:"session_id"`
-	SenderID  uint64         `json:"sender_id"`
-	VersionID uint64         `json:"version_id"`
-	SortKey   uint64         `json:"sort_key"`
-	Status    uint32         `json:"status"`
-	HasRead   uint32         `json:"has_read"`
+type MsgEntity struct {
+	MsgID     uint64              `json:"msg_id"`
+	SeqID     uint64              `json:"seq_id"`
+	MsgBody   format.MsgBody      `json:"msg_body"`
+	SessionID string              `json:"session_id"`
+	SenderID  uint64              `json:"sender_id"`
+	VersionID uint64              `json:"version_id"`
+	SortKey   uint64              `json:"sort_key"`
+	Status    model.MsgStatus     `json:"status"`
+	HasRead   model.MsgReadStatus `json:"has_read"`
 }

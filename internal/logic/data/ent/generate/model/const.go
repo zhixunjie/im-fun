@@ -6,6 +6,9 @@ const (
 	TotalTableContact = 100 // contact表：分表个数（一共10个数据库，每个数据库100个表）
 )
 
+// BigIntType 各种Id的类型（方便切换为int64、uint64）
+type BigIntType = uint64
+
 // ================================ Contact ================================
 
 // ContactStatus 联系人状态
@@ -79,24 +82,24 @@ const (
 
 type FetchMsgRangeParams struct {
 	FetchType           FetchType
-	SmallerId           uint64
-	LargerId            uint64
-	PivotVersionId      uint64
-	LastDelMsgVersionId uint64
+	SmallerId           BigIntType
+	LargerId            BigIntType
+	PivotVersionId      BigIntType
+	LastDelMsgVersionId BigIntType
 	Limit               int
 }
 
 type FetchContactRangeParams struct {
 	FetchType      FetchType
-	OwnerId        uint64
-	PivotVersionId uint64
+	OwnerId        BigIntType
+	PivotVersionId BigIntType
 	Limit          int
 }
 
 type BuildContactParams struct {
-	OwnerId      uint64
-	PeerId       uint64
-	LastMsgId    uint64
+	OwnerId      BigIntType
+	PeerId       BigIntType
+	LastMsgId    BigIntType
 	InitPeerType ContactPeerType
 	InitPeerAck  uint32
 }

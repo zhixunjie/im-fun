@@ -35,7 +35,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	}
 
 	// rebuild list
-	var retList []*response.Contact
+	var retList []*response.ContactEntity
 	minVersionId := uint64(math.MaxUint64)
 	maxVersionId := uint64(0)
 	for _, item := range list {
@@ -43,7 +43,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 		maxVersionId = utils.Max(maxVersionId, item.VersionID)
 
 		// build message list
-		retList = append(retList, &response.Contact{
+		retList = append(retList, &response.ContactEntity{
 			OwnerID:      item.OwnerID,
 			PeerID:       item.PeerID,
 			PeerType:     model.ContactPeerType(item.PeerType),

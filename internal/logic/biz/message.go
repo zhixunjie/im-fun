@@ -228,7 +228,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	}
 
 	// rebuild list
-	var retList []*response.Msg
+	var retList []*response.MsgEntity
 	minVersionId := uint64(math.MaxUint64)
 	maxVersionId := uint64(0)
 	var tmpList []uint64
@@ -251,7 +251,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 		// build message list
 		msgContent := new(format.MsgContent)
 		_ = json.Unmarshal([]byte(item.Content), msgContent)
-		retList = append(retList, &response.Msg{
+		retList = append(retList, &response.MsgEntity{
 			MsgID: item.MsgID,
 			SeqID: item.SeqID,
 			MsgBody: format.MsgBody{
@@ -262,8 +262,8 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 			SenderID:  item.SenderID,
 			VersionID: item.VersionID,
 			SortKey:   item.SortKey,
-			Status:    item.Status,
-			HasRead:   item.HasRead,
+			Status:    model.MsgStatus(item.Status),
+			HasRead:   model.MsgReadStatus(item.HasRead),
 		})
 	}
 
