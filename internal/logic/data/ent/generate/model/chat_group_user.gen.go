@@ -8,10 +8,10 @@ import (
 	"time"
 )
 
-const TableNameGroupUser = "group_user"
+const TableNameChatGroupUser = "chat_group_user"
 
-// GroupUser 用户与群组的绑定关系
-type GroupUser struct {
+// ChatGroupUser 用户与群组的绑定关系
+type ChatGroupUser struct {
 	ID        uint64    `gorm:"column:id;primaryKey;autoIncrement:true;comment:自增id,主键" json:"id"`                   // 自增id,主键
 	UID       uint64    `gorm:"column:uid;not null;comment:用户表的主键id" json:"uid"`                                     // 用户表的主键id
 	GroupID   uint64    `gorm:"column:group_id;not null;comment:群组表的主键id" json:"group_id"`                           // 群组表的主键id
@@ -19,7 +19,7 @@ type GroupUser struct {
 	UpdatedAt time.Time `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"` // 更新时间
 }
 
-// TableName GroupUser's table name
-func (*GroupUser) TableName() string {
-	return TableNameGroupUser
+// TableName ChatGroupUser's table name
+func (*ChatGroupUser) TableName() string {
+	return TableNameChatGroupUser
 }

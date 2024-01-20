@@ -30,8 +30,8 @@ func newContact(db *gorm.DB, opts ...gen.DOOption) contact {
 	_contact.ALL = field.NewAsterisk(tableName)
 	_contact.ID = field.NewUint64(tableName, "id")
 	_contact.OwnerID = field.NewUint64(tableName, "owner_id")
-	_contact.PeerID = field.NewUint64(tableName, "peer_id")
 	_contact.OwnerType = field.NewUint32(tableName, "owner_type")
+	_contact.PeerID = field.NewUint64(tableName, "peer_id")
 	_contact.PeerType = field.NewUint32(tableName, "peer_type")
 	_contact.PeerAck = field.NewUint32(tableName, "peer_ack")
 	_contact.LastMsgID = field.NewUint64(tableName, "last_msg_id")
@@ -55,8 +55,8 @@ type contact struct {
 	ALL          field.Asterisk
 	ID           field.Uint64 // 自增id,主键
 	OwnerID      field.Uint64 // 会话拥有者
-	PeerID       field.Uint64 // 联系人（对方用户）
 	OwnerType    field.Uint32 // 用户类型（owner_id）
+	PeerID       field.Uint64 // 联系人（对方用户）
 	PeerType     field.Uint32 // 用户类型（peer_id）
 	PeerAck      field.Uint32 // peer_id是否给owner发过消息，0：未发过，1：发过
 	LastMsgID    field.Uint64 // 聊天记录中，最新一条发送的私信id
@@ -85,8 +85,8 @@ func (c *contact) updateTableName(table string) *contact {
 	c.ALL = field.NewAsterisk(table)
 	c.ID = field.NewUint64(table, "id")
 	c.OwnerID = field.NewUint64(table, "owner_id")
-	c.PeerID = field.NewUint64(table, "peer_id")
 	c.OwnerType = field.NewUint32(table, "owner_type")
+	c.PeerID = field.NewUint64(table, "peer_id")
 	c.PeerType = field.NewUint32(table, "peer_type")
 	c.PeerAck = field.NewUint32(table, "peer_ack")
 	c.LastMsgID = field.NewUint64(table, "last_msg_id")
@@ -116,8 +116,8 @@ func (c *contact) fillFieldMap() {
 	c.fieldMap = make(map[string]field.Expr, 14)
 	c.fieldMap["id"] = c.ID
 	c.fieldMap["owner_id"] = c.OwnerID
-	c.fieldMap["peer_id"] = c.PeerID
 	c.fieldMap["owner_type"] = c.OwnerType
+	c.fieldMap["peer_id"] = c.PeerID
 	c.fieldMap["peer_type"] = c.PeerType
 	c.fieldMap["peer_ack"] = c.PeerAck
 	c.fieldMap["last_msg_id"] = c.LastMsgID

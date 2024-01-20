@@ -33,8 +33,8 @@ func applyTableNames(g *gen.Generator) {
 		g.GenerateModel("message"),
 		g.GenerateModel("user"),
 		g.GenerateModel("robot"),
-		g.GenerateModel("group"),
-		g.GenerateModel("group_user"),
+		g.GenerateModel("chat_group"),
+		g.GenerateModel("chat_group_user"),
 	)
 
 }
