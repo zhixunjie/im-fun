@@ -30,39 +30,58 @@ func NewMessageUseCase(repoMessage *data.MessageRepo, repoContact *data.ContactR
 	}
 }
 
+// SendCustomMessage 发送自定义消息
+func (b *MessageUseCase) SendCustomMessage(ctx context.Context, sender, receiver *gen_id.ComponentId, d string) (rsp response.MessageSendRsp, err error) {
+	return b.Send(ctx, &request.MessageSendReq{
+		SeqId:        uint64(gen_id.SeqId()),
+		SenderId:     sender.Id(),
+		SenderType:   model.ContactIdType(sender.Type()),
+		ReceiverId:   receiver.Id(),
+		ReceiverType: model.ContactIdType(receiver.Type()),
+		MsgBody: format.MsgBody{
+			MsgType: format.MsgTypeCustom,
+			MsgContent: &format.MsgContent{
+				CustomContent: &format.CustomContent{
+					Data: d,
+				},
+			},
+		},
+	})
+}
+
 // Send 发送消息
 func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) (rsp response.MessageSendRsp, err error) {
 	logHead := fmt.Sprintf("Send,SenderId=%v,ReceiverId=%v|", req.SenderId, req.ReceiverId)
+	senderId := gen_id.NewComponentId(req.SenderId, uint32(req.SenderType))
+	receiverId := gen_id.NewComponentId(req.ReceiverId, uint32(req.ReceiverType))
 
 	// 1. build message
-	msg, err := b.Build(ctx, logHead, req)
+	msg, err := b.build(ctx, logHead, req, senderId, receiverId)
 	if err != nil {
 		return
 	}
 
-	// 2. build contact（sender）
+	// 2. build contact（sender's contact）
 	var senderContact, peerContact *model.Contact
-	if !lo.Contains[uint64](req.InvisibleList, req.SenderId) {
+	if !lo.Contains[uint64](req.InvisibleList, req.SenderId) && b.canCreateContact(logHead, senderId) {
 		senderContact, err = b.repoContact.Build(ctx, logHead, &model.BuildContactParams{
-			LastMsgId:    msg.MsgID,
-			OwnerId:      req.SenderId,
-			PeerId:       req.ReceiverId,
-			InitPeerType: req.ReceiverType,
-			InitPeerAck:  uint32(model.PeerNotAck),
+			OwnerId:   senderId,
+			PeerId:    receiverId,
+			LastMsgId: msg.MsgID,
+			PeerAck:   model.PeerNotAck,
 		})
 		if err != nil {
 			return
 		}
 	}
 
-	// 3. build contact（receive）
-	if !lo.Contains[uint64](req.InvisibleList, req.ReceiverId) {
+	// 3. build contact（receiver's contact）
+	if !lo.Contains[uint64](req.InvisibleList, req.ReceiverId) && b.canCreateContact(logHead, receiverId) {
 		peerContact, err = b.repoContact.Build(ctx, logHead, &model.BuildContactParams{
-			OwnerId:      req.ReceiverId,
-			PeerId:       req.SenderId,
-			LastMsgId:    msg.MsgID,
-			InitPeerType: req.SenderType,
-			InitPeerAck:  uint32(model.PeerAcked),
+			OwnerId:   receiverId,
+			PeerId:    senderId,
+			LastMsgId: msg.MsgID,
+			PeerAck:   model.PeerAcked,
 		})
 		if err != nil {
 			return
@@ -116,20 +135,20 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	return
 }
 
-// Build 构建消息体
-func (b *MessageUseCase) Build(ctx context.Context, logHead string, req *request.MessageSendReq) (msg *model.Message, err error) {
+// build 构建消息体
+func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request.MessageSendReq, senderId, receiverId *gen_id.ComponentId) (msg *model.Message, err error) {
 	logHead += "Build|"
 	mem := b.repoMessage.RedisClient
 
 	// gen msg_id
-	smallerId, largeId := utils.SortNum(req.SenderId, req.ReceiverId)
-	msgId, err := gen_id.MsgId(ctx, mem, largeId)
+	smallerId, largeId := gen_id.Sort(senderId, receiverId)
+	msgId, err := b.repoMessage.GenMsgId(ctx, smallerId, largeId)
 	if err != nil {
 		logging.Errorf(logHead+"gen MsgId error=%v", err)
 		return
 	}
 
-	// gen version_id
+	// message: gen version_id
 	versionId, err := gen_id.VersionId(ctx, &gen_id.GenVersionParams{
 		Mem:            mem,
 		GenVersionType: gen_id.GenVersionTypeMsg,
@@ -159,18 +178,19 @@ func (b *MessageUseCase) Build(ctx context.Context, logHead string, req *request
 	}
 
 	// build message
+	sessionId := b.repoMessage.GenSessionId(smallerId, largeId)
 	msg = &model.Message{
 		MsgID:         msgId,
 		SeqID:         req.SeqId,
-		MsgType:       uint32(req.MsgBody.MsgType),
-		Content:       string(bContent),
-		SessionID:     gen_id.SessionId(req.SenderId, req.ReceiverId), // 会话ID
-		SenderID:      req.SenderId,                                   // 发送者ID
-		VersionID:     versionId,                                      // 版本ID
-		SortKey:       versionId,                                      // sort_key的值等同于version_id
-		Status:        uint32(model.MsgStatusNormal),                  // 状态正常
-		HasRead:       uint32(model.MsgRead),                          // 已读（功能还没做好）
-		InvisibleList: string(bInvisibleList),
+		MsgType:       uint32(req.MsgBody.MsgType),   // 消息类型
+		Content:       string(bContent),              // 消息内容
+		SessionID:     sessionId,                     // 会话ID
+		SenderID:      req.SenderId,                  // 发送者ID
+		VersionID:     versionId,                     // 版本ID
+		SortKey:       versionId,                     // sort_key的值等同于version_id
+		Status:        uint32(model.MsgStatusNormal), // 状态正常
+		HasRead:       uint32(model.MsgRead),         // 已读（功能还没做好）
+		InvisibleList: string(bInvisibleList),        // 不可见的列表
 	}
 
 	return
@@ -183,7 +203,9 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	limit := 50
 
 	// get: contact info
-	contactInfo, err := b.repoContact.Info(logHead, req.OwnerId, req.PeerId)
+	ownerId := gen_id.NewComponentId(req.OwnerId, uint32(req.OwnerType))
+	peerId := gen_id.NewComponentId(req.PeerId, uint32(req.PeerType))
+	contactInfo, err := b.repoContact.Info(logHead, ownerId, peerId)
 	if err != nil {
 		return
 	}
@@ -212,7 +234,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	}
 
 	// get: message list
-	smallId, largerId := utils.SortNum(req.OwnerId, req.PeerId)
+	smallId, largerId := gen_id.Sort(ownerId, peerId)
 	list, err := b.repoMessage.RangeList(&model.FetchMsgRangeParams{
 		FetchType:           req.FetchType,
 		SmallerId:           smallId,
@@ -268,9 +290,9 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	// get: nextVersionId
 	var nextVersionId uint64
 	switch req.FetchType {
-	case model.FetchTypeBackward: // 拉取历史消息
+	case model.FetchTypeBackward: // 1. 拉取历史消息
 		nextVersionId = minVersionId
-	case model.FetchTypeForward: // 拉取最新消息
+	case model.FetchTypeForward: // 2. 拉取最新消息
 		nextVersionId = maxVersionId
 	default:
 		return
@@ -288,4 +310,23 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	}
 
 	return
+}
+
+// 双方通信时，判断是否需要创建对方的Contact
+func (b *MessageUseCase) canCreateContact(logHead string, contactId *gen_id.ComponentId) bool {
+	logHead += fmt.Sprintf("doNotNeedCreateContact,contactId=%v|", contactId)
+
+	typeArr := []uint32{
+		uint32(model.ContactIdTypeRobot),
+		uint32(model.ContactIdTypeSystem),
+		uint32(model.ContactIdTypeGroup),
+	}
+
+	// 如果用户是指定类型，那么不需要创建他的contact信息（比如：机器人）
+	if lo.Contains(typeArr, contactId.Type()) {
+		logging.Info(logHead + "do not need create contact")
+		return false
+	}
+
+	return true
 }

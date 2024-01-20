@@ -10,7 +10,7 @@ import (
 
 // MsgId 生成msg_id
 // - msg_id要求全局唯一
-// - msg_id跟largerId的后4位是相同的（slotId其实就是largerId）
+// - msg_id跟largerId的后4位是相同的（slotId其实就是largerId，如果是群组，那就是groupId）
 func MsgId(ctx context.Context, mem *redis.Client, slotId uint64) (msgId uint64, err error) {
 	// redis：每秒一个key，在key上执行原子操作+1
 	ts := time.Now().Unix()
@@ -23,7 +23,8 @@ func MsgId(ctx context.Context, mem *redis.Client, slotId uint64) (msgId uint64,
 	}
 
 	// msg_id的组成部分：[ 10位：相对时间戳 | 6位：自增id | 4位：槽id ]
-	// 槽id的作用：使用msg_id也能定位到对应的数据库和数据表
+	// - 槽id的作用：使用msg_id也能定位到对应的数据库和数据表
+	// - 相对时间戳：如果 msgId 使用int64，可以支持偏移29年，如果 msgId 使用 uint64，可以支持偏移58年
 	timeOffset := ts - baseTimeStampOffset
 	idStr := fmt.Sprintf("%d%06d%04d", timeOffset, afterIncr%1000000, slotId%10000)
 	msgId = cast.ToUint64(idStr)

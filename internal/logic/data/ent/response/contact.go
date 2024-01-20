@@ -17,7 +17,7 @@ type FetchContactData struct {
 type ContactEntity struct {
 	OwnerID      model.BigIntType    `json:"owner_id"`
 	PeerID       model.BigIntType    `json:"peer_id"`
-	PeerType     model.PeerType      `json:"peer_type"`
+	PeerType     model.ContactIdType `json:"peer_type"`
 	PeerAck      model.PeerAckStatus `json:"peer_ack"`
 	VersionID    model.BigIntType    `json:"version_id"`
 	SortKey      model.BigIntType    `json:"sort_key"`

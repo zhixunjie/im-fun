@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
@@ -23,9 +24,9 @@ func NewMessageRepo(data *Data) *MessageRepo {
 // 因为msgId和largerId的后4位是相同的，所以这里传入msgId或者largerId都可以
 func (repo *MessageRepo) TableName(id uint64) (dbName string, tbName string) {
 	// 临时写死
-	if true {
-		return "", "message"
-	}
+	//if true {
+	//	return "", "message"
+	//}
 	// 分表规则：
 	// - 数据库前缀：message_xxx，规则：id 倒数第三位数字就是分库值
 	// - 数据表前缀：message_xxx，规则：id 的最后两位就是分表值
@@ -70,9 +71,11 @@ func (repo *MessageRepo) Info(msgId uint64) (row *model.Message, err error) {
 }
 
 func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*model.Message, err error) {
-	_, tbName := repo.TableName(params.LargerId)
+	_, tbName := repo.TableName(params.LargerId.Id())
 	qModel := repo.Db.Message.Table(tbName)
-	sessionId := gen_id.SessionId(params.SmallerId, params.LargerId)
+
+	// get id
+	sessionId := repo.GenSessionId(params.SmallerId, params.LargerId)
 	delVersionId := params.LastDelMsgVersionId
 	pivotVersionId := params.PivotVersionId
 
@@ -96,5 +99,35 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 		).Limit(params.Limit).Order(qModel.VersionID).Find()
 	}
 
+	return
+}
+
+// GenSessionId 根据id的类型，生成sessionId
+func (repo *MessageRepo) GenSessionId(id1, id2 *gen_id.ComponentId) (sessionId string) {
+	if id1.Type() == uint32(model.ContactIdTypeGroup) || id2.Type() == uint32(model.ContactIdTypeGroup) {
+		if id1.Type() == uint32(model.ContactIdTypeGroup) {
+			sessionId = gen_id.GroupSessionId(id1)
+		} else {
+			sessionId = gen_id.GroupSessionId(id2)
+		}
+	} else {
+		sessionId = gen_id.UserSessionId(id1, id2)
+	}
+	return
+}
+
+// GenMsgId 根据id的类型，生成msgId
+func (repo *MessageRepo) GenMsgId(ctx context.Context, smallerId, largeId *gen_id.ComponentId) (msgId uint64, err error) {
+	mem := repo.RedisClient
+
+	if smallerId.Type() == uint32(model.ContactIdTypeGroup) || largeId.Type() == uint32(model.ContactIdTypeGroup) {
+		if smallerId.Type() == uint32(model.ContactIdTypeGroup) {
+			msgId, err = gen_id.MsgId(ctx, mem, smallerId.Id())
+		} else {
+			msgId, err = gen_id.MsgId(ctx, mem, largeId.Id())
+		}
+	} else {
+		msgId, err = gen_id.MsgId(ctx, mem, largeId.Id())
+	}
 	return
 }

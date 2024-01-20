@@ -24,9 +24,9 @@ func NewContactRepo(data *Data) *ContactRepo {
 
 func (repo *ContactRepo) TableName(ownerId uint64) (dbName string, tbName string) {
 	// 临时写死
-	if true {
-		return "", "contact"
-	}
+	//if true {
+	//	return "", "contact"
+	//}
 	// 分表规则：
 	// - 数据库前缀：message_xxx，规则：owner_id 倒数第三位数字就是分库值
 	// - 数据表前缀：contact_xxx，规则：owner_id 的最后两位就是分表值
@@ -37,18 +37,23 @@ func (repo *ContactRepo) TableName(ownerId uint64) (dbName string, tbName string
 }
 
 // InfoWithCache 查询某个会话的信息
-func (repo *ContactRepo) InfoWithCache(ownerId uint64, peerId uint64) (*model.Contact, error) {
+func (repo *ContactRepo) InfoWithCache(ownerId *gen_id.ComponentId, peerId *gen_id.ComponentId) (*model.Contact, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
 	return repo.Info("InfoWithCache|", ownerId, peerId)
 }
 
 // Info 查询某个会话的信息
-func (repo *ContactRepo) Info(logHead string, ownerId uint64, peerId uint64) (row *model.Contact, err error) {
-	_, tbName := repo.TableName(ownerId)
+func (repo *ContactRepo) Info(logHead string, ownerId *gen_id.ComponentId, peerId *gen_id.ComponentId) (row *model.Contact, err error) {
+	_, tbName := repo.TableName(ownerId.Id())
 	qModel := repo.Db.Contact.Table(tbName)
 
-	row, err = qModel.Where(qModel.OwnerID.Eq(ownerId), qModel.PeerID.Eq(peerId)).Take()
+	row, err = qModel.Where(
+		qModel.OwnerID.Eq(ownerId.Id()),
+		qModel.OwnerType.Eq(ownerId.Type()),
+		qModel.PeerID.Eq(peerId.Id()),
+		qModel.PeerType.Eq(peerId.Type()),
+	).Take()
 	if err != nil {
 		logging.Errorf(logHead+"Take err=%v", err)
 		return
@@ -88,7 +93,7 @@ func (repo *ContactRepo) Build(ctx context.Context, logHead string, params *mode
 	logHead += "Build|"
 	mem := repo.RedisClient
 
-	// get version_id
+	// contact: get version_id
 	versionId, err := gen_id.VersionId(ctx, &gen_id.GenVersionParams{
 		Mem:            mem,
 		GenVersionType: gen_id.GenVersionTypeContact,
@@ -110,10 +115,11 @@ func (repo *ContactRepo) Build(ctx context.Context, logHead string, params *mode
 	if err == gorm.ErrRecordNotFound {
 		err = nil
 		contact = &model.Contact{
-			OwnerID:   params.OwnerId,
-			PeerID:    params.PeerId,
-			PeerType:  int32(params.InitPeerType),
-			PeerAck:   params.InitPeerAck,
+			OwnerID:   params.OwnerId.Id(),
+			OwnerType: params.OwnerId.Type(),
+			PeerID:    params.PeerId.Id(),
+			PeerType:  params.PeerId.Type(),
+			PeerAck:   uint32(params.PeerAck),
 			LastMsgID: params.LastMsgId,
 			VersionID: versionId,
 			SortKey:   versionId,

@@ -23,10 +23,10 @@ func keyMsgId(timestamp int64) string {
 	return fmt.Sprintf(RedisPrefix+"mid_%v", timestamp)
 }
 
-func keyContactVersion(ownerId uint64, verIdTimeKey int64) string {
-	return fmt.Sprintf(RedisPrefix+"cvid_%v_%v", ownerId, verIdTimeKey)
+func keyContactVersion(ownerUniId string, verIdTimeKey int64) string {
+	return fmt.Sprintf(RedisPrefix+"cvid_%v_%v", ownerUniId, verIdTimeKey)
 }
 
-func keyMsgVersion(smallerId, largerId uint64, verIdTimeKey int64) string {
-	return fmt.Sprintf(RedisPrefix+"mvid_%v_%v_%v", smallerId, largerId, verIdTimeKey)
+func keyMsgVersion(smallerUniId, largerUniId string, verIdTimeKey int64) string {
+	return fmt.Sprintf(RedisPrefix+"mvid_%v_%v_%v", smallerUniId, largerUniId, verIdTimeKey)
 }

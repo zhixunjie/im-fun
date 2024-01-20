@@ -2,13 +2,21 @@ package gen_id
 
 import (
 	"fmt"
-	"github.com/zhixunjie/im-fun/pkg/utils"
 )
 
-// SessionId 获取会话id，小的uid在前，大的uid在后
-func SessionId(uid1 uint64, uid2 uint64) string {
-	smallerId, largerId := utils.SortNum(uid1, uid2)
+// UserSessionId 获取会话id，小的id在前，大的id在后
+// 用户与用户之间，使用的timeline标识
+func UserSessionId(id1, id2 *ComponentId) string {
+	smallerId, largerId := Sort(id1, id2)
 
 	// session_id的组成部分：[ smallerId ":" largerId]
-	return fmt.Sprintf("%d:%d", smallerId, largerId)
+	return fmt.Sprintf("%s:%s", smallerId.ToString(), largerId.ToString())
+}
+
+// GroupSessionId 只有一个id
+// 用户与群组之间，群组使用的timeline标识
+func GroupSessionId(group *ComponentId) string {
+
+	// session_id的组成部分：[ groupId ]
+	return fmt.Sprintf("%s", group.ToString())
 }

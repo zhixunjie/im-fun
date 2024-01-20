@@ -1,5 +1,7 @@
 package model
 
+import "github.com/zhixunjie/im-fun/pkg/gen_id"
+
 const (
 	TotalDb           = 10
 	TotalTableMessage = 100 // message表：分表个数（一共10个数据库，每个数据库100个表）
@@ -21,14 +23,15 @@ const (
 
 // =========================
 
-// PeerType 联系人类型
+// ContactIdType 联系人类型
 // 0-99业务自己扩展，100之后保留
-type PeerType int32
+type ContactIdType uint32
 
 const (
-	PeerTypeNormalUser PeerType = 0   // 对方是普通用户
-	PeerTypeSystemUser PeerType = 100 // 对方是系统用户
-	PeerTypeGroup      PeerType = 101 // 对方是群组
+	ContactIdTypeUser   ContactIdType = 0   // 对方是普通用户
+	ContactIdTypeRobot  ContactIdType = 1   // 对方是机器人
+	ContactIdTypeSystem ContactIdType = 100 // 对方是系统用户
+	ContactIdTypeGroup  ContactIdType = 101 // 对方是群组
 )
 
 // =========================
@@ -78,12 +81,10 @@ const (
 // =========================
 
 type FetchMsgRangeParams struct {
-	FetchType           FetchType
-	SmallerId           BigIntType
-	LargerId            BigIntType
-	PivotVersionId      BigIntType
-	LastDelMsgVersionId BigIntType
-	Limit               int
+	FetchType                           FetchType
+	SmallerId, LargerId                 *gen_id.ComponentId
+	LastDelMsgVersionId, PivotVersionId BigIntType // 确定消息的允许获取范围
+	Limit                               int
 }
 
 type FetchContactRangeParams struct {
@@ -94,9 +95,8 @@ type FetchContactRangeParams struct {
 }
 
 type BuildContactParams struct {
-	OwnerId      BigIntType
-	PeerId       BigIntType
-	LastMsgId    BigIntType
-	InitPeerType PeerType
-	InitPeerAck  uint32
+	OwnerId   *gen_id.ComponentId
+	PeerId    *gen_id.ComponentId
+	PeerAck   PeerAckStatus
+	LastMsgId BigIntType
 }
