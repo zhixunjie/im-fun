@@ -89,7 +89,7 @@ type FetchMsgRangeParams struct {
 
 type FetchContactRangeParams struct {
 	FetchType      FetchType
-	OwnerId        BigIntType
+	OwnerId        *gen_id.ComponentId
 	PivotVersionId BigIntType
 	Limit          int
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/response"
+	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/utils"
 	"math"
 	"sort"
@@ -26,9 +27,10 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	limit := 50
 
 	// 会话只会拉取最新的
+	ownerId := gen_id.NewComponentId(req.OwnerId, uint32(req.OwnerType))
 	list, err := b.contactRepo.RangeList(logHead, &model.FetchContactRangeParams{
 		FetchType:      model.FetchTypeForward,
-		OwnerId:        req.OwnerId,
+		OwnerId:        ownerId,
 		PivotVersionId: req.VersionId,
 		Limit:          limit,
 	})

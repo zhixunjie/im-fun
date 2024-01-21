@@ -136,7 +136,7 @@ func (repo *ContactRepo) Build(ctx context.Context, logHead string, params *mode
 func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRangeParams) (list []*model.Contact, err error) {
 	logHead += "RangeList|"
 
-	_, tbName := repo.TableName(params.OwnerId)
+	_, tbName := repo.TableName(params.OwnerId.Id())
 	qModel := repo.Db.Contact.Table(tbName)
 	pivotVersionId := params.PivotVersionId
 	ownerId := params.OwnerId
@@ -148,13 +148,15 @@ func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRan
 			pivotVersionId = math.MaxInt64
 		}
 		list, err = qModel.Where(
-			qModel.OwnerID.Eq(ownerId),
+			qModel.OwnerID.Eq(ownerId.Id()),
+			qModel.OwnerType.Eq(ownerId.Type()),
 			qModel.Status.Eq(uint32(model.ContactStatusNormal)),
 			qModel.VersionID.Lt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find()
 	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
 		list, err = qModel.Where(
-			qModel.OwnerID.Eq(ownerId),
+			qModel.OwnerID.Eq(ownerId.Id()),
+			qModel.OwnerType.Eq(ownerId.Type()),
 			qModel.Status.Eq(uint32(model.ContactStatusNormal)),
 			qModel.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID).Find()
