@@ -41,7 +41,7 @@ func incNum(ctx context.Context, mem *redis.Client, key string, expireSec int) (
 	// 这里的命令可能会失败
 	// 解决办法：lua脚本：https://gitee.com/jasonzxj/LearnGo/blob/master/use/pkg/redis/goredis/lua/atomic/incry_expire.go
 	if value == 1 {
-		_, err = mem.Do(ctx, "EXPIRE", key, expireSec).Result()
+		_, err = mem.Expire(ctx, key, time.Duration(expireSec)*time.Second).Result()
 		if err != nil {
 			return
 		}
