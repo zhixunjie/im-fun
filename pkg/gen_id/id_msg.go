@@ -17,7 +17,7 @@ func MsgId(ctx context.Context, mem *redis.Client, slotId uint64) (msgId uint64,
 	key := keyMsgId(ts)
 
 	// incr
-	afterIncr, err := incNum(ctx, mem, key, msgKeyExpire)
+	afterIncr, err := incNum(ctx, mem, key, expireMsgKey)
 	if err != nil {
 		return
 	}
@@ -33,7 +33,7 @@ func MsgId(ctx context.Context, mem *redis.Client, slotId uint64) (msgId uint64,
 }
 
 // incNum 每秒一个Key，进行累加
-func incNum(ctx context.Context, mem *redis.Client, key string, expireSec int) (value int64, err error) {
+func incNum(ctx context.Context, mem *redis.Client, key string, expire time.Duration) (value int64, err error) {
 	value, err = mem.IncrBy(ctx, key, 1).Result()
 	if err != nil {
 		return
@@ -41,7 +41,7 @@ func incNum(ctx context.Context, mem *redis.Client, key string, expireSec int) (
 	// 这里的命令可能会失败
 	// 解决办法：lua脚本：https://gitee.com/jasonzxj/LearnGo/blob/master/use/pkg/redis/goredis/lua/atomic/incry_expire.go
 	if value == 1 {
-		_, err = mem.Expire(ctx, key, time.Duration(expireSec)*time.Second).Result()
+		_, err = mem.Expire(ctx, key, expire).Result()
 		if err != nil {
 			return
 		}

@@ -26,7 +26,7 @@ type GenVersionParams struct {
 func VersionId(ctx context.Context, params *GenVersionParams) (versionId uint64, err error) {
 	// 每隔128，verIdTimeKey的值增加1（随着时间过去，KEY会不断增大）
 	ts := time.Now().Unix()
-	verIdTimeKey := ts >> versionKeyShift
+	verIdTimeKey := ts >> shiftVersionKey
 
 	var key string
 	switch params.GenVersionType {
@@ -41,7 +41,7 @@ func VersionId(ctx context.Context, params *GenVersionParams) (versionId uint64,
 	}
 
 	// incr
-	afterIncr, err := incNum(ctx, params.Mem, key, versionKeyExpire)
+	afterIncr, err := incNum(ctx, params.Mem, key, expireVersionKey)
 	if err != nil {
 		return
 	}
