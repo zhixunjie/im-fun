@@ -26,7 +26,7 @@ func TestText(t *testing.T) {
 	if err != nil {
 		return
 	}
-	utils.PrettyPrint(buf)
+	utils.PrettyJson(buf)
 }
 
 // 发送高亮文字
@@ -60,7 +60,7 @@ func TestHighLightText(t *testing.T) {
 	if err != nil {
 		return
 	}
-	utils.PrettyPrint(buf)
+	utils.PrettyJson(buf)
 }
 
 // 提示消息
@@ -78,7 +78,7 @@ func TestTips(t *testing.T) {
 	if err != nil {
 		return
 	}
-	utils.PrettyPrint(buf)
+	utils.PrettyJson(buf)
 }
 
 // 图片消息
@@ -108,7 +108,7 @@ func TestImage(t *testing.T) {
 	if err != nil {
 		return
 	}
-	utils.PrettyPrint(buf)
+	utils.PrettyJson(buf)
 }
 
 // 音频消息
@@ -127,5 +127,5 @@ func TestAudio(t *testing.T) {
 	if err != nil {
 		return
 	}
-	utils.PrettyPrint(buf)
+	utils.PrettyJson(buf)
 }

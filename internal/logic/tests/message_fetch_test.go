@@ -37,7 +37,7 @@ func TestMessageFetchBetweenUser(t *testing.T) {
 	if err != nil {
 		return
 	}
-	utils.PrettyPrint(buf)
+	utils.PrettyJson(buf)
 	fmt.Println(rsp.Data.MsgList)
 }
 
@@ -70,7 +70,7 @@ func TestFetchBetweenUserAndRobot(t *testing.T) {
 	if err != nil {
 		return
 	}
-	utils.PrettyPrint(buf)
+	utils.PrettyJson(buf)
 	fmt.Println(rsp.Data.MsgList)
 }
 
@@ -99,6 +99,6 @@ func TestFetchBetweenUserAndGroup(t *testing.T) {
 	if err != nil {
 		return
 	}
-	utils.PrettyPrint(buf)
+	utils.PrettyJson(buf)
 	fmt.Println(len(rsp.Data.MsgList))
 }
