@@ -3,11 +3,13 @@ package data
 import (
 	"context"
 	"fmt"
+	"github.com/spf13/cast"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"math"
+	"strings"
 )
 
 type MessageRepo struct {
@@ -113,6 +115,22 @@ func (repo *MessageRepo) GenSessionId(id1, id2 *gen_id.ComponentId) (sessionId s
 	} else {
 		sessionId = gen_id.UserSessionId(id1, id2)
 	}
+	return
+}
+
+func (repo *MessageRepo) ParseSessionId(sessionId string) (id1, id2 *gen_id.ComponentId) {
+	slice := strings.Split(sessionId, ":")
+	if len(slice) == 1 {
+		val := strings.Split(slice[0], "_")
+		id1 = gen_id.NewComponentId(cast.ToUint64(val[1]), cast.ToUint32(val[0]))
+	} else {
+		val := strings.Split(slice[0], "_")
+		id1 = gen_id.NewComponentId(cast.ToUint64(val[1]), cast.ToUint32(val[0]))
+
+		val = strings.Split(slice[1], "_")
+		id2 = gen_id.NewComponentId(cast.ToUint64(val[1]), cast.ToUint32(val[0]))
+	}
+
 	return
 }
 
