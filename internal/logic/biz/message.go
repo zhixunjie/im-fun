@@ -338,6 +338,7 @@ func (b *MessageUseCase) canCreateContact(logHead string, contactId *gen_id.Comp
 	return true
 }
 
+// 限制：发送者和接受者的类型
 func (b *MessageUseCase) checkMessageSend(ctx context.Context, req *request.MessageSendReq) error {
 	allowSenderType := []model.ContactIdType{
 		model.ContactIdTypeUser,
