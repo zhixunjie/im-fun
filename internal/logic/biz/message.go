@@ -63,7 +63,8 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	}
 
 	// 1. build message
-	msg, err := b.build(ctx, logHead, req, senderId, receiverId)
+	var msg *model.Message
+	msg, err = b.build(ctx, logHead, req, senderId, receiverId)
 	if err != nil {
 		return
 	}
@@ -135,6 +136,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			SeqId:       msg.SeqID,
 			VersionId:   msg.VersionID,
 			SortKey:     msg.SortKey,
+			SessionId:   msg.SessionID,
 			UnreadCount: 0,
 		},
 	}
