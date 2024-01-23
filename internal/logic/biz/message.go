@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/samber/lo"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
@@ -54,6 +55,12 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	logHead := fmt.Sprintf("Send,SenderId=%v,ReceiverId=%v|", req.SenderId, req.ReceiverId)
 	senderId := gen_id.NewComponentId(req.SenderId, uint32(req.SenderType))
 	receiverId := gen_id.NewComponentId(req.ReceiverId, uint32(req.ReceiverType))
+
+	// check limit
+	err = b.checkMessageSend(ctx, req)
+	if err != nil {
+		return
+	}
 
 	// 1. build message
 	msg, err := b.build(ctx, logHead, req, senderId, receiverId)
@@ -329,4 +336,27 @@ func (b *MessageUseCase) canCreateContact(logHead string, contactId *gen_id.Comp
 	}
 
 	return true
+}
+
+func (b *MessageUseCase) checkMessageSend(ctx context.Context, req *request.MessageSendReq) error {
+	allowSenderType := []model.ContactIdType{
+		model.ContactIdTypeUser,
+		model.ContactIdTypeRobot,
+		model.ContactIdTypeSystem,
+	}
+
+	allowReceiverType := []model.ContactIdType{
+		model.ContactIdTypeUser,
+		model.ContactIdTypeRobot,
+		model.ContactIdTypeGroup,
+	}
+
+	if !lo.Contains(allowSenderType, req.SenderType) {
+		return errors.New("checkMessageSend not allow")
+	}
+	if !lo.Contains(allowReceiverType, req.ReceiverType) {
+		return errors.New("checkMessageSend not allow")
+	}
+
+	return nil
 }
