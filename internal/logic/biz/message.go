@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/samber/lo"
+	"github.com/zhixunjie/im-fun/internal/logic/api"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
@@ -15,6 +16,7 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/utils"
+	"gorm.io/gorm"
 	"math"
 	"sort"
 )
@@ -216,6 +218,9 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	peerId := gen_id.NewComponentId(req.PeerId, uint32(req.PeerType))
 	contactInfo, err := b.repoContact.Info(logHead, ownerId, peerId)
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			err = api.ErrContactNotExists
+		}
 		return
 	}
 
