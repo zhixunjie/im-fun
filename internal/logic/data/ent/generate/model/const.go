@@ -24,12 +24,12 @@ const (
 // =========================
 
 // ContactIdType 联系人类型
-// 0-99业务自己扩展，100之后保留
+// 1-99业务自己扩展，100之后保留
 type ContactIdType uint32
 
 const (
-	ContactIdTypeUser   ContactIdType = 0   // 对方是普通用户
-	ContactIdTypeRobot  ContactIdType = 1   // 对方是机器人
+	ContactIdTypeUser   ContactIdType = 1   // 对方是普通用户
+	ContactIdTypeRobot  ContactIdType = 2   // 对方是机器人
 	ContactIdTypeSystem ContactIdType = 100 // 对方是系统用户
 	ContactIdTypeGroup  ContactIdType = 101 // 对方是群组
 )
