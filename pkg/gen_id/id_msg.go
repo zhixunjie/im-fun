@@ -8,6 +8,20 @@ import (
 	"time"
 )
 
+// GenMsgId 根据id的类型，生成msgId
+func GenMsgId(ctx context.Context, mem *redis.Client, smallerId, largeId *ComponentId) (msgId uint64, err error) {
+	switch {
+	case smallerId.Type() == uint32(ContactIdTypeGroup):
+		msgId, err = MsgId(ctx, mem, smallerId.Id())
+	case largeId.Type() == uint32(ContactIdTypeGroup):
+		msgId, err = MsgId(ctx, mem, largeId.Id())
+	default:
+		msgId, err = MsgId(ctx, mem, largeId.Id())
+	}
+
+	return
+}
+
 // MsgId 生成msg_id
 // - msg_id要求全局唯一
 // - msg_id跟largerId的后4位是相同的（slotId其实就是largerId，如果是群组，那就是groupId）

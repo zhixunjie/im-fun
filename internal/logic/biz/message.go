@@ -153,7 +153,7 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 
 	// gen msg_id
 	smallerId, largeId := gen_id.Sort(senderId, receiverId)
-	msgId, err := b.repoMessage.GenMsgId(ctx, smallerId, largeId)
+	msgId, err := gen_id.GenMsgId(ctx, mem, smallerId, largeId)
 	if err != nil {
 		logging.Errorf(logHead+"gen MsgId error=%v", err)
 		return
@@ -189,7 +189,7 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 	}
 
 	// build message
-	sessionId := b.repoMessage.GenSessionId(smallerId, largeId)
+	sessionId := gen_id.GenSessionId(smallerId, largeId)
 	msg = &model.Message{
 		MsgID:         msgId,
 		SeqID:         req.SeqId,
