@@ -38,9 +38,9 @@ func (b *MessageUseCase) SendCustomMessage(ctx context.Context, sender, receiver
 	return b.Send(ctx, &request.MessageSendReq{
 		SeqId:        uint64(gen_id.SeqId()),
 		SenderId:     sender.Id(),
-		SenderType:   model.ContactIdType(sender.Type()),
+		SenderType:   gen_id.ContactIdType(sender.Type()),
 		ReceiverId:   receiver.Id(),
-		ReceiverType: model.ContactIdType(receiver.Type()),
+		ReceiverType: gen_id.ContactIdType(receiver.Type()),
 		MsgBody: format.MsgBody{
 			MsgType: format.MsgTypeCustom,
 			MsgContent: &format.MsgContent{
@@ -331,9 +331,9 @@ func (b *MessageUseCase) canCreateContact(logHead string, contactId *gen_id.Comp
 	logHead += fmt.Sprintf("doNotNeedCreateContact,contactId=%v|", contactId)
 
 	typeArr := []uint32{
-		uint32(model.ContactIdTypeRobot),
-		uint32(model.ContactIdTypeSystem),
-		uint32(model.ContactIdTypeGroup),
+		uint32(gen_id.ContactIdTypeRobot),
+		uint32(gen_id.ContactIdTypeSystem),
+		uint32(gen_id.ContactIdTypeGroup),
 	}
 
 	// 如果用户是指定类型，那么不需要创建他的contact信息（比如：机器人）
@@ -347,16 +347,16 @@ func (b *MessageUseCase) canCreateContact(logHead string, contactId *gen_id.Comp
 
 // 限制：发送者和接受者的类型
 func (b *MessageUseCase) checkMessageSend(ctx context.Context, req *request.MessageSendReq) error {
-	allowSenderType := []model.ContactIdType{
-		model.ContactIdTypeUser,
-		model.ContactIdTypeRobot,
-		model.ContactIdTypeSystem,
+	allowSenderType := []gen_id.ContactIdType{
+		gen_id.ContactIdTypeUser,
+		gen_id.ContactIdTypeRobot,
+		gen_id.ContactIdTypeSystem,
 	}
 
-	allowReceiverType := []model.ContactIdType{
-		model.ContactIdTypeUser,
-		model.ContactIdTypeRobot,
-		model.ContactIdTypeGroup,
+	allowReceiverType := []gen_id.ContactIdType{
+		gen_id.ContactIdTypeUser,
+		gen_id.ContactIdTypeRobot,
+		gen_id.ContactIdTypeGroup,
 	}
 
 	if !lo.Contains(allowSenderType, req.SenderType) {

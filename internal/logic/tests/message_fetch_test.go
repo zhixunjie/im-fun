@@ -17,16 +17,16 @@ func TestMessageFetchBetweenUser(t *testing.T) {
 	ctx := context.Background()
 
 	var ownerId, peerId *gen_id.ComponentId
-	ownerId = gen_id.NewComponentId(1001, uint32(model.ContactIdTypeUser))
-	peerId = gen_id.NewComponentId(10001, uint32(model.ContactIdTypeUser))
+	ownerId = gen_id.NewComponentId(1001, uint32(gen_id.ContactIdTypeUser))
+	peerId = gen_id.NewComponentId(10001, uint32(gen_id.ContactIdTypeUser))
 
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
 		FetchType: model.FetchTypeForward,
 		VersionId: 0,
 		OwnerId:   ownerId.Id(),
-		OwnerType: model.ContactIdType(ownerId.Type()),
+		OwnerType: gen_id.ContactIdType(ownerId.Type()),
 		PeerId:    peerId.Id(),
-		PeerType:  model.ContactIdType(peerId.Type()),
+		PeerType:  gen_id.ContactIdType(peerId.Type()),
 	})
 
 	if err != nil {
@@ -46,8 +46,8 @@ func TestFetchBetweenUserAndRobot(t *testing.T) {
 	ctx := context.Background()
 
 	var ownerId, peerId *gen_id.ComponentId
-	ownerId = gen_id.NewComponentId(1003, uint32(model.ContactIdTypeUser))
-	peerId = gen_id.NewComponentId(10003, uint32(model.ContactIdTypeRobot))
+	ownerId = gen_id.NewComponentId(1003, uint32(gen_id.ContactIdTypeUser))
+	peerId = gen_id.NewComponentId(10003, uint32(gen_id.ContactIdTypeRobot))
 
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
 		//FetchType: model.FetchTypeBackward,
@@ -57,9 +57,9 @@ func TestFetchBetweenUserAndRobot(t *testing.T) {
 		FetchType: model.FetchTypeForward,
 		VersionId: 0,
 		OwnerId:   ownerId.Id(),
-		OwnerType: model.ContactIdType(ownerId.Type()),
+		OwnerType: gen_id.ContactIdType(ownerId.Type()),
 		PeerId:    peerId.Id(),
-		PeerType:  model.ContactIdType(peerId.Type()),
+		PeerType:  gen_id.ContactIdType(peerId.Type()),
 	})
 
 	if err != nil {
@@ -79,16 +79,16 @@ func TestFetchBetweenUserAndGroup(t *testing.T) {
 	ctx := context.Background()
 
 	var ownerId, peerId *gen_id.ComponentId
-	ownerId = gen_id.NewComponentId(1001, uint32(model.ContactIdTypeUser))
-	peerId = gen_id.NewComponentId(100000001, uint32(model.ContactIdTypeGroup))
+	ownerId = gen_id.NewComponentId(1001, uint32(gen_id.ContactIdTypeUser))
+	peerId = gen_id.NewComponentId(100000001, uint32(gen_id.ContactIdTypeGroup))
 
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
 		FetchType: model.FetchTypeForward,
 		VersionId: 0,
 		OwnerId:   ownerId.Id(),
-		OwnerType: model.ContactIdType(ownerId.Type()),
+		OwnerType: gen_id.ContactIdType(ownerId.Type()),
 		PeerId:    peerId.Id(),
-		PeerType:  model.ContactIdType(peerId.Type()),
+		PeerType:  gen_id.ContactIdType(peerId.Type()),
 	})
 
 	if err != nil {

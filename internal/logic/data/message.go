@@ -106,15 +106,15 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 
 // GenSessionId 根据id的类型，生成sessionId
 func (repo *MessageRepo) GenSessionId(id1, id2 *gen_id.ComponentId) (sessionId string) {
-	if id1.Type() == uint32(model.ContactIdTypeGroup) || id2.Type() == uint32(model.ContactIdTypeGroup) {
-		if id1.Type() == uint32(model.ContactIdTypeGroup) {
-			sessionId = gen_id.GroupSessionId(id1)
-		} else {
-			sessionId = gen_id.GroupSessionId(id2)
-		}
-	} else {
+	switch {
+	case id1.Type() == uint32(gen_id.ContactIdTypeGroup):
+		sessionId = gen_id.GroupSessionId(id1)
+	case id2.Type() == uint32(gen_id.ContactIdTypeGroup):
+		sessionId = gen_id.GroupSessionId(id2)
+	default:
 		sessionId = gen_id.UserSessionId(id1, id2)
 	}
+
 	return
 }
 
@@ -138,14 +138,14 @@ func (repo *MessageRepo) ParseSessionId(sessionId string) (id1, id2 *gen_id.Comp
 func (repo *MessageRepo) GenMsgId(ctx context.Context, smallerId, largeId *gen_id.ComponentId) (msgId uint64, err error) {
 	mem := repo.RedisClient
 
-	if smallerId.Type() == uint32(model.ContactIdTypeGroup) || largeId.Type() == uint32(model.ContactIdTypeGroup) {
-		if smallerId.Type() == uint32(model.ContactIdTypeGroup) {
-			msgId, err = gen_id.MsgId(ctx, mem, smallerId.Id())
-		} else {
-			msgId, err = gen_id.MsgId(ctx, mem, largeId.Id())
-		}
-	} else {
+	switch {
+	case smallerId.Type() == uint32(gen_id.ContactIdTypeGroup):
+		msgId, err = gen_id.MsgId(ctx, mem, smallerId.Id())
+	case largeId.Type() == uint32(gen_id.ContactIdTypeGroup):
+		msgId, err = gen_id.MsgId(ctx, mem, largeId.Id())
+	default:
 		msgId, err = gen_id.MsgId(ctx, mem, largeId.Id())
 	}
+
 	return
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"testing"
 )
@@ -22,11 +21,11 @@ func TestSendBetweenUser(t *testing.T) {
 			for i := 1; i <= 5; i++ {
 				var senderId, receiverId *gen_id.ComponentId
 				if i%2 == 1 {
-					senderId = gen_id.NewComponentId(user1, uint32(model.ContactIdTypeUser))
-					receiverId = gen_id.NewComponentId(user2, uint32(model.ContactIdTypeUser))
+					senderId = gen_id.NewComponentId(user1, uint32(gen_id.ContactIdTypeUser))
+					receiverId = gen_id.NewComponentId(user2, uint32(gen_id.ContactIdTypeUser))
 				} else {
-					senderId = gen_id.NewComponentId(user2, uint32(model.ContactIdTypeUser))
-					receiverId = gen_id.NewComponentId(user1, uint32(model.ContactIdTypeUser))
+					senderId = gen_id.NewComponentId(user2, uint32(gen_id.ContactIdTypeUser))
+					receiverId = gen_id.NewComponentId(user1, uint32(gen_id.ContactIdTypeUser))
 				}
 
 				// build data
@@ -56,11 +55,11 @@ func TestSendBetweenUserAndRobot(t *testing.T) {
 			for i := 1; i <= 5; i++ {
 				var senderId, receiverId *gen_id.ComponentId
 				if i%2 == 1 {
-					senderId = gen_id.NewComponentId(user1, uint32(model.ContactIdTypeUser))
-					receiverId = gen_id.NewComponentId(user2, uint32(model.ContactIdTypeRobot))
+					senderId = gen_id.NewComponentId(user1, uint32(gen_id.ContactIdTypeUser))
+					receiverId = gen_id.NewComponentId(user2, uint32(gen_id.ContactIdTypeRobot))
 				} else {
-					senderId = gen_id.NewComponentId(user2, uint32(model.ContactIdTypeRobot))
-					receiverId = gen_id.NewComponentId(user1, uint32(model.ContactIdTypeUser))
+					senderId = gen_id.NewComponentId(user2, uint32(gen_id.ContactIdTypeRobot))
+					receiverId = gen_id.NewComponentId(user1, uint32(gen_id.ContactIdTypeUser))
 				}
 
 				// build data
@@ -86,8 +85,8 @@ func TestSendBetweenUserAndGroup(t *testing.T) {
 
 	for _, groupId := range groupIds {
 		for _, senderId := range senderIds {
-			sender := gen_id.NewComponentId(senderId, uint32(model.ContactIdTypeUser))
-			receiver := gen_id.NewComponentId(groupId, uint32(model.ContactIdTypeGroup))
+			sender := gen_id.NewComponentId(senderId, uint32(gen_id.ContactIdTypeUser))
+			receiver := gen_id.NewComponentId(groupId, uint32(gen_id.ContactIdTypeGroup))
 
 			// build data
 			d := map[string]interface{}{

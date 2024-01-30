@@ -23,19 +23,6 @@ const (
 
 // =========================
 
-// ContactIdType 联系人类型
-// 1-99业务自己扩展，100之后保留
-type ContactIdType uint32
-
-const (
-	ContactIdTypeUser   ContactIdType = 1   // 对方是普通用户
-	ContactIdTypeRobot  ContactIdType = 2   // 对方是机器人
-	ContactIdTypeSystem ContactIdType = 100 // 对方是系统用户
-	ContactIdTypeGroup  ContactIdType = 101 // 对方是群组
-)
-
-// =========================
-
 // PeerAckStatus 是否给owner发过消息
 type PeerAckStatus uint32
 
