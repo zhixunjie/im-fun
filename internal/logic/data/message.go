@@ -89,7 +89,7 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 			qModel.Status.Eq(uint32(model.MsgStatusNormal)),
 			qModel.VersionID.Gt(delVersionId),
 			qModel.VersionID.Lt(pivotVersionId),
-		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find()
+		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find() // 按照version_id倒序排序
 	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
 		// 避免：拉取最新消息时拉到已删除消息
 		if pivotVersionId < delVersionId {
@@ -99,7 +99,7 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 			qModel.SessionID.Eq(sessionId),
 			qModel.Status.Eq(uint32(model.MsgStatusNormal)),
 			qModel.VersionID.Gt(pivotVersionId),
-		).Limit(params.Limit).Order(qModel.VersionID).Find()
+		).Limit(params.Limit).Order(qModel.VersionID).Find() // 按照version_id正序排序
 	}
 
 	return

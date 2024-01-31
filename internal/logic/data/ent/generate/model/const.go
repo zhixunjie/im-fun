@@ -50,8 +50,8 @@ type MsgStatus uint32
 
 const (
 	MsgStatusNormal   MsgStatus = iota // 正常
-	MsgStatusDeleted                   // 已删除
 	MsgStatusWithdraw                  // 已撤回
+	MsgStatusDeleted                   // 已删除
 )
 
 // =========================
