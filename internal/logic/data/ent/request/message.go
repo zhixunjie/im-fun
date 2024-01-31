@@ -34,9 +34,25 @@ type MessageWithdrawReq struct {
 	SenderType gen_id.ContactIdType `json:"sender_type"` // 消息发送者的用户类型
 }
 
-// DelBothSideReq 删除消息
+// DelBothSideReq 删除消息（两边的聊天记录都需要删除）
 type DelBothSideReq struct {
 	MsgId      model.BigIntType     `json:"msg_id"`      // 删除哪一条消息？
 	SenderId   model.BigIntType     `json:"sender_id"`   // 消息发送者id
 	SenderType gen_id.ContactIdType `json:"sender_type"` // 消息发送者的用户类型
+}
+
+// DelOneSideReq 删除消息（只删除一边的聊天）
+type DelOneSideReq struct {
+	MsgId      model.BigIntType     `json:"msg_id"`      // 删除哪一条消息？
+	SenderId   model.BigIntType     `json:"sender_id"`   // 消息发送者id
+	SenderType gen_id.ContactIdType `json:"sender_type"` // 消息发送者的用户类型
+}
+
+// ClearHistoryReq 清空聊天记录
+type ClearHistoryReq struct {
+	MsgId     model.BigIntType     `json:"msg_id"`     // 从哪一条消息开始，进行聊天记录的清空
+	OwnerId   model.BigIntType     `json:"owner_id"`   // 会话拥有者
+	OwnerType gen_id.ContactIdType `json:"owner_type"` // 会话拥有者的用户类型
+	PeerId    model.BigIntType     `json:"peer_id"`    // 会话联系人（对方）
+	PeerType  gen_id.ContactIdType `json:"peer_type"`  // 会话联系人（对方）的用户类型
 }

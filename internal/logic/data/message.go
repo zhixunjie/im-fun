@@ -107,9 +107,12 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 func (repo *MessageRepo) UpdateMsgStatus(msgId model.BigIntType, status model.MsgStatus, versionId uint64) (affectedRow int64, err error) {
 	_, tbName := repo.TableName(msgId)
 	qModel := repo.Db.Message.Table(tbName)
+
+	// status
 	srcStatus := uint32(model.MsgStatusNormal)
 	dstStatus := uint32(status)
 
+	// operation
 	var res gen.ResultInfo
 	res, err = qModel.
 		Where(qModel.Status.Eq(srcStatus)).Limit(1).

@@ -160,6 +160,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 		if err == gorm.ErrRecordNotFound {
 			err = api.ErrContactNotExists
 		}
+		logging.Error(logHead+"repoContact Info,err=%v", err)
 		return
 	}
 
@@ -268,10 +269,11 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 // OpWithdraw 某条消息撤回（两边的聊天记录都需要撤回）
 // 核心：更新status和version_id（需要通知对方，所以需要更新version_id）
 func (b *MessageUseCase) OpWithdraw(ctx context.Context, req *request.MessageWithdrawReq) (rsp response.MessageWithdrawRsp, err error) {
+	logHead := "OpWithdraw|"
 	senderId := gen_id.NewComponentId(req.SenderId, uint32(req.SenderType))
 
 	// invoke common method
-	err = b.updateMsgIdStatus(ctx, req.MsgId, model.MsgStatusWithdraw, senderId)
+	err = b.updateMsgIdStatus(ctx, logHead, req.MsgId, model.MsgStatusWithdraw, senderId)
 	if err != nil {
 		return
 	}
@@ -281,10 +283,11 @@ func (b *MessageUseCase) OpWithdraw(ctx context.Context, req *request.MessageWit
 // OpDelBothSide 某条消息删除（两边的聊天记录都需要删除）
 // 核心：更新status和version_id（需要通知对方，所以需要更新version_id）
 func (b *MessageUseCase) OpDelBothSide(ctx context.Context, req *request.DelBothSideReq) (rsp response.DelBothSideRsp, err error) {
+	logHead := "OpDelBothSide|"
 	senderId := gen_id.NewComponentId(req.SenderId, uint32(req.SenderType))
 
 	// invoke common method
-	err = b.updateMsgIdStatus(ctx, req.MsgId, model.MsgStatusDeleted, senderId)
+	err = b.updateMsgIdStatus(ctx, logHead, req.MsgId, model.MsgStatusDeleted, senderId)
 	if err != nil {
 		return
 	}
@@ -293,14 +296,59 @@ func (b *MessageUseCase) OpDelBothSide(ctx context.Context, req *request.DelBoth
 
 // OpDelOneSide 某条消息删除（只有一边的聊天记录是不可见，另外一边可见）
 // 核心：更新 invisible_list
-func (b *MessageUseCase) OpDelOneSide() {
-
+func (b *MessageUseCase) OpDelOneSide(ctx context.Context, req *request.DelOneSideReq) (rsp response.DelOneSideRsp, err error) {
+	return
 }
 
 // OpClearHistory 清空聊天记录（批量清空）
 // 核心：更新Contact的 last_del_msg_id 为 last_msg_id
-func (b *MessageUseCase) OpClearHistory() {
+func (b *MessageUseCase) OpClearHistory(ctx context.Context, req *request.ClearHistoryReq) (rsp response.ClearHistoryRsp, err error) {
+	logHead := fmt.Sprintf("OpClearHistory|")
+	lastDelMsgId := req.MsgId
+	ownerId := gen_id.NewComponentId(req.OwnerId, uint32(req.OwnerType))
+	peerId := gen_id.NewComponentId(req.PeerId, uint32(req.PeerType))
+	mem := b.repoMessage.RedisClient
 
+	// 聊天记录的清空：
+	// 1. 指定msgId进行清空
+	// 2. 获取contact记录的最后一条消息进行清空
+	if lastDelMsgId == 0 {
+		// get: contact info
+		var contactInfo *model.Contact
+		contactInfo, err = b.repoContact.Info(logHead, ownerId, peerId)
+		if err != nil {
+			logging.Error(logHead+"repoContact Info,err=%v", err)
+			return
+		}
+		lastDelMsgId = contactInfo.LastMsgID
+	}
+
+	// contact: gen version_id
+	smallerId, largeId := gen_id.Sort(ownerId, peerId)
+	versionId, err := gen_id.VersionId(ctx, &gen_id.GenVersionParams{
+		Mem:            mem,
+		GenVersionType: gen_id.GenVersionTypeContact,
+		SmallerId:      smallerId,
+		LargerId:       largeId,
+	})
+	if err != nil {
+		logging.Errorf(logHead+"gen VersionId error=%v", err)
+		return
+	}
+
+	// update to db
+	affectedRow, err := b.repoContact.UpdateContactLastDelMsg(logHead, lastDelMsgId, versionId, ownerId, peerId)
+	if err != nil {
+		logging.Errorf(logHead+"UpdateMsgStatus error=%v", err)
+		return
+	}
+	if affectedRow == 0 {
+		err = errors.New("affectedRow not allow")
+		logging.Errorf(logHead+"UpdateMsgStatus error=%v", err)
+		return
+	}
+
+	return
 }
 
 // build 构建消息体
@@ -407,8 +455,9 @@ func (b *MessageUseCase) checkMessageSend(ctx context.Context, req *request.Mess
 	return nil
 }
 
-func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, msgId model.BigIntType, status model.MsgStatus, senderId *gen_id.ComponentId) (err error) {
-	logHead := fmt.Sprintf("OpWithdraw,msgId=%v,status=%v|", msgId, status)
+// updateMsgIdStatus 通用的方法，用于更新消息的状态和版本ID
+func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, msgId model.BigIntType, status model.MsgStatus, senderId *gen_id.ComponentId) (err error) {
+	logHead += fmt.Sprintf("OpWithdraw,msgId=%v,status=%v|", msgId, status)
 	mem := b.repoMessage.RedisClient
 
 	// get: message

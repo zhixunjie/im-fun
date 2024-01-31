@@ -53,3 +53,12 @@ type MessageWithdrawRsp struct {
 type DelBothSideRsp struct {
 	Base
 }
+
+// DelOneSideRsp 删除消息（只删除一边的聊天）
+type DelOneSideRsp struct {
+	Base
+}
+
+type ClearHistoryRsp struct {
+	Base
+}

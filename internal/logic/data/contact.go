@@ -115,10 +115,8 @@ func (repo *ContactRepo) Build(ctx context.Context, logHead string, params *mode
 	if err == gorm.ErrRecordNotFound {
 		err = nil
 		contact = &model.Contact{
-			OwnerID:   params.OwnerId.Id(),
-			OwnerType: params.OwnerId.Type(),
-			PeerID:    params.PeerId.Id(),
-			PeerType:  params.PeerId.Type(),
+			OwnerID: params.OwnerId.Id(), OwnerType: params.OwnerId.Type(),
+			PeerID: params.PeerId.Id(), PeerType: params.PeerId.Type(),
 			PeerAck:   uint32(params.PeerAck),
 			LastMsgID: params.LastMsgId,
 			VersionID: versionId,
@@ -148,15 +146,13 @@ func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRan
 			pivotVersionId = math.MaxInt64
 		}
 		list, err = qModel.Where(
-			qModel.OwnerID.Eq(ownerId.Id()),
-			qModel.OwnerType.Eq(ownerId.Type()),
+			qModel.OwnerID.Eq(ownerId.Id()), qModel.OwnerType.Eq(ownerId.Type()),
 			qModel.Status.Eq(uint32(model.ContactStatusNormal)),
 			qModel.VersionID.Lt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find()
 	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
 		list, err = qModel.Where(
-			qModel.OwnerID.Eq(ownerId.Id()),
-			qModel.OwnerType.Eq(ownerId.Type()),
+			qModel.OwnerID.Eq(ownerId.Id()), qModel.OwnerType.Eq(ownerId.Type()),
 			qModel.Status.Eq(uint32(model.ContactStatusNormal)),
 			qModel.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID).Find()
@@ -165,6 +161,27 @@ func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRan
 		logging.Errorf(logHead+"err=%v", err)
 		return
 	}
+
+	return
+}
+
+func (repo *ContactRepo) UpdateContactLastDelMsg(logHead string, lastDelMsgId model.BigIntType, versionId uint64, ownerId *gen_id.ComponentId, peerId *gen_id.ComponentId) (affectedRow int64, err error) {
+	_, tbName := repo.TableName(ownerId.Id())
+	qModel := repo.Db.Contact.Table(tbName)
+
+	var res gen.ResultInfo
+	res, err = qModel.Where(
+		qModel.OwnerID.Eq(ownerId.Id()), qModel.OwnerType.Eq(ownerId.Type()),
+		qModel.PeerID.Eq(peerId.Id()), qModel.PeerType.Eq(peerId.Type()),
+	).Limit(1).Updates(&model.Contact{
+		LastDelMsgID: lastDelMsgId,
+		VersionID:    versionId,
+	})
+	if err != nil {
+		logging.Errorf(logHead+"Update err=%v", err)
+		return
+	}
+	affectedRow = res.RowsAffected
 
 	return
 }
