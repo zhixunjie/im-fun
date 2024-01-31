@@ -86,7 +86,6 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 		}
 		list, err = qModel.Where(
 			qModel.SessionID.Eq(sessionId),
-			qModel.Status.Eq(uint32(model.MsgStatusNormal)),
 			qModel.VersionID.Gt(delVersionId),
 			qModel.VersionID.Lt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find() // 按照version_id倒序排序
@@ -97,7 +96,6 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 		}
 		list, err = qModel.Where(
 			qModel.SessionID.Eq(sessionId),
-			qModel.Status.Eq(uint32(model.MsgStatusNormal)),
 			qModel.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID).Find() // 按照version_id正序排序
 	}
