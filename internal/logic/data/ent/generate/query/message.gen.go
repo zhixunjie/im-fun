@@ -28,6 +28,7 @@ func newMessage(db *gorm.DB, opts ...gen.DOOption) message {
 
 	tableName := _message.messageDo.TableName()
 	_message.ALL = field.NewAsterisk(tableName)
+	_message.ID = field.NewUint64(tableName, "id")
 	_message.MsgID = field.NewUint64(tableName, "msg_id")
 	_message.SeqID = field.NewUint64(tableName, "seq_id")
 	_message.MsgType = field.NewUint32(tableName, "msg_type")
@@ -52,6 +53,7 @@ type message struct {
 	messageDo
 
 	ALL           field.Asterisk
+	ID            field.Uint64 // 自增id
 	MsgID         field.Uint64 // 消息唯一id（服务端生成）
 	SeqID         field.Uint64 // 消息唯一id（客户端生成）
 	MsgType       field.Uint32 // 消息类型
@@ -81,6 +83,7 @@ func (m message) As(alias string) *message {
 
 func (m *message) updateTableName(table string) *message {
 	m.ALL = field.NewAsterisk(table)
+	m.ID = field.NewUint64(table, "id")
 	m.MsgID = field.NewUint64(table, "msg_id")
 	m.SeqID = field.NewUint64(table, "seq_id")
 	m.MsgType = field.NewUint32(table, "msg_type")
@@ -110,7 +113,8 @@ func (m *message) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (m *message) fillFieldMap() {
-	m.fieldMap = make(map[string]field.Expr, 13)
+	m.fieldMap = make(map[string]field.Expr, 14)
+	m.fieldMap["id"] = m.ID
 	m.fieldMap["msg_id"] = m.MsgID
 	m.fieldMap["seq_id"] = m.SeqID
 	m.fieldMap["msg_type"] = m.MsgType

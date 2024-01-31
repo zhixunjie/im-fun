@@ -29,7 +29,12 @@ func newChatGroup(db *gorm.DB, opts ...gen.DOOption) chatGroup {
 	tableName := _chatGroup.chatGroupDo.TableName()
 	_chatGroup.ALL = field.NewAsterisk(tableName)
 	_chatGroup.ID = field.NewUint64(tableName, "id")
+	_chatGroup.Type = field.NewUint32(tableName, "type")
 	_chatGroup.Name = field.NewString(tableName, "name")
+	_chatGroup.Avatar = field.NewString(tableName, "avatar")
+	_chatGroup.Notification = field.NewString(tableName, "notification")
+	_chatGroup.OwnerID = field.NewUint64(tableName, "owner_id")
+	_chatGroup.CreatorID = field.NewUint64(tableName, "creator_id")
 	_chatGroup.CreatedAt = field.NewTime(tableName, "created_at")
 	_chatGroup.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -42,11 +47,16 @@ func newChatGroup(db *gorm.DB, opts ...gen.DOOption) chatGroup {
 type chatGroup struct {
 	chatGroupDo
 
-	ALL       field.Asterisk
-	ID        field.Uint64 // 自增id,主键
-	Name      field.String // 群组名称
-	CreatedAt field.Time   // 创建时间
-	UpdatedAt field.Time   // 更新时间
+	ALL          field.Asterisk
+	ID           field.Uint64 // 自增id,主键
+	Type         field.Uint32 // 群组类型
+	Name         field.String // 群组名称
+	Avatar       field.String // 群组头像
+	Notification field.String // 群组公告
+	OwnerID      field.Uint64 // 群组拥有者
+	CreatorID    field.Uint64 // 群组创建者
+	CreatedAt    field.Time   // 创建时间
+	UpdatedAt    field.Time   // 更新时间
 
 	fieldMap map[string]field.Expr
 }
@@ -64,7 +74,12 @@ func (c chatGroup) As(alias string) *chatGroup {
 func (c *chatGroup) updateTableName(table string) *chatGroup {
 	c.ALL = field.NewAsterisk(table)
 	c.ID = field.NewUint64(table, "id")
+	c.Type = field.NewUint32(table, "type")
 	c.Name = field.NewString(table, "name")
+	c.Avatar = field.NewString(table, "avatar")
+	c.Notification = field.NewString(table, "notification")
+	c.OwnerID = field.NewUint64(table, "owner_id")
+	c.CreatorID = field.NewUint64(table, "creator_id")
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -83,9 +98,14 @@ func (c *chatGroup) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (c *chatGroup) fillFieldMap() {
-	c.fieldMap = make(map[string]field.Expr, 4)
+	c.fieldMap = make(map[string]field.Expr, 9)
 	c.fieldMap["id"] = c.ID
+	c.fieldMap["type"] = c.Type
 	c.fieldMap["name"] = c.Name
+	c.fieldMap["avatar"] = c.Avatar
+	c.fieldMap["notification"] = c.Notification
+	c.fieldMap["owner_id"] = c.OwnerID
+	c.fieldMap["creator_id"] = c.CreatorID
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt
 }

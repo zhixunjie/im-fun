@@ -30,6 +30,7 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.ALL = field.NewAsterisk(tableName)
 	_user.ID = field.NewUint64(tableName, "id")
 	_user.Name = field.NewString(tableName, "name")
+	_user.Avatar = field.NewString(tableName, "avatar")
 	_user.CreatedAt = field.NewTime(tableName, "created_at")
 	_user.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -45,6 +46,7 @@ type user struct {
 	ALL       field.Asterisk
 	ID        field.Uint64 // 自增id,主键
 	Name      field.String // 用户
+	Avatar    field.String // 用户头像
 	CreatedAt field.Time   // 创建时间
 	UpdatedAt field.Time   // 更新时间
 
@@ -65,6 +67,7 @@ func (u *user) updateTableName(table string) *user {
 	u.ALL = field.NewAsterisk(table)
 	u.ID = field.NewUint64(table, "id")
 	u.Name = field.NewString(table, "name")
+	u.Avatar = field.NewString(table, "avatar")
 	u.CreatedAt = field.NewTime(table, "created_at")
 	u.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -83,9 +86,10 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 4)
+	u.fieldMap = make(map[string]field.Expr, 5)
 	u.fieldMap["id"] = u.ID
 	u.fieldMap["name"] = u.Name
+	u.fieldMap["avatar"] = u.Avatar
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
 }

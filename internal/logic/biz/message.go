@@ -236,16 +236,16 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	}
 
 	// set pivotVersionId
-	switch req.FetchType {
-	case model.FetchTypeBackward: // 拉取历史消息
-	case model.FetchTypeForward: // 拉取最新消息
-		// 避免：拉取最新消息时拉到已删除消息
-		if pivotVersionId < lastDelMsgVersionId {
-			pivotVersionId = lastDelMsgVersionId
-		}
-	default:
-		return
-	}
+	//switch req.FetchType {
+	//case model.FetchTypeBackward: // 拉取历史消息
+	//case model.FetchTypeForward: // 拉取最新消息
+	//	// 避免：拉取最新消息时拉到已删除消息
+	//	if pivotVersionId < lastDelMsgVersionId {
+	//		pivotVersionId = lastDelMsgVersionId
+	//	}
+	//default:
+	//	return
+	//}
 
 	// get: message list
 	smallId, largerId := gen_id.Sort(ownerId, peerId)

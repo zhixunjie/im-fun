@@ -29,7 +29,7 @@ func newChatGroupUser(db *gorm.DB, opts ...gen.DOOption) chatGroupUser {
 	tableName := _chatGroupUser.chatGroupUserDo.TableName()
 	_chatGroupUser.ALL = field.NewAsterisk(tableName)
 	_chatGroupUser.ID = field.NewUint64(tableName, "id")
-	_chatGroupUser.UID = field.NewUint64(tableName, "uid")
+	_chatGroupUser.MemberID = field.NewUint64(tableName, "member_id")
 	_chatGroupUser.GroupID = field.NewUint64(tableName, "group_id")
 	_chatGroupUser.CreatedAt = field.NewTime(tableName, "created_at")
 	_chatGroupUser.UpdatedAt = field.NewTime(tableName, "updated_at")
@@ -39,14 +39,14 @@ func newChatGroupUser(db *gorm.DB, opts ...gen.DOOption) chatGroupUser {
 	return _chatGroupUser
 }
 
-// chatGroupUser 用户与群组的绑定关系
+// chatGroupUser 群组与用户的绑定关系
 type chatGroupUser struct {
 	chatGroupUserDo
 
 	ALL       field.Asterisk
 	ID        field.Uint64 // 自增id,主键
-	UID       field.Uint64 // 用户表的主键id
-	GroupID   field.Uint64 // 群组表的主键id
+	MemberID  field.Uint64 // 群组成员id
+	GroupID   field.Uint64 // 群组id
 	CreatedAt field.Time   // 创建时间
 	UpdatedAt field.Time   // 更新时间
 
@@ -66,7 +66,7 @@ func (c chatGroupUser) As(alias string) *chatGroupUser {
 func (c *chatGroupUser) updateTableName(table string) *chatGroupUser {
 	c.ALL = field.NewAsterisk(table)
 	c.ID = field.NewUint64(table, "id")
-	c.UID = field.NewUint64(table, "uid")
+	c.MemberID = field.NewUint64(table, "member_id")
 	c.GroupID = field.NewUint64(table, "group_id")
 	c.CreatedAt = field.NewTime(table, "created_at")
 	c.UpdatedAt = field.NewTime(table, "updated_at")
@@ -88,7 +88,7 @@ func (c *chatGroupUser) GetFieldByName(fieldName string) (field.OrderExpr, bool)
 func (c *chatGroupUser) fillFieldMap() {
 	c.fieldMap = make(map[string]field.Expr, 5)
 	c.fieldMap["id"] = c.ID
-	c.fieldMap["uid"] = c.UID
+	c.fieldMap["member_id"] = c.MemberID
 	c.fieldMap["group_id"] = c.GroupID
 	c.fieldMap["created_at"] = c.CreatedAt
 	c.fieldMap["updated_at"] = c.UpdatedAt

@@ -12,10 +12,15 @@ const TableNameChatGroup = "chat_group"
 
 // ChatGroup 群组表
 type ChatGroup struct {
-	ID        uint64    `gorm:"column:id;primaryKey;autoIncrement:true;comment:自增id,主键" json:"id"`                   // 自增id,主键
-	Name      string    `gorm:"column:name;not null;comment:群组名称" json:"name"`                                       // 群组名称
-	CreatedAt time.Time `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
-	UpdatedAt time.Time `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"` // 更新时间
+	ID           uint64    `gorm:"column:id;primaryKey;autoIncrement:true;comment:自增id,主键" json:"id"`                   // 自增id,主键
+	Type         uint32    `gorm:"column:type;not null;comment:群组类型" json:"type"`                                       // 群组类型
+	Name         string    `gorm:"column:name;not null;comment:群组名称" json:"name"`                                       // 群组名称
+	Avatar       string    `gorm:"column:avatar;not null;comment:群组头像" json:"avatar"`                                   // 群组头像
+	Notification string    `gorm:"column:notification;not null;comment:群组公告" json:"notification"`                       // 群组公告
+	OwnerID      uint64    `gorm:"column:owner_id;not null;comment:群组拥有者" json:"owner_id"`                              // 群组拥有者
+	CreatorID    uint64    `gorm:"column:creator_id;not null;comment:群组创建者" json:"creator_id"`                          // 群组创建者
+	CreatedAt    time.Time `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
+	UpdatedAt    time.Time `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"` // 更新时间
 }
 
 // TableName ChatGroup's table name
