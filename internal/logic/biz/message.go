@@ -3,7 +3,6 @@ package biz
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/samber/lo"
 	"github.com/zhixunjie/im-fun/internal/logic/api"
@@ -360,10 +359,10 @@ func (b *MessageUseCase) checkMessageSend(ctx context.Context, req *request.Mess
 	}
 
 	if !lo.Contains(allowSenderType, req.SenderType) {
-		return errors.New("checkMessageSend not allow")
+		return api.ErrSenderTypeNotAllow
 	}
 	if !lo.Contains(allowReceiverType, req.ReceiverType) {
-		return errors.New("checkMessageSend not allow")
+		return api.ErrReceiverTypeNotAllow
 	}
 
 	return nil
