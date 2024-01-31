@@ -43,3 +43,13 @@ type MsgEntity struct {
 	Status    model.MsgStatus     `json:"status"`
 	HasRead   model.MsgReadStatus `json:"has_read"`
 }
+
+// MessageWithdrawRsp 撤回消息
+type MessageWithdrawRsp struct {
+	Base
+}
+
+// DelBothSideRsp 删除消息（两边的聊天记录都需要删除）
+type DelBothSideRsp struct {
+	Base
+}

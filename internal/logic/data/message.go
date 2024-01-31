@@ -6,6 +6,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"
+	"gorm.io/gen"
 	"math"
 )
 
@@ -99,6 +100,27 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 			qModel.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID).Find() // 按照version_id正序排序
 	}
+
+	return
+}
+
+func (repo *MessageRepo) UpdateMsgStatus(msgId model.BigIntType, status model.MsgStatus, versionId uint64) (affectedRow int64, err error) {
+	_, tbName := repo.TableName(msgId)
+	qModel := repo.Db.Message.Table(tbName)
+	srcStatus := uint32(model.MsgStatusNormal)
+	dstStatus := uint32(status)
+
+	var res gen.ResultInfo
+	res, err = qModel.
+		Where(qModel.Status.Eq(srcStatus)).Limit(1).
+		Updates(&model.Message{
+			VersionID: versionId,
+			Status:    dstStatus,
+		})
+	if err != nil {
+		return
+	}
+	affectedRow = res.RowsAffected
 
 	return
 }

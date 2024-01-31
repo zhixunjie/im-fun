@@ -35,7 +35,7 @@ func TestSendBetweenUser(t *testing.T) {
 				}
 				JsonStr, _ := json.Marshal(d)
 
-				rsp, err := messageUseCase.SendCustomMessage(ctx, senderId, receiverId, string(JsonStr))
+				rsp, err := messageUseCase.SendSimpleCustomMessage(ctx, senderId, receiverId, string(JsonStr))
 				fmt.Printf("rsp=%+v,err=%v", rsp, err)
 			}
 		}
@@ -69,7 +69,7 @@ func TestSendBetweenUserAndRobot(t *testing.T) {
 				}
 				JsonStr, _ := json.Marshal(d)
 
-				rsp, err := messageUseCase.SendCustomMessage(ctx, senderId, receiverId, string(JsonStr))
+				rsp, err := messageUseCase.SendSimpleCustomMessage(ctx, senderId, receiverId, string(JsonStr))
 				fmt.Printf("rsp=%+v,err=%v", rsp, err)
 			}
 		}
@@ -95,7 +95,7 @@ func TestSendBetweenUserAndGroup(t *testing.T) {
 			}
 			JsonStr, _ := json.Marshal(d)
 
-			rsp, err := messageUseCase.SendCustomMessage(ctx, sender, receiver, string(JsonStr))
+			rsp, err := messageUseCase.SendSimpleCustomMessage(ctx, sender, receiver, string(JsonStr))
 			fmt.Printf("rsp=%+v,err=%v", rsp, err)
 		}
 	}

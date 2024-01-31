@@ -20,6 +20,13 @@ func (c *ComponentId) Type() uint32 {
 	return c.idType
 }
 
+func (c *ComponentId) Equal(b *ComponentId) bool {
+	if c.Id() == b.Id() && c.Type() == b.Type() {
+		return true
+	}
+	return false
+}
+
 func NewComponentId(id uint64, idType uint32) *ComponentId {
 	return &ComponentId{
 		id:     id,

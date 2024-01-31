@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/samber/lo"
 	"github.com/zhixunjie/im-fun/internal/logic/api"
@@ -32,8 +33,8 @@ func NewMessageUseCase(repoMessage *data.MessageRepo, repoContact *data.ContactR
 	}
 }
 
-// SendCustomMessage 发送自定义消息
-func (b *MessageUseCase) SendCustomMessage(ctx context.Context, sender, receiver *gen_id.ComponentId, d string) (rsp response.MessageSendRsp, err error) {
+// SendSimpleCustomMessage 简化接口：发送自定义消息
+func (b *MessageUseCase) SendSimpleCustomMessage(ctx context.Context, sender, receiver *gen_id.ComponentId, d string) (rsp response.MessageSendRsp, err error) {
 	return b.Send(ctx, &request.MessageSendReq{
 		SeqId:        uint64(gen_id.SeqId()),
 		SenderId:     sender.Id(),
@@ -140,67 +141,6 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			SessionId:   msg.SessionID,
 			UnreadCount: 0,
 		},
-	}
-
-	return
-}
-
-// build 构建消息体
-func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request.MessageSendReq, senderId, receiverId *gen_id.ComponentId) (msg *model.Message, err error) {
-	logHead += "Build|"
-	mem := b.repoMessage.RedisClient
-
-	// gen msg_id
-	smallerId, largeId := gen_id.Sort(senderId, receiverId)
-	msgId, err := gen_id.GenMsgId(ctx, mem, smallerId, largeId)
-	if err != nil {
-		logging.Errorf(logHead+"gen MsgId error=%v", err)
-		return
-	}
-
-	// message: gen version_id
-	versionId, err := gen_id.VersionId(ctx, &gen_id.GenVersionParams{
-		Mem:            mem,
-		GenVersionType: gen_id.GenVersionTypeMsg,
-		SmallerId:      smallerId,
-		LargerId:       largeId,
-	})
-	if err != nil {
-		logging.Errorf(logHead+"gen VersionId error=%v", err)
-		return
-	}
-
-	// exchange：InvisibleList
-	var bInvisibleList []byte
-	if len(req.InvisibleList) > 0 {
-		bInvisibleList, err = json.Marshal(req.InvisibleList)
-		if err != nil {
-			logging.Errorf(logHead+"Marshal error=%v", err)
-			return
-		}
-	}
-
-	// exchange：MsgContent
-	bContent, err := json.Marshal(req.MsgBody.MsgContent)
-	if err != nil {
-		logging.Errorf(logHead+"Marshal error=%v", err)
-		return
-	}
-
-	// build message
-	sessionId := gen_id.GenSessionId(smallerId, largeId)
-	msg = &model.Message{
-		MsgID:         msgId,
-		SeqID:         req.SeqId,
-		MsgType:       uint32(req.MsgBody.MsgType),   // 消息类型
-		Content:       string(bContent),              // 消息内容
-		SessionID:     sessionId,                     // 会话ID
-		SenderID:      req.SenderId,                  // 发送者ID
-		VersionID:     versionId,                     // 版本ID
-		SortKey:       versionId,                     // sort_key的值等同于version_id
-		Status:        uint32(model.MsgStatusNormal), // 状态正常
-		HasRead:       uint32(model.MsgRead),         // 已读（功能还没做好）
-		InvisibleList: string(bInvisibleList),        // 不可见的列表
 	}
 
 	return
@@ -325,6 +265,105 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	return
 }
 
+// OpWithdraw 某条消息撤回（两边的聊天记录都需要撤回）
+// 核心：更新status和version_id（需要通知对方，所以需要更新version_id）
+func (b *MessageUseCase) OpWithdraw(ctx context.Context, req *request.MessageWithdrawReq) (rsp response.MessageWithdrawRsp, err error) {
+	senderId := gen_id.NewComponentId(req.SenderId, uint32(req.SenderType))
+
+	// invoke common method
+	err = b.updateMsgIdStatus(ctx, req.MsgId, model.MsgStatusWithdraw, senderId)
+	if err != nil {
+		return
+	}
+	return
+}
+
+// OpDelBothSide 某条消息删除（两边的聊天记录都需要删除）
+// 核心：更新status和version_id（需要通知对方，所以需要更新version_id）
+func (b *MessageUseCase) OpDelBothSide(ctx context.Context, req *request.DelBothSideReq) (rsp response.DelBothSideRsp, err error) {
+	senderId := gen_id.NewComponentId(req.SenderId, uint32(req.SenderType))
+
+	// invoke common method
+	err = b.updateMsgIdStatus(ctx, req.MsgId, model.MsgStatusDeleted, senderId)
+	if err != nil {
+		return
+	}
+	return
+}
+
+// OpDelOneSide 某条消息删除（只有一边的聊天记录是不可见，另外一边可见）
+// 核心：更新 invisible_list
+func (b *MessageUseCase) OpDelOneSide() {
+
+}
+
+// OpClearHistory 清空聊天记录（批量清空）
+// 核心：更新Contact的 last_del_msg_id 为 last_msg_id
+func (b *MessageUseCase) OpClearHistory() {
+
+}
+
+// build 构建消息体
+func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request.MessageSendReq, senderId, receiverId *gen_id.ComponentId) (msg *model.Message, err error) {
+	logHead += "build|"
+	mem := b.repoMessage.RedisClient
+
+	// gen msg_id
+	smallerId, largeId := gen_id.Sort(senderId, receiverId)
+	msgId, err := gen_id.GenMsgId(ctx, mem, smallerId, largeId)
+	if err != nil {
+		logging.Errorf(logHead+"gen MsgId error=%v", err)
+		return
+	}
+
+	// message: gen version_id
+	versionId, err := gen_id.VersionId(ctx, &gen_id.GenVersionParams{
+		Mem:            mem,
+		GenVersionType: gen_id.GenVersionTypeMsg,
+		SmallerId:      smallerId,
+		LargerId:       largeId,
+	})
+	if err != nil {
+		logging.Errorf(logHead+"gen VersionId error=%v", err)
+		return
+	}
+
+	// exchange：InvisibleList
+	var bInvisibleList []byte
+	if len(req.InvisibleList) > 0 {
+		bInvisibleList, err = json.Marshal(req.InvisibleList)
+		if err != nil {
+			logging.Errorf(logHead+"Marshal error=%v", err)
+			return
+		}
+	}
+
+	// exchange：MsgContent
+	bContent, err := json.Marshal(req.MsgBody.MsgContent)
+	if err != nil {
+		logging.Errorf(logHead+"Marshal error=%v", err)
+		return
+	}
+
+	// build message
+	sessionId := gen_id.GenSessionId(smallerId, largeId)
+	msg = &model.Message{
+		MsgID:         msgId,
+		SeqID:         req.SeqId,
+		MsgType:       uint32(req.MsgBody.MsgType),   // 消息类型
+		Content:       string(bContent),              // 消息内容
+		SessionID:     sessionId,                     // 会话ID
+		SenderID:      req.SenderId,                  // 发送者ID
+		VersionID:     versionId,                     // 版本ID
+		SortKey:       versionId,                     // sort_key的值等同于version_id
+		Status:        uint32(model.MsgStatusNormal), // 状态正常
+		HasRead:       uint32(model.MsgRead),         // 已读（功能还没做好）
+		InvisibleList: string(bInvisibleList),        // 不可见的列表
+	}
+
+	return
+}
+
 // 双方通信时，判断是否需要创建对方的Contact
 func (b *MessageUseCase) canCreateContact(logHead string, contactId *gen_id.ComponentId) bool {
 	logHead += fmt.Sprintf("doNotNeedCreateContact,contactId=%v|", contactId)
@@ -366,4 +405,61 @@ func (b *MessageUseCase) checkMessageSend(ctx context.Context, req *request.Mess
 	}
 
 	return nil
+}
+
+func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, msgId model.BigIntType, status model.MsgStatus, senderId *gen_id.ComponentId) (err error) {
+	logHead := fmt.Sprintf("OpWithdraw,msgId=%v,status=%v|", msgId, status)
+	mem := b.repoMessage.RedisClient
+
+	// get: message
+	msgInfo, err := b.repoMessage.Info(msgId)
+	if err != nil {
+		logging.Errorf(logHead+"repoMessage Info error=%v", err)
+		return
+	}
+	sessionId := msgInfo.SessionID
+
+	// get receiver id
+	var receiverId *gen_id.ComponentId
+	id1, id2 := gen_id.ParseSessionId(sessionId)
+	if id2 == nil { // 群组的timeline
+		receiverId = id1
+	} else { // 1对1的timeline
+		switch {
+		case id1.Equal(senderId):
+			receiverId = id2
+		case id2.Equal(senderId):
+			receiverId = id1
+		default:
+			err = errors.New("can not find peer")
+			return
+		}
+	}
+
+	// message: gen version_id
+	smallerId, largeId := gen_id.Sort(senderId, receiverId)
+	versionId, err := gen_id.VersionId(ctx, &gen_id.GenVersionParams{
+		Mem:            mem,
+		GenVersionType: gen_id.GenVersionTypeMsg,
+		SmallerId:      smallerId,
+		LargerId:       largeId,
+	})
+	if err != nil {
+		logging.Errorf(logHead+"gen VersionId error=%v", err)
+		return
+	}
+
+	// update to db
+	affectedRow, err := b.repoMessage.UpdateMsgStatus(msgId, status, versionId)
+	if err != nil {
+		logging.Errorf(logHead+"UpdateMsgStatus error=%v", err)
+		return
+	}
+	if affectedRow == 0 {
+		err = errors.New("affectedRow not allow")
+		logging.Errorf(logHead+"UpdateMsgStatus error=%v", err)
+		return
+	}
+
+	return
 }

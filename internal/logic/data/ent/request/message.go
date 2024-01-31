@@ -26,3 +26,17 @@ type MessageFetchReq struct {
 	PeerId    model.BigIntType     `json:"peer_id"`    // 会话联系人（对方）
 	PeerType  gen_id.ContactIdType `json:"peer_type"`  // 会话联系人（对方）的用户类型
 }
+
+// MessageWithdrawReq 撤回消息
+type MessageWithdrawReq struct {
+	MsgId      model.BigIntType     `json:"msg_id"`      // 撤回哪一条消息？
+	SenderId   model.BigIntType     `json:"sender_id"`   // 消息发送者id
+	SenderType gen_id.ContactIdType `json:"sender_type"` // 消息发送者的用户类型
+}
+
+// DelBothSideReq 删除消息
+type DelBothSideReq struct {
+	MsgId      model.BigIntType     `json:"msg_id"`      // 删除哪一条消息？
+	SenderId   model.BigIntType     `json:"sender_id"`   // 消息发送者id
+	SenderType gen_id.ContactIdType `json:"sender_type"` // 消息发送者的用户类型
+}
