@@ -112,7 +112,7 @@ func (repo *ContactRepo) Build(ctx context.Context, logHead string, params *mode
 	}
 
 	// 记录不存在：需要创建contact
-	if err == gorm.ErrRecordNotFound {
+	if err == gorm.ErrRecordNotFound { // insert
 		err = nil
 		contact = &model.Contact{
 			OwnerID: params.OwnerId.Id(), OwnerType: params.OwnerId.Type(),
@@ -123,7 +123,7 @@ func (repo *ContactRepo) Build(ctx context.Context, logHead string, params *mode
 			SortKey:   versionId,
 			Status:    model.ContactStatusNormal,
 		}
-	} else {
+	} else { // update
 		contact.LastMsgID = params.LastMsgId // 双方聊天记录中，最新一次发送的消息id
 		contact.VersionID = versionId        // 版本号（用于拉取会话框）
 		contact.SortKey = versionId          // sort_key的值等同于version_id
@@ -147,13 +147,11 @@ func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRan
 		}
 		list, err = qModel.Where(
 			qModel.OwnerID.Eq(ownerId.Id()), qModel.OwnerType.Eq(ownerId.Type()),
-			qModel.Status.Eq(uint32(model.ContactStatusNormal)),
 			qModel.VersionID.Lt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find()
 	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
 		list, err = qModel.Where(
 			qModel.OwnerID.Eq(ownerId.Id()), qModel.OwnerType.Eq(ownerId.Type()),
-			qModel.Status.Eq(uint32(model.ContactStatusNormal)),
 			qModel.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID).Find()
 	}
