@@ -42,3 +42,25 @@ func Sort(a, b *ComponentId) (*ComponentId, *ComponentId) {
 
 	return b, a
 }
+
+// 预定义的组合ID
+
+// NewUserComponentId 用户ID
+func NewUserComponentId(id uint64) *ComponentId {
+	return NewComponentId(id, uint32(ContactIdTypeUser))
+}
+
+// NewRobotComponentId 用户ID
+func NewRobotComponentId(id uint64) *ComponentId {
+	return NewComponentId(id, uint32(ContactIdTypeRobot))
+}
+
+// NewSystemComponentId 用户ID
+func NewSystemComponentId(id uint64) *ComponentId {
+	return NewComponentId(id, uint32(ContactIdTypeSystem))
+}
+
+// NewGroupComponentId 用户ID
+func NewGroupComponentId(id uint64) *ComponentId {
+	return NewComponentId(id, uint32(ContactIdTypeGroup))
+}
