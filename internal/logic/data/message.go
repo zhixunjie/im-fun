@@ -1,6 +1,7 @@
 package data
 
 import (
+	"errors"
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
@@ -104,7 +105,8 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 	return
 }
 
-func (repo *MessageRepo) UpdateMsgStatus(msgId model.BigIntType, status model.MsgStatus, versionId uint64) (affectedRow int64, err error) {
+func (repo *MessageRepo) UpdateMsgStatus(logHead string, msgId, versionId model.BigIntType, status model.MsgStatus) (err error) {
+	logHead += fmt.Sprintf("UpdateContentByMsgId,msgId=%v,versionId=%v,status=%v|", msgId, versionId, status)
 	_, tbName := repo.TableName(msgId)
 	qModel := repo.Db.Message.Table(tbName)
 
@@ -115,15 +117,20 @@ func (repo *MessageRepo) UpdateMsgStatus(msgId model.BigIntType, status model.Ms
 	// operation
 	var res gen.ResultInfo
 	res, err = qModel.
-		Where(qModel.Status.Eq(srcStatus)).Limit(1).
+		Where(qModel.MsgID.Eq(msgId), qModel.Status.Eq(srcStatus)).Limit(1).
 		Updates(&model.Message{
 			VersionID: versionId,
 			Status:    dstStatus,
 		})
 	if err != nil {
+		logging.Errorf(logHead+"UpdateMsgStatus error=%v", err)
 		return
 	}
-	affectedRow = res.RowsAffected
+	if res.RowsAffected == 0 {
+		err = errors.New("affectedRow not allow")
+		logging.Errorf(logHead+"UpdateMsgStatus error=%v", err)
+		return
+	}
 
 	return
 }

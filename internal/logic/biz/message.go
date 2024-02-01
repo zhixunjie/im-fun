@@ -499,14 +499,8 @@ func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, 
 	}
 
 	// update to db
-	affectedRow, err := b.repoMessage.UpdateMsgStatus(msgId, status, versionId)
+	err = b.repoMessage.UpdateMsgStatus(logHead, msgId, versionId, status)
 	if err != nil {
-		logging.Errorf(logHead+"UpdateMsgStatus error=%v", err)
-		return
-	}
-	if affectedRow == 0 {
-		err = errors.New("affectedRow not allow")
-		logging.Errorf(logHead+"UpdateMsgStatus error=%v", err)
 		return
 	}
 
