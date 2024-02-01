@@ -21,11 +21,11 @@ func TestSendBetweenUser(t *testing.T) {
 			for i := 1; i <= 5; i++ {
 				var senderId, receiverId *gen_id.ComponentId
 				if i%2 == 1 {
-					senderId = gen_id.NewComponentId(user1, uint32(gen_id.ContactIdTypeUser))
-					receiverId = gen_id.NewComponentId(user2, uint32(gen_id.ContactIdTypeUser))
+					senderId = gen_id.NewUserComponentId(user1)
+					receiverId = gen_id.NewUserComponentId(user2)
 				} else {
-					senderId = gen_id.NewComponentId(user2, uint32(gen_id.ContactIdTypeUser))
-					receiverId = gen_id.NewComponentId(user1, uint32(gen_id.ContactIdTypeUser))
+					senderId = gen_id.NewUserComponentId(user2)
+					receiverId = gen_id.NewUserComponentId(user1)
 				}
 
 				// build data
@@ -36,7 +36,7 @@ func TestSendBetweenUser(t *testing.T) {
 				JsonStr, _ := json.Marshal(d)
 
 				rsp, err := messageUseCase.SendSimpleCustomMessage(ctx, senderId, receiverId, string(JsonStr))
-				fmt.Printf("rsp=%+v,err=%v", rsp, err)
+				fmt.Printf("rsp=%+v,err=%v\n", rsp, err)
 			}
 		}
 	}
@@ -55,11 +55,11 @@ func TestSendBetweenUserAndRobot(t *testing.T) {
 			for i := 1; i <= 5; i++ {
 				var senderId, receiverId *gen_id.ComponentId
 				if i%2 == 1 {
-					senderId = gen_id.NewComponentId(user1, uint32(gen_id.ContactIdTypeUser))
-					receiverId = gen_id.NewComponentId(user2, uint32(gen_id.ContactIdTypeRobot))
+					senderId = gen_id.NewUserComponentId(user1)
+					receiverId = gen_id.NewRobotComponentId(user2)
 				} else {
-					senderId = gen_id.NewComponentId(user2, uint32(gen_id.ContactIdTypeRobot))
-					receiverId = gen_id.NewComponentId(user1, uint32(gen_id.ContactIdTypeUser))
+					senderId = gen_id.NewRobotComponentId(user2)
+					receiverId = gen_id.NewUserComponentId(user1)
 				}
 
 				// build data
@@ -70,7 +70,7 @@ func TestSendBetweenUserAndRobot(t *testing.T) {
 				JsonStr, _ := json.Marshal(d)
 
 				rsp, err := messageUseCase.SendSimpleCustomMessage(ctx, senderId, receiverId, string(JsonStr))
-				fmt.Printf("rsp=%+v,err=%v", rsp, err)
+				fmt.Printf("rsp=%+v,err=%v\n", rsp, err)
 			}
 		}
 	}
@@ -85,8 +85,8 @@ func TestSendBetweenUserAndGroup(t *testing.T) {
 
 	for _, groupId := range groupIds {
 		for _, senderId := range senderIds {
-			sender := gen_id.NewComponentId(senderId, uint32(gen_id.ContactIdTypeUser))
-			receiver := gen_id.NewComponentId(groupId, uint32(gen_id.ContactIdTypeGroup))
+			sender := gen_id.NewUserComponentId(senderId)
+			receiver := gen_id.NewGroupComponentId(groupId)
 
 			// build data
 			d := map[string]interface{}{
@@ -96,7 +96,7 @@ func TestSendBetweenUserAndGroup(t *testing.T) {
 			JsonStr, _ := json.Marshal(d)
 
 			rsp, err := messageUseCase.SendSimpleCustomMessage(ctx, sender, receiver, string(JsonStr))
-			fmt.Printf("rsp=%+v,err=%v", rsp, err)
+			fmt.Printf("rsp=%+v,err=%v\n", rsp, err)
 		}
 	}
 }

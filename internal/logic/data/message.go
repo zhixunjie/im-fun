@@ -37,17 +37,17 @@ func (repo *MessageRepo) TableName(id uint64) (dbName string, tbName string) {
 	return dbName, tbName
 }
 
-func (repo *MessageRepo) Create(logHead string, tx *query.Query, row *model.Message) (err error) {
+func (repo *MessageRepo) Create(logHead string, row *model.Message) (err error) {
 	logHead += "Create|"
 	_, tbName := repo.TableName(row.MsgID)
-	qModel := tx.Message
+	qModel := query.Message
 
 	err = qModel.Table(tbName).Create(row)
 	if err != nil {
 		logging.Errorf(logHead+"Create fail err=%v", err)
 		return
 	}
-	logging.Infof(logHead+"Create success,row=%v", row)
+	logging.Infof(logHead+"Create success,rowId=%v", row.ID)
 
 	return
 }

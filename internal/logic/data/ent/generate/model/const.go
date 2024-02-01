@@ -82,8 +82,7 @@ type FetchContactRangeParams struct {
 }
 
 type BuildContactParams struct {
-	OwnerId   *gen_id.ComponentId
-	PeerId    *gen_id.ComponentId
-	PeerAck   PeerAckStatus
-	LastMsgId BigIntType
+	OwnerId *gen_id.ComponentId
+	PeerId  *gen_id.ComponentId
+	PeerAck PeerAckStatus
 }

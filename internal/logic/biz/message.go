@@ -8,17 +8,20 @@ import (
 	"github.com/samber/lo"
 	"github.com/zhixunjie/im-fun/internal/logic/api"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
+	"github.com/zhixunjie/im-fun/internal/logic/data/cache"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
-	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/response"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/goredis/distrib_lock"
+	k "github.com/zhixunjie/im-fun/pkg/goredis/key"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/utils"
 	"gorm.io/gorm"
 	"math"
 	"sort"
+	"time"
 )
 
 type MessageUseCase struct {
@@ -54,9 +57,9 @@ func (b *MessageUseCase) SendSimpleCustomMessage(ctx context.Context, sender, re
 
 // Send 发送消息
 func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) (rsp response.MessageSendRsp, err error) {
-	logHead := fmt.Sprintf("Send,SenderId=%v,ReceiverId=%v|", req.SenderId, req.ReceiverId)
 	senderId := gen_id.NewComponentId(req.SenderId, uint32(req.SenderType))
 	receiverId := gen_id.NewComponentId(req.ReceiverId, uint32(req.ReceiverType))
+	logHead := fmt.Sprintf("Send,senderId=%v,receiverId=%v|", senderId, receiverId)
 
 	// check limit
 	err = b.checkMessageSend(ctx, req)
@@ -64,74 +67,56 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		return
 	}
 
-	// 1. build message
+	// 1. create contact if not exists（sender's contact）
+	var senderContact, peerContact *model.Contact
+	if !lo.Contains(req.InvisibleList, req.SenderId) && b.canCreateContact(logHead, senderId) {
+		senderContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
+			OwnerId: senderId,
+			PeerId:  receiverId,
+			PeerAck: model.PeerNotAck,
+		})
+		if err != nil {
+			return
+		}
+	}
+
+	// 2. crate contact if not exists（receiver's contact）
+	if !lo.Contains(req.InvisibleList, req.ReceiverId) && b.canCreateContact(logHead, receiverId) {
+		peerContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
+			OwnerId: receiverId,
+			PeerId:  senderId,
+			PeerAck: model.PeerAcked,
+		})
+		if err != nil {
+			return
+		}
+	}
+
+	// 3. build && create message（无扩散）
 	var msg *model.Message
 	msg, err = b.build(ctx, logHead, req, senderId, receiverId)
 	if err != nil {
 		return
 	}
 
-	// 2. build contact（sender's contact）
-	var senderContact, peerContact *model.Contact
-	if !lo.Contains[uint64](req.InvisibleList, req.SenderId) && b.canCreateContact(logHead, senderId) {
-		senderContact, err = b.repoContact.Build(ctx, logHead, &model.BuildContactParams{
-			OwnerId:   senderId,
-			PeerId:    receiverId,
-			LastMsgId: msg.MsgID,
-			PeerAck:   model.PeerNotAck,
-		})
+	// 4. update contact's info（写扩散）
+	if senderContact != nil {
+		err = b.repoContact.UpdateLastMsgId(ctx, logHead, senderContact.ID, msg.MsgID, senderId)
+		if err != nil {
+			return
+		}
+	}
+	if peerContact != nil {
+		err = b.repoContact.UpdateLastMsgId(ctx, logHead, peerContact.ID, msg.MsgID, receiverId)
+		if err != nil {
+			return
+		}
 		if err != nil {
 			return
 		}
 	}
 
-	// 3. build contact（receiver's contact）
-	if !lo.Contains[uint64](req.InvisibleList, req.ReceiverId) && b.canCreateContact(logHead, receiverId) {
-		peerContact, err = b.repoContact.Build(ctx, logHead, &model.BuildContactParams{
-			OwnerId:   receiverId,
-			PeerId:    senderId,
-			LastMsgId: msg.MsgID,
-			PeerAck:   model.PeerAcked,
-		})
-		if err != nil {
-			return
-		}
-	}
-
-	// 5. save to db
-	err = b.repoMessage.Db.Transaction(func(tx *query.Query) error {
-		var errTx error
-
-		// 5.1 add message
-		errTx = b.repoMessage.Create(logHead, tx, msg)
-		if errTx != nil {
-			return errTx
-		}
-		// 5.2 add contact(sender)
-		if senderContact != nil {
-			errTx = b.repoContact.Edit(logHead, tx, senderContact)
-			if errTx != nil {
-				return errTx
-			}
-		}
-
-		// 5.3 add contact(peer)
-		if peerContact != nil {
-			errTx = b.repoContact.Edit(logHead, tx, peerContact)
-			if errTx != nil {
-				return errTx
-			}
-		}
-
-		return nil
-	})
-	if err != nil {
-		logging.Error(logHead + "mysql tx error,err=%v")
-		return
-	}
-	logging.Info(logHead + "mysql tx success")
-
-	// 6.build response
+	// 5. build response
 	rsp = response.MessageSendRsp{
 		Data: response.SendMsgRespData{
 			MsgId:       msg.MsgID,
@@ -217,7 +202,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 				continue
 			}
 
-			if lo.Contains[uint64](tmpList, req.OwnerId) {
+			if lo.Contains(tmpList, req.OwnerId) {
 				continue
 			}
 		}
@@ -337,7 +322,7 @@ func (b *MessageUseCase) OpClearHistory(ctx context.Context, req *request.ClearH
 	}
 
 	// update to db
-	affectedRow, err := b.repoContact.UpdateContactLastDelMsg(logHead, lastDelMsgId, versionId, ownerId, peerId)
+	affectedRow, err := b.repoContact.UpdateLastDelMsg(logHead, lastDelMsgId, versionId, ownerId, peerId)
 	if err != nil {
 		logging.Errorf(logHead+"UpdateMsgStatus error=%v", err)
 		return
@@ -356,26 +341,6 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 	logHead += "build|"
 	mem := b.repoMessage.RedisClient
 
-	// gen msg_id
-	smallerId, largeId := gen_id.Sort(senderId, receiverId)
-	msgId, err := gen_id.GenMsgId(ctx, mem, smallerId, largeId)
-	if err != nil {
-		logging.Errorf(logHead+"gen MsgId error=%v", err)
-		return
-	}
-
-	// message: gen version_id
-	versionId, err := gen_id.VersionId(ctx, &gen_id.GenVersionParams{
-		Mem:            mem,
-		GenVersionType: gen_id.GenVersionTypeMsg,
-		SmallerId:      smallerId,
-		LargerId:       largeId,
-	})
-	if err != nil {
-		logging.Errorf(logHead+"gen VersionId error=%v", err)
-		return
-	}
-
 	// exchange：InvisibleList
 	var bInvisibleList []byte
 	if len(req.InvisibleList) > 0 {
@@ -393,11 +358,41 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 		return
 	}
 
-	// build message
+	// message: gen msg_id
+	smallerId, largeId := gen_id.Sort(senderId, receiverId)
+	msgId, err := gen_id.GenMsgId(ctx, mem, smallerId, largeId)
+	if err != nil {
+		logging.Errorf(logHead+"gen MsgId error=%v", err)
+		return
+	}
 	sessionId := gen_id.GenSessionId(smallerId, largeId)
+
+	// note: 同一个消息timeline的版本变动，需要加锁
+	lockKey := cache.TimelineMessageLock.Format(k.M{"session_id": sessionId})
+	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 20 * time.Millisecond, Times: 20})
+	if err = redisSpinLock.AcquireWithTimes(); err != nil {
+		logging.Errorf(logHead+"acquire fail,lockKey=%v,err=%v", lockKey, err)
+		return
+	}
+	defer func() { _ = redisSpinLock.Release() }()
+	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
+
+	// message: gen version_id
+	versionId, err := gen_id.VersionId(ctx, &gen_id.GenVersionParams{
+		Mem:            mem,
+		GenVersionType: gen_id.GenVersionTypeMsg,
+		SmallerId:      smallerId,
+		LargerId:       largeId,
+	})
+	if err != nil {
+		logging.Errorf(logHead+"gen VersionId error=%v", err)
+		return
+	}
+
+	// build message
 	msg = &model.Message{
-		MsgID:         msgId,
-		SeqID:         req.SeqId,
+		MsgID:         msgId,                         // 唯一id（服务端）
+		SeqID:         req.SeqId,                     // 唯一id（客户端）
 		MsgType:       uint32(req.MsgBody.MsgType),   // 消息类型
 		Content:       string(bContent),              // 消息内容
 		SessionID:     sessionId,                     // 会话ID
@@ -407,6 +402,10 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 		Status:        uint32(model.MsgStatusNormal), // 状态正常
 		HasRead:       uint32(model.MsgRead),         // 已读（功能还没做好）
 		InvisibleList: string(bInvisibleList),        // 不可见的列表
+	}
+	err = b.repoMessage.Create(logHead, msg)
+	if err != nil {
+		return
 	}
 
 	return
@@ -484,6 +483,16 @@ func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, 
 			return
 		}
 	}
+
+	// note: 同一个消息timeline的版本变动，需要加锁
+	lockKey := cache.TimelineMessageLock.Format(k.M{"session_id": sessionId})
+	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 20 * time.Millisecond, Times: 20})
+	if err = redisSpinLock.AcquireWithTimes(); err != nil {
+		logging.Errorf(logHead+"acquire fail,lockKey=%v,err=%v", lockKey, err)
+		return
+	}
+	defer func() { _ = redisSpinLock.Release() }()
+	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
 
 	// message: gen version_id
 	smallerId, largeId := gen_id.Sort(senderId, receiverId)

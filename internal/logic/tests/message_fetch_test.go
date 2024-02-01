@@ -17,8 +17,8 @@ func TestMessageFetchBetweenUser(t *testing.T) {
 	ctx := context.Background()
 
 	var ownerId, peerId *gen_id.ComponentId
-	ownerId = gen_id.NewComponentId(1001, uint32(gen_id.ContactIdTypeUser))
-	peerId = gen_id.NewComponentId(10001, uint32(gen_id.ContactIdTypeUser))
+	ownerId = gen_id.NewUserComponentId(1001)
+	peerId = gen_id.NewUserComponentId(10001)
 
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
 		FetchType: model.FetchTypeForward,
@@ -46,8 +46,8 @@ func TestFetchBetweenUserAndRobot(t *testing.T) {
 	ctx := context.Background()
 
 	var ownerId, peerId *gen_id.ComponentId
-	ownerId = gen_id.NewComponentId(1003, uint32(gen_id.ContactIdTypeUser))
-	peerId = gen_id.NewComponentId(10003, uint32(gen_id.ContactIdTypeRobot))
+	ownerId = gen_id.NewUserComponentId(1003)
+	peerId = gen_id.NewRobotComponentId(10003)
 
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
 		//FetchType: model.FetchTypeBackward,
@@ -79,8 +79,8 @@ func TestFetchBetweenUserAndGroup(t *testing.T) {
 	ctx := context.Background()
 
 	var ownerId, peerId *gen_id.ComponentId
-	ownerId = gen_id.NewComponentId(1001, uint32(gen_id.ContactIdTypeUser))
-	peerId = gen_id.NewComponentId(100000001, uint32(gen_id.ContactIdTypeGroup))
+	ownerId = gen_id.NewUserComponentId(1001)
+	peerId = gen_id.NewGroupComponentId(100000001)
 
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
 		FetchType: model.FetchTypeForward,
