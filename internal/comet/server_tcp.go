@@ -234,7 +234,7 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 	}
 
 	// update channel
-	newUserKey := utils.GetMergeUserKey(params.UserId, params.UserKey)
+	newUserKey := utils.UserKeyComponent(params.UserId, params.UserKey)
 	params.UserKey = newUserKey
 	params.IP = ch.UserInfo.IP
 	if hb, err = s.Connect(ctx, params); err != nil {
