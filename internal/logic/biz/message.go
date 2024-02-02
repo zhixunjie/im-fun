@@ -80,7 +80,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		}
 	}
 
-	// 2. crate contact if not exists（receiver's contact）
+	// 2. create contact if not exists（receiver's contact）
 	if !lo.Contains(req.InvisibleList, req.ReceiverId) && b.canCreateContact(logHead, receiverId) {
 		peerContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
 			OwnerId: receiverId,
@@ -456,7 +456,7 @@ func (b *MessageUseCase) checkMessageSend(ctx context.Context, req *request.Mess
 
 // updateMsgIdStatus 通用的方法，用于更新消息的状态和版本ID
 func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, msgId model.BigIntType, status model.MsgStatus, senderId *gen_id.ComponentId) (err error) {
-	logHead += fmt.Sprintf("OpWithdraw,msgId=%v,status=%v|", msgId, status)
+	logHead += fmt.Sprintf("updateMsgIdStatus,msgId=%v,status=%v|", msgId, status)
 	mem := b.repoMessage.RedisClient
 
 	// get: message
