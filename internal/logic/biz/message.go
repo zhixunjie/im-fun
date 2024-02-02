@@ -309,12 +309,9 @@ func (b *MessageUseCase) OpClearHistory(ctx context.Context, req *request.ClearH
 	}
 
 	// contact: gen version_id
-	smallerId, largeId := gen_id.Sort(ownerId, peerId)
-	versionId, err := gen_id.VersionId(ctx, &gen_id.GenVersionParams{
-		Mem:            mem,
-		GenVersionType: gen_id.GenVersionTypeContact,
-		SmallerId:      smallerId,
-		LargerId:       largeId,
+	versionId, err := gen_id.ContactVersionId(ctx, &gen_id.ContactVerParams{
+		Mem:     mem,
+		OwnerId: ownerId,
 	})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionId error=%v", err)
@@ -378,11 +375,10 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
 
 	// message: gen version_id
-	versionId, err := gen_id.VersionId(ctx, &gen_id.GenVersionParams{
-		Mem:            mem,
-		GenVersionType: gen_id.GenVersionTypeMsg,
-		SmallerId:      smallerId,
-		LargerId:       largeId,
+	versionId, err := gen_id.MsgVersionId(ctx, &gen_id.MsgVerParams{
+		Mem: mem,
+		Id1: smallerId,
+		Id2: largeId,
 	})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionId error=%v", err)
@@ -518,11 +514,10 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 
 	// message: gen version_id
 	smallerId, largeId := gen_id.Sort(senderId, receiverId)
-	versionId, err := gen_id.VersionId(ctx, &gen_id.GenVersionParams{
-		Mem:            mem,
-		GenVersionType: gen_id.GenVersionTypeMsg,
-		SmallerId:      smallerId,
-		LargerId:       largeId,
+	versionId, err := gen_id.MsgVersionId(ctx, &gen_id.MsgVerParams{
+		Mem: mem,
+		Id1: smallerId,
+		Id2: largeId,
 	})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionId error=%v", err)

@@ -34,6 +34,10 @@ func keyMsgVersion(smallerUniId, largerUniId string, verIdTimeKey int64) string 
 	return fmt.Sprintf(RedisPrefix+"mvid_%v_%v_%v", smallerUniId, largerUniId, verIdTimeKey)
 }
 
+func keyMsgGroupVersion(groupUniId string, verIdTimeKey int64) string {
+	return fmt.Sprintf(RedisPrefix+"mvid_g_%v_%v", groupUniId, verIdTimeKey)
+}
+
 // ContactIdType 联系人类型
 // 1-99业务自己扩展，100之后保留
 type ContactIdType uint32

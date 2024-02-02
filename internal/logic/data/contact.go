@@ -147,10 +147,9 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 
 	// contact: get version_id
 	var versionId uint64
-	versionId, err = gen_id.VersionId(ctx, &gen_id.GenVersionParams{
-		Mem:            mem,
-		GenVersionType: gen_id.GenVersionTypeContact,
-		OwnerId:        ownerId,
+	versionId, err = gen_id.ContactVersionId(ctx, &gen_id.ContactVerParams{
+		Mem:     mem,
+		OwnerId: ownerId,
 	})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionId error=%v", err)

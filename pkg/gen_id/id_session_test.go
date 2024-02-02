@@ -22,6 +22,8 @@ func TestIdSession(t *testing.T) {
 	fmt.Println("单聊", GenSessionId(id2, id1))
 	fmt.Println("群聊", GenSessionId(id1, id3))
 	fmt.Println("群聊", GenSessionId(id3, id1))
+	fmt.Println("群聊", GenSessionId(id2, id3))
+	fmt.Println("群聊", GenSessionId(id3, id2))
 }
 
 func TestSort(t *testing.T) {
