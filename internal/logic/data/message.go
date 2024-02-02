@@ -104,8 +104,9 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 	return
 }
 
+// UpdateMsgStatus 修改某条消息的状态
 func (repo *MessageRepo) UpdateMsgStatus(logHead string, msgId, versionId model.BigIntType, status model.MsgStatus) (err error) {
-	logHead += fmt.Sprintf("UpdateContentByMsgId,msgId=%v,versionId=%v,status=%v|", msgId, versionId, status)
+	logHead += fmt.Sprintf("UpdateMsgStatus,msgId=%v,versionId=%v,status=%v|", msgId, versionId, status)
 	_, tbName := repo.TableName(msgId)
 	qModel := repo.Db.Message.Table(tbName)
 
