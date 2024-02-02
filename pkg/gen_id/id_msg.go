@@ -11,19 +11,19 @@ import (
 // GenMsgId 根据id的类型，生成msgId
 func GenMsgId(ctx context.Context, mem *redis.Client, smallerId, largeId *ComponentId) (msgId uint64, err error) {
 	switch {
-	case smallerId.Type() == uint32(ContactIdTypeGroup): // 群聊
-		msgId, err = MsgId(ctx, mem, smallerId.Id())
-	case largeId.Type() == uint32(ContactIdTypeGroup): // 群聊
-		msgId, err = MsgId(ctx, mem, largeId.Id())
+	case smallerId.IsGroup(): // 群聊
+		msgId, err = genMsgId(ctx, mem, smallerId.Id())
+	case largeId.IsGroup(): // 群聊
+		msgId, err = genMsgId(ctx, mem, largeId.Id())
 	default: // 单聊
-		msgId, err = MsgId(ctx, mem, largeId.Id())
+		msgId, err = genMsgId(ctx, mem, largeId.Id())
 	}
 
 	return
 }
 
-// MsgId 生成msg_id
-func MsgId(ctx context.Context, mem *redis.Client, slotId uint64) (msgId uint64, err error) {
+// genMsgId 生成msg_id
+func genMsgId(ctx context.Context, mem *redis.Client, slotId uint64) (msgId uint64, err error) {
 	// redis：每秒一个key，在key上执行原子操作+1
 	ts := time.Now().Unix()
 	key := keyMsgId(ts)

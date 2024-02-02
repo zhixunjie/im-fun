@@ -1,6 +1,9 @@
 package gen_id
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/samber/lo"
+)
 
 // ComponentId 组合ID
 type ComponentId struct {
@@ -18,6 +21,12 @@ func (c *ComponentId) Id() uint64 {
 
 func (c *ComponentId) Type() uint32 {
 	return c.idType
+}
+
+func (c *ComponentId) IsGroup() bool {
+	typeArr := []uint32{uint32(ContactIdTypeGroup)}
+
+	return lo.Contains(typeArr, c.idType)
 }
 
 func (c *ComponentId) Equal(b *ComponentId) bool {

@@ -6,6 +6,20 @@ import (
 	"strings"
 )
 
+// GenSessionId 根据id的类型，生成sessionId
+func GenSessionId(id1, id2 *ComponentId) (sessionId string) {
+	switch {
+	case id1.IsGroup(): // 群聊
+		sessionId = GroupSessionId(id1)
+	case id2.IsGroup(): // 群聊
+		sessionId = GroupSessionId(id2)
+	default: // 单聊
+		sessionId = UserSessionId(id1, id2)
+	}
+
+	return
+}
+
 // UserSessionId 标识单聊timeline（使用双方id，小的id在前，大的id在后）
 func UserSessionId(id1, id2 *ComponentId) string {
 	smallerId, largerId := Sort(id1, id2)
@@ -19,20 +33,6 @@ func GroupSessionId(group *ComponentId) string {
 
 	// session_id的组成部分：[ groupId ]
 	return fmt.Sprintf("%s", group.ToString())
-}
-
-// GenSessionId 根据id的类型，生成sessionId
-func GenSessionId(id1, id2 *ComponentId) (sessionId string) {
-	switch {
-	case id1.Type() == uint32(ContactIdTypeGroup):
-		sessionId = GroupSessionId(id1)
-	case id2.Type() == uint32(ContactIdTypeGroup):
-		sessionId = GroupSessionId(id2)
-	default:
-		sessionId = UserSessionId(id1, id2)
-	}
-
-	return
 }
 
 // ParseSessionId 解析SessionId
