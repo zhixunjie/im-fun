@@ -99,7 +99,7 @@ func (repo *ContactRepo) Edit(logHead string, tx *query.Query, row *model.Contac
 func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildContactParams) (contact *model.Contact, err error) {
 	logHead += "CreateNotExists|"
 	_, tbName := repo.TableName(params.OwnerId.Id())
-	qModel := query.Contact.Table(tbName)
+	qModel := repo.Db.Contact.Table(tbName)
 
 	// query contact
 	contact, err = repo.Info(logHead, params.OwnerId, params.PeerId)
@@ -133,7 +133,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 	logHead += "UpdateLastMsgId|"
 	mem := repo.RedisClient
 	_, tbName := repo.TableName(ownerId.Id())
-	qModel := query.Contact.Table(tbName)
+	qModel := repo.Db.Contact.Table(tbName)
 
 	// note: 同一用户的会话timeline的版本变动，需要加锁
 	lockKey := cache.TimelineContactLock.Format(k.M{"uid": ownerId.Id()})

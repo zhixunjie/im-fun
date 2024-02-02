@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
-	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"gorm.io/gen"
@@ -40,9 +39,9 @@ func (repo *MessageRepo) TableName(id uint64) (dbName string, tbName string) {
 func (repo *MessageRepo) Create(logHead string, row *model.Message) (err error) {
 	logHead += "Create|"
 	_, tbName := repo.TableName(row.MsgID)
-	qModel := query.Message
+	qModel := repo.Db.Message.Table(tbName)
 
-	err = qModel.Table(tbName).Create(row)
+	err = qModel.Create(row)
 	if err != nil {
 		logging.Errorf(logHead+"Create fail err=%v", err)
 		return
