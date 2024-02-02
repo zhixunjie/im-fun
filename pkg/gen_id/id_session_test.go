@@ -8,13 +8,20 @@ import (
 func TestIdSession(t *testing.T) {
 	id1 := &ComponentId{
 		id:     1001,
-		idType: 2,
+		idType: uint32(ContactIdTypeUser),
 	}
 	id2 := &ComponentId{
 		id:     1002,
-		idType: 1,
+		idType: uint32(ContactIdTypeUser),
 	}
-	fmt.Println(UserSessionId(id1, id2))
+	id3 := &ComponentId{
+		id:     10,
+		idType: uint32(ContactIdTypeGroup),
+	}
+	fmt.Println("单聊", GenSessionId(id1, id2))
+	fmt.Println("单聊", GenSessionId(id2, id1))
+	fmt.Println("群聊", GenSessionId(id1, id3))
+	fmt.Println("群聊", GenSessionId(id3, id1))
 }
 
 func TestSort(t *testing.T) {
