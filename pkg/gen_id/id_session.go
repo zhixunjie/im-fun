@@ -28,7 +28,7 @@ func UserSessionId(id1, id2 *ComponentId) string {
 	return fmt.Sprintf("%s:%s", smallerId.ToString(), largerId.ToString())
 }
 
-// GroupSessionId 标识群里timeline（使用群组id）
+// GroupSessionId 标识群聊timeline（使用群组id）
 func GroupSessionId(group *ComponentId) string {
 
 	// session_id的组成部分：[ groupId ]

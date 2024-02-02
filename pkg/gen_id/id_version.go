@@ -47,7 +47,6 @@ func VersionId(ctx context.Context, params *GenVersionParams) (versionId uint64,
 	}
 
 	// version_id的组成部分：[ 10位：当前时间戳 | 6位：自增id ]
-	// 这里的总位数只有16位，不像 msg_id 那样需要20位那么紧张，所以不需要用到相对时间戳
 	versionId = cast.ToUint64(fmt.Sprintf("%d%06d", ts, afterIncr%1000000))
 
 	return
