@@ -324,12 +324,12 @@ func (b *MessageUseCase) OpClearHistory(ctx context.Context, req *request.ClearH
 	// update to db
 	affectedRow, err := b.repoContact.UpdateLastDelMsg(logHead, lastDelMsgId, versionId, ownerId, peerId)
 	if err != nil {
-		logging.Errorf(logHead+"UpdateMsgStatus error=%v", err)
+		logging.Errorf(logHead+"UpdateLastDelMsg error=%v", err)
 		return
 	}
 	if affectedRow == 0 {
 		err = errors.New("affectedRow not allow")
-		logging.Errorf(logHead+"UpdateMsgStatus error=%v", err)
+		logging.Errorf(logHead+"UpdateLastDelMsg error=%v", err)
 		return
 	}
 
@@ -469,7 +469,7 @@ func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, 
 	// save to db
 	fn := func(versionId uint64) (err error) {
 		// update to db
-		err = b.repoMessage.UpdateMsgStatus(logHead, msgId, versionId, status)
+		err = b.repoMessage.UpdateMsgVerAndStatus(logHead, msgId, versionId, status)
 		if err != nil {
 			return
 		}
