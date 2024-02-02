@@ -457,7 +457,6 @@ func (b *MessageUseCase) checkMessageSend(ctx context.Context, req *request.Mess
 // updateMsgIdStatus 通用的方法，用于更新消息的状态和版本ID
 func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, msgId model.BigIntType, status model.MsgStatus, senderId *gen_id.ComponentId) (err error) {
 	logHead += fmt.Sprintf("updateMsgIdStatus,msgId=%v,status=%v|", msgId, status)
-	mem := b.repoMessage.RedisClient
 
 	// get: message
 	msgInfo, err := b.repoMessage.Info(msgId)
@@ -466,6 +465,29 @@ func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, 
 		return
 	}
 	sessionId := msgInfo.SessionID
+
+	// save to db
+	fn := func(versionId uint64) (err error) {
+		// update to db
+		err = b.repoMessage.UpdateMsgStatus(logHead, msgId, versionId, status)
+		if err != nil {
+			return
+		}
+		return
+	}
+	err = b.updateMsgVersion(ctx, logHead, sessionId, senderId, fn)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+type Fn func(versionId uint64) (err error)
+
+// updateMsgVersion 加锁 => 生成 version_id => 执行回调函数
+func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, sessionId string, senderId *gen_id.ComponentId, fn Fn) (err error) {
+	mem := b.repoMessage.RedisClient
 
 	// get receiver id
 	var receiverId *gen_id.ComponentId
@@ -507,11 +529,5 @@ func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, 
 		return
 	}
 
-	// update to db
-	err = b.repoMessage.UpdateMsgStatus(logHead, msgId, versionId, status)
-	if err != nil {
-		return
-	}
-
-	return
+	return fn(versionId)
 }
