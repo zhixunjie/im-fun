@@ -20,6 +20,20 @@ func NewMessageRepo(data *Data) *MessageRepo {
 	}
 }
 
+func (repo *MessageRepo) TableNameByContactId(id1, id2 *gen_id.ComponentId) (dbName string, tbName string) {
+	switch {
+	case id1.IsGroup(): // 群聊
+		dbName, tbName = repo.TableName(id1.Id())
+	case id2.IsGroup(): // 群聊
+		dbName, tbName = repo.TableName(id2.Id())
+	default: // 单聊
+		_, largerId := gen_id.Sort(id1, id2)
+		dbName, tbName = repo.TableName(largerId.Id())
+	}
+
+	return
+}
+
 // TableName
 // 因为msgId和largerId的后4位是相同的，所以这里传入msgId或者largerId都可以
 func (repo *MessageRepo) TableName(id uint64) (dbName string, tbName string) {
@@ -71,11 +85,10 @@ func (repo *MessageRepo) Info(msgId uint64) (row *model.Message, err error) {
 }
 
 func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*model.Message, err error) {
-	_, tbName := repo.TableName(params.LargerId.Id())
+	_, tbName := repo.TableNameByContactId(params.OwnerId, params.PeerId)
 	qModel := repo.Db.Message.Table(tbName)
 
 	// get id
-	sessionId := gen_id.GenSessionId(params.SmallerId, params.LargerId)
 	delVersionId := params.LastDelMsgVersionId
 	pivotVersionId := params.PivotVersionId
 
@@ -86,7 +99,7 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 			pivotVersionId = math.MaxInt64
 		}
 		list, err = qModel.Where(
-			qModel.SessionID.Eq(sessionId),
+			qModel.SessionID.Eq(params.SessionId),
 			qModel.VersionID.Gt(delVersionId),
 			qModel.VersionID.Lt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find() // 按照version_id倒序排序
@@ -96,7 +109,7 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 			pivotVersionId = delVersionId
 		}
 		list, err = qModel.Where(
-			qModel.SessionID.Eq(sessionId),
+			qModel.SessionID.Eq(params.SessionId),
 			qModel.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(qModel.VersionID).Find() // 按照version_id正序排序
 	}

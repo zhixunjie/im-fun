@@ -173,14 +173,15 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	//}
 
 	// get: message list
-	smallId, largerId := gen_id.Sort(ownerId, peerId)
+	sessionId := gen_id.GenSessionId(ownerId, peerId)
 	list, err := b.repoMessage.RangeList(&model.FetchMsgRangeParams{
 		FetchType:           req.FetchType,
-		SmallerId:           smallId,
-		LargerId:            largerId,
-		PivotVersionId:      pivotVersionId,
+		SessionId:           sessionId,
 		LastDelMsgVersionId: lastDelMsgVersionId,
+		PivotVersionId:      pivotVersionId,
 		Limit:               limit,
+		OwnerId:             ownerId,
+		PeerId:              peerId,
 	})
 	if err != nil {
 		return
@@ -356,13 +357,12 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 	}
 
 	// message: gen msg_id
-	smallerId, largeId := gen_id.Sort(senderId, receiverId)
-	msgId, err := gen_id.GenMsgId(ctx, mem, smallerId, largeId)
+	msgId, err := gen_id.GenMsgId(ctx, mem, senderId, receiverId)
 	if err != nil {
 		logging.Errorf(logHead+"gen MsgId error=%v", err)
 		return
 	}
-	sessionId := gen_id.GenSessionId(smallerId, largeId)
+	sessionId := gen_id.GenSessionId(senderId, receiverId)
 
 	// note: 同一个消息timeline的版本变动，需要加锁
 	lockKey := cache.TimelineMessageLock.Format(k.M{"session_id": sessionId})
@@ -377,8 +377,8 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 	// message: gen version_id
 	versionId, err := gen_id.MsgVersionId(ctx, &gen_id.MsgVerParams{
 		Mem: mem,
-		Id1: smallerId,
-		Id2: largeId,
+		Id1: senderId,
+		Id2: receiverId,
 	})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionId error=%v", err)
@@ -513,11 +513,10 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
 
 	// message: gen version_id
-	smallerId, largeId := gen_id.Sort(senderId, receiverId)
 	versionId, err := gen_id.MsgVersionId(ctx, &gen_id.MsgVerParams{
 		Mem: mem,
-		Id1: smallerId,
-		Id2: largeId,
+		Id1: senderId,
+		Id2: receiverId,
 	})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionId error=%v", err)

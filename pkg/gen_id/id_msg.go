@@ -9,14 +9,15 @@ import (
 )
 
 // GenMsgId 根据id的类型，生成msgId
-func GenMsgId(ctx context.Context, mem *redis.Client, smallerId, largeId *ComponentId) (msgId uint64, err error) {
+func GenMsgId(ctx context.Context, mem *redis.Client, id1, id2 *ComponentId) (msgId uint64, err error) {
 	switch {
-	case smallerId.IsGroup(): // 群聊
-		msgId, err = genMsgId(ctx, mem, smallerId.Id())
-	case largeId.IsGroup(): // 群聊
-		msgId, err = genMsgId(ctx, mem, largeId.Id())
+	case id1.IsGroup(): // 群聊
+		msgId, err = genMsgId(ctx, mem, id1.Id())
+	case id2.IsGroup(): // 群聊
+		msgId, err = genMsgId(ctx, mem, id2.Id())
 	default: // 单聊
-		msgId, err = genMsgId(ctx, mem, largeId.Id())
+		_, largerId := Sort(id1, id2)
+		msgId, err = genMsgId(ctx, mem, largerId.Id())
 	}
 
 	return

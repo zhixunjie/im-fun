@@ -69,9 +69,10 @@ const (
 
 type FetchMsgRangeParams struct {
 	FetchType                           FetchType
-	SmallerId, LargerId                 *gen_id.ComponentId
+	SessionId                           string
 	LastDelMsgVersionId, PivotVersionId BigIntType // 确定消息的允许获取范围
 	Limit                               int
+	OwnerId, PeerId                     *gen_id.ComponentId
 }
 
 type FetchContactRangeParams struct {
