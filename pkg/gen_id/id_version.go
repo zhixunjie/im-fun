@@ -24,7 +24,7 @@ type GenVersionParams struct {
 
 // VersionId 获取"消息表/会话表"的version_id
 func VersionId(ctx context.Context, params *GenVersionParams) (versionId uint64, err error) {
-	// 每隔128，verIdTimeKey的值增加1（随着时间过去，KEY会不断增大）
+	// 每隔128秒，verIdTimeKey的值增加1（随着时间过去，KEY会不断增大）
 	ts := time.Now().Unix()
 	verIdTimeKey := ts >> shiftVersionKey
 
