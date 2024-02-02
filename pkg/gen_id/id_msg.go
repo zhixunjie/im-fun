@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-// GenMsgId 根据id的类型，生成msgId
-func GenMsgId(ctx context.Context, mem *redis.Client, id1, id2 *ComponentId) (msgId uint64, err error) {
+// MsgId 根据id的类型，生成msgId
+func MsgId(ctx context.Context, mem *redis.Client, id1, id2 *ComponentId) (msgId uint64, err error) {
 	switch {
 	case id1.IsGroup(): // 群聊
 		msgId, err = genMsgId(ctx, mem, id1.Id())

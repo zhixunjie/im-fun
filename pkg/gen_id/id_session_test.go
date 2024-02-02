@@ -18,12 +18,12 @@ func TestIdSession(t *testing.T) {
 		id:     10,
 		idType: uint32(ContactIdTypeGroup),
 	}
-	fmt.Println("单聊", GenSessionId(id1, id2))
-	fmt.Println("单聊", GenSessionId(id2, id1))
-	fmt.Println("群聊", GenSessionId(id1, id3))
-	fmt.Println("群聊", GenSessionId(id3, id1))
-	fmt.Println("群聊", GenSessionId(id2, id3))
-	fmt.Println("群聊", GenSessionId(id3, id2))
+	fmt.Println("单聊", SessionId(id1, id2))
+	fmt.Println("单聊", SessionId(id2, id1))
+	fmt.Println("群聊", SessionId(id1, id3))
+	fmt.Println("群聊", SessionId(id3, id1))
+	fmt.Println("群聊", SessionId(id2, id3))
+	fmt.Println("群聊", SessionId(id3, id2))
 }
 
 func TestSort(t *testing.T) {

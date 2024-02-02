@@ -173,7 +173,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	//}
 
 	// get: message list
-	sessionId := gen_id.GenSessionId(ownerId, peerId)
+	sessionId := gen_id.SessionId(ownerId, peerId)
 	list, err := b.repoMessage.RangeList(&model.FetchMsgRangeParams{
 		FetchType:           req.FetchType,
 		SessionId:           sessionId,
@@ -357,12 +357,12 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 	}
 
 	// message: gen msg_id
-	msgId, err := gen_id.GenMsgId(ctx, mem, senderId, receiverId)
+	msgId, err := gen_id.MsgId(ctx, mem, senderId, receiverId)
 	if err != nil {
 		logging.Errorf(logHead+"gen MsgId error=%v", err)
 		return
 	}
-	sessionId := gen_id.GenSessionId(senderId, receiverId)
+	sessionId := gen_id.SessionId(senderId, receiverId)
 
 	// note: 同一个消息timeline的版本变动，需要加锁
 	lockKey := cache.TimelineMessageLock.Format(k.M{"session_id": sessionId})
