@@ -38,10 +38,10 @@ func GroupSessionId(group *ComponentId) string {
 // ParseSessionId 解析SessionId
 func ParseSessionId(sessionId string) (id1, id2 *ComponentId) {
 	slice := strings.Split(sessionId, ":")
-	if len(slice) == 1 {
+	if len(slice) == 1 { // 群聊
 		val := strings.Split(slice[0], "_")
 		id1 = NewComponentId(cast.ToUint64(val[1]), cast.ToUint32(val[0]))
-	} else {
+	} else { // 单聊
 		val := strings.Split(slice[0], "_")
 		id1 = NewComponentId(cast.ToUint64(val[1]), cast.ToUint32(val[0]))
 
