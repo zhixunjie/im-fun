@@ -6,18 +6,10 @@ import (
 )
 
 func TestIdSession(t *testing.T) {
-	id1 := &ComponentId{
-		id:     1001,
-		idType: uint32(ContactIdTypeUser),
-	}
-	id2 := &ComponentId{
-		id:     1002,
-		idType: uint32(ContactIdTypeUser),
-	}
-	id3 := &ComponentId{
-		id:     10,
-		idType: uint32(ContactIdTypeGroup),
-	}
+	id1 := NewUserComponentId(1001)
+	id2 := NewUserComponentId(1002)
+	id3 := NewGroupComponentId(10)
+
 	fmt.Println("单聊", SessionId(id1, id2))
 	fmt.Println("单聊", SessionId(id2, id1))
 	fmt.Println("群聊", SessionId(id1, id3))

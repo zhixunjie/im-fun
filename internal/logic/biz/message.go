@@ -414,11 +414,10 @@ func (b *MessageUseCase) canCreateContact(logHead string, contactId *gen_id.Comp
 	typeArr := []uint32{
 		uint32(gen_id.ContactIdTypeRobot),
 		uint32(gen_id.ContactIdTypeSystem),
-		uint32(gen_id.ContactIdTypeGroup),
 	}
 
 	// 如果用户是指定类型，那么不需要创建他的contact信息（比如：机器人）
-	if lo.Contains(typeArr, contactId.Type()) {
+	if lo.Contains(typeArr, contactId.Type()) || contactId.IsGroup() {
 		logging.Info(logHead + "do not need create contact")
 		return false
 	}
