@@ -3,6 +3,7 @@ package response
 import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
+	"github.com/zhixunjie/im-fun/pkg/gen_id"
 )
 
 // MessageSendRsp 发送消息给某个用户
@@ -33,15 +34,16 @@ type FetchMsgData struct {
 }
 
 type MsgEntity struct {
-	MsgID     uint64              `json:"msg_id"`
-	SeqID     uint64              `json:"seq_id"`
-	MsgBody   format.MsgBody      `json:"msg_body"`
-	SessionID string              `json:"session_id"`
-	SenderID  uint64              `json:"sender_id"`
-	VersionID uint64              `json:"version_id"`
-	SortKey   uint64              `json:"sort_key"`
-	Status    model.MsgStatus     `json:"status"`
-	HasRead   model.MsgReadStatus `json:"has_read"`
+	MsgID     uint64               `json:"msg_id"`
+	SeqID     uint64               `json:"seq_id"`
+	MsgBody   format.MsgBody       `json:"msg_body"`
+	SessionID string               `json:"session_id"`
+	SenderID  uint64               `json:"sender_id"`
+	SendType  gen_id.ContactIdType `json:"send_type"`
+	VersionID uint64               `json:"version_id"`
+	SortKey   uint64               `json:"sort_key"`
+	Status    model.MsgStatus      `json:"status"`
+	HasRead   model.MsgReadStatus  `json:"has_read"`
 }
 
 // MessageWithdrawRsp 撤回消息
