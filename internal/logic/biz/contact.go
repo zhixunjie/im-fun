@@ -62,10 +62,8 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 		})
 	}
 
-	// sort: 按照sort_key排序（从小到大）
-	sort.Slice(retList, func(i, j int) bool {
-		return retList[i].SortKey < retList[j].SortKey
-	})
+	// sort: 返回之前进行重新排序
+	sort.Sort(response.ContactSortBySortKey(retList))
 
 	resp.Data = response.FetchContactData{
 		ContactList:   retList,
