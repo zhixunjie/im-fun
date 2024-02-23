@@ -354,15 +354,10 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 		return
 	}
 
-	// message: gen msg_id
-	msgId, err := gen_id.MsgId(ctx, mem, senderId, receiverId)
-	if err != nil {
-		logging.Errorf(logHead+"gen MsgId error=%v", err)
-		return
-	}
+	// message: gen session id
 	sessionId := gen_id.SessionId(senderId, receiverId)
 
-	// note: 同一个消息timeline的版本变动，需要加锁
+	// note: 同一个消息timeline的版本变动，需要加锁（保证数据库记录中的msg_id与session_id是递增的）
 	lockKey := cache.TimelineMessageLock.Format(k.M{"session_id": sessionId})
 	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 20 * time.Millisecond, Times: 20})
 	if err = redisSpinLock.AcquireWithTimes(); err != nil {
@@ -371,6 +366,13 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 	}
 	defer func() { _ = redisSpinLock.Release() }()
 	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
+
+	// message: gen msg_id
+	msgId, err := gen_id.MsgId(ctx, mem, senderId, receiverId)
+	if err != nil {
+		logging.Errorf(logHead+"gen MsgId error=%v", err)
+		return
+	}
 
 	// message: gen version_id
 	versionId, err := gen_id.MsgVersionId(ctx, &gen_id.MsgVerParams{
