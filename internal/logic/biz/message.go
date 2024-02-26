@@ -93,8 +93,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	}
 
 	// 3. build && create message（无扩散）
-	var msg *model.Message
-	msg, err = b.build(ctx, logHead, req, senderId, receiverId)
+	msg, err := b.build(ctx, logHead, req, senderId, receiverId)
 	if err != nil {
 		return
 	}
