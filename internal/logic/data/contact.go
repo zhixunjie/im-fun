@@ -163,9 +163,9 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, la
 		SortKey:   versionId, // 3. sort_key的值等同于version_id
 	}
 
-	// save to db
+	// save to db（要求：数据库的最后一条消息id小于当前消息id）
 	var res gen.ResultInfo
-	res, err = qModel.Where(qModel.ID.Eq(contactId)).Limit(1).Updates(row)
+	res, err = qModel.Where(qModel.ID.Eq(contactId), qModel.LastMsgID.Lt(lastMsgId)).Limit(1).Updates(row)
 	if err != nil {
 		logging.Errorf(logHead+"Updates fail,err=%v,contact=%v", err, row)
 		return
