@@ -101,13 +101,13 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 
 	// 4. update contact's info（写扩散）
 	if senderContact != nil {
-		err = b.repoContact.UpdateLastMsgId(ctx, logHead, senderContact.ID, msg.MsgID, senderId)
+		err = b.repoContact.UpdateLastMsgId(ctx, logHead, msg.MsgID, senderContact.ID, senderId)
 		if err != nil {
 			return
 		}
 	}
 	if peerContact != nil {
-		err = b.repoContact.UpdateLastMsgId(ctx, logHead, peerContact.ID, msg.MsgID, receiverId)
+		err = b.repoContact.UpdateLastMsgId(ctx, logHead, msg.MsgID, peerContact.ID, receiverId)
 		if err != nil {
 			return
 		}
@@ -357,7 +357,8 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 	// message: gen session id
 	sessionId := gen_id.SessionId(senderId, receiverId)
 
-	// note: 同一个消息timeline的版本变动，需要加锁（保证数据库记录中的msg_id与session_id是递增的）
+	// note: 同一个消息timeline的版本变动，需要加锁
+	// 保证数据库记录中的 msg_id 与 session_id 是递增的
 	lockKey := cache.TimelineMessageLock.Format(k.M{"session_id": sessionId})
 	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 20 * time.Millisecond, Times: 20})
 	if err = redisSpinLock.AcquireWithTimes(); err != nil {

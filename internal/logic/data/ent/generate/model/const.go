@@ -67,6 +67,7 @@ const (
 
 // =========================
 
+// FetchMsgRangeParams 拉取消息列表
 type FetchMsgRangeParams struct {
 	FetchType                           FetchType
 	SessionId                           string
@@ -75,6 +76,7 @@ type FetchMsgRangeParams struct {
 	OwnerId, PeerId                     *gen_id.ComponentId
 }
 
+// FetchContactRangeParams 拉取会话列表
 type FetchContactRangeParams struct {
 	FetchType      FetchType
 	OwnerId        *gen_id.ComponentId
@@ -82,8 +84,22 @@ type FetchContactRangeParams struct {
 	Limit          int
 }
 
+// BuildContactParams 构建参数
 type BuildContactParams struct {
 	OwnerId *gen_id.ComponentId
 	PeerId  *gen_id.ComponentId
 	PeerAck PeerAckStatus
+}
+
+// UpdateLastMsgId 更新最后一条消息
+type UpdateLastMsgId struct {
+	SessionId string
+	LastMsgId uint64
+	Peer1     UpdateLastMsgIdItem `json:"peer_1"`
+	Peer2     UpdateLastMsgIdItem `json:"peer_2"`
+}
+
+type UpdateLastMsgIdItem struct {
+	ContactId uint64
+	OwnerId   *gen_id.ComponentId
 }

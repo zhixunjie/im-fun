@@ -129,14 +129,14 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 }
 
 // UpdateLastMsgId 更新contact的最后一条消息（发消息）
-func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, contactId uint64, lastMsgId uint64, ownerId *gen_id.ComponentId) (err error) {
+func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, lastMsgId uint64, contactId uint64, ownerId *gen_id.ComponentId) (err error) {
 	logHead += "UpdateLastMsgId|"
 	mem := repo.RedisClient
 	_, tbName := repo.TableName(ownerId.Id())
 	qModel := repo.Db.Contact.Table(tbName)
 
 	// note: 同一用户的会话timeline的版本变动，需要加锁
-	lockKey := cache.TimelineContactLock.Format(k.M{"uid": ownerId.Id()})
+	lockKey := cache.TimelineContactLock.Format(k.M{"contact_id": contactId})
 	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 20 * time.Millisecond, Times: 20})
 	if err = redisSpinLock.AcquireWithTimes(); err != nil {
 		logging.Errorf(logHead+"acquire fail,lockKey=%v,err=%v", lockKey, err)
