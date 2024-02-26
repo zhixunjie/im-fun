@@ -128,6 +128,39 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 	return
 }
 
+// RangeList 获取一定范围的会话列表
+func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRangeParams) (list []*model.Contact, err error) {
+	logHead += "RangeList|"
+
+	_, tbName := repo.TableName(params.OwnerId.Id())
+	qModel := repo.Db.Contact.Table(tbName)
+	pivotVersionId := params.PivotVersionId
+	ownerId := params.OwnerId
+
+	// 需要建立索引：owner_id、status、version_id
+	switch params.FetchType {
+	case model.FetchTypeBackward: // 拉取历史消息，范围为：（负无穷, pivotVersionId）
+		if pivotVersionId == 0 {
+			pivotVersionId = math.MaxInt64
+		}
+		list, err = qModel.Where(
+			qModel.OwnerID.Eq(ownerId.Id()), qModel.OwnerType.Eq(ownerId.Type()),
+			qModel.VersionID.Lt(pivotVersionId),
+		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find()
+	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
+		list, err = qModel.Where(
+			qModel.OwnerID.Eq(ownerId.Id()), qModel.OwnerType.Eq(ownerId.Type()),
+			qModel.VersionID.Gt(pivotVersionId),
+		).Limit(params.Limit).Order(qModel.VersionID).Find()
+	}
+	if err != nil {
+		logging.Errorf(logHead+"err=%v", err)
+		return
+	}
+
+	return
+}
+
 // UpdateLastMsgId 更新contact的最后一条消息（发消息）
 func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, lastMsgId uint64, contactId uint64, ownerId *gen_id.ComponentId) (err error) {
 	logHead += "UpdateLastMsgId|"
@@ -170,38 +203,6 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, la
 		return
 	}
 	logging.Infof(logHead+"Updates success,contact=%v,RowsAffected=%v", row, res.RowsAffected)
-
-	return
-}
-
-func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRangeParams) (list []*model.Contact, err error) {
-	logHead += "RangeList|"
-
-	_, tbName := repo.TableName(params.OwnerId.Id())
-	qModel := repo.Db.Contact.Table(tbName)
-	pivotVersionId := params.PivotVersionId
-	ownerId := params.OwnerId
-
-	// 需要建立索引：owner_id、status、version_id
-	switch params.FetchType {
-	case model.FetchTypeBackward: // 拉取历史消息，范围为：（负无穷, pivotVersionId）
-		if pivotVersionId == 0 {
-			pivotVersionId = math.MaxInt64
-		}
-		list, err = qModel.Where(
-			qModel.OwnerID.Eq(ownerId.Id()), qModel.OwnerType.Eq(ownerId.Type()),
-			qModel.VersionID.Lt(pivotVersionId),
-		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find()
-	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
-		list, err = qModel.Where(
-			qModel.OwnerID.Eq(ownerId.Id()), qModel.OwnerType.Eq(ownerId.Type()),
-			qModel.VersionID.Gt(pivotVersionId),
-		).Limit(params.Limit).Order(qModel.VersionID).Find()
-	}
-	if err != nil {
-		logging.Errorf(logHead+"err=%v", err)
-		return
-	}
 
 	return
 }

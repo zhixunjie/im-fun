@@ -84,6 +84,7 @@ func (repo *MessageRepo) Info(msgId uint64) (row *model.Message, err error) {
 	return
 }
 
+// RangeList 获取一定范围的消息列表
 func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*model.Message, err error) {
 	_, tbName := repo.TableNameByContactId(params.OwnerId, params.PeerId)
 	qModel := repo.Db.Message.Table(tbName)
