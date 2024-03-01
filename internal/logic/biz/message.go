@@ -393,6 +393,7 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 		Content:       string(bContent),              // 消息内容
 		SessionID:     sessionId,                     // 会话ID
 		SenderID:      req.SenderId,                  // 发送者ID
+		SenderType:    uint32(req.SenderType),        // 发送者的用户类型
 		VersionID:     versionId,                     // 版本ID
 		SortKey:       versionId,                     // sort_key的值等同于version_id
 		Status:        uint32(model.MsgStatusNormal), // 状态正常
