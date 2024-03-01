@@ -19,9 +19,10 @@ type Message struct {
 	Content       string    `gorm:"column:content;not null;comment:消息内容，json格式" json:"content"`                               // 消息内容，json格式
 	SessionID     string    `gorm:"column:session_id;not null;comment:会话id" json:"session_id"`                                // 会话id
 	SenderID      uint64    `gorm:"column:sender_id;not null;comment:私信发送者id" json:"sender_id"`                               // 私信发送者id
+	SenderType    uint32    `gorm:"column:sender_type;not null;comment:私信发送者的用户类型" json:"sender_type"`                        // 私信发送者的用户类型
 	VersionID     uint64    `gorm:"column:version_id;not null;comment:版本id（用于拉取消息）" json:"version_id"`                        // 版本id（用于拉取消息）
 	SortKey       uint64    `gorm:"column:sort_key;not null;comment:消息展示顺序（按顺序展示消息）" json:"sort_key"`                         // 消息展示顺序（按顺序展示消息）
-	Status        uint32    `gorm:"column:status;not null;comment:消息状态。0：正常，1：已删除，2：已撤回" json:"status"`                       // 消息状态。0：正常，1：已删除，2：已撤回
+	Status        uint32    `gorm:"column:status;not null;comment:消息状态" json:"status"`                                        // 消息状态
 	HasRead       uint32    `gorm:"column:has_read;not null;comment:接收方是否已读，0：未读，1：已读" json:"has_read"`                       // 接收方是否已读，0：未读，1：已读
 	InvisibleList string    `gorm:"column:invisible_list;not null;comment:发送方看到消息发出去了，但是对于在列表的用户是不可见的" json:"invisible_list"` // 发送方看到消息发出去了，但是对于在列表的用户是不可见的
 	CreatedAt     time.Time `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`      // 创建时间

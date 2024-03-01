@@ -35,6 +35,7 @@ func newMessage(db *gorm.DB, opts ...gen.DOOption) message {
 	_message.Content = field.NewString(tableName, "content")
 	_message.SessionID = field.NewString(tableName, "session_id")
 	_message.SenderID = field.NewUint64(tableName, "sender_id")
+	_message.SenderType = field.NewUint32(tableName, "sender_type")
 	_message.VersionID = field.NewUint64(tableName, "version_id")
 	_message.SortKey = field.NewUint64(tableName, "sort_key")
 	_message.Status = field.NewUint32(tableName, "status")
@@ -60,9 +61,10 @@ type message struct {
 	Content       field.String // 消息内容，json格式
 	SessionID     field.String // 会话id
 	SenderID      field.Uint64 // 私信发送者id
+	SenderType    field.Uint32 // 私信发送者的用户类型
 	VersionID     field.Uint64 // 版本id（用于拉取消息）
 	SortKey       field.Uint64 // 消息展示顺序（按顺序展示消息）
-	Status        field.Uint32 // 消息状态。0：正常，1：已删除，2：已撤回
+	Status        field.Uint32 // 消息状态
 	HasRead       field.Uint32 // 接收方是否已读，0：未读，1：已读
 	InvisibleList field.String // 发送方看到消息发出去了，但是对于在列表的用户是不可见的
 	CreatedAt     field.Time   // 创建时间
@@ -90,6 +92,7 @@ func (m *message) updateTableName(table string) *message {
 	m.Content = field.NewString(table, "content")
 	m.SessionID = field.NewString(table, "session_id")
 	m.SenderID = field.NewUint64(table, "sender_id")
+	m.SenderType = field.NewUint32(table, "sender_type")
 	m.VersionID = field.NewUint64(table, "version_id")
 	m.SortKey = field.NewUint64(table, "sort_key")
 	m.Status = field.NewUint32(table, "status")
@@ -113,7 +116,7 @@ func (m *message) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (m *message) fillFieldMap() {
-	m.fieldMap = make(map[string]field.Expr, 14)
+	m.fieldMap = make(map[string]field.Expr, 15)
 	m.fieldMap["id"] = m.ID
 	m.fieldMap["msg_id"] = m.MsgID
 	m.fieldMap["seq_id"] = m.SeqID
@@ -121,6 +124,7 @@ func (m *message) fillFieldMap() {
 	m.fieldMap["content"] = m.Content
 	m.fieldMap["session_id"] = m.SessionID
 	m.fieldMap["sender_id"] = m.SenderID
+	m.fieldMap["sender_type"] = m.SenderType
 	m.fieldMap["version_id"] = m.VersionID
 	m.fieldMap["sort_key"] = m.SortKey
 	m.fieldMap["status"] = m.Status
