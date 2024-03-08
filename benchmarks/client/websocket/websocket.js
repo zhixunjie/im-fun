@@ -167,7 +167,7 @@ class WebsocketOp {
 
     // 授权
     auth() {
-        let authInfo = '{"user_id":1001, "user_key":"x4u5mmq6gh2md5dl","room_id":"live://9999", "platform":"web", "token":"abcabcabcabc"}'
+        let authInfo = '{"tcp_session_id":{"user_id":1001,"user_key":"x4u5mmq6gh2md5dl"},"room_id":"live://9999","platform":"web","token":"abcabcabcabc"}'
         let headerBuf = new ArrayBuffer(rawHeaderLen);
         let headerView = new DataView(headerBuf, 0);
         let bodyBuf = this.textEncoder.encode(authInfo);

@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-func Start(userId int64, addr string) {
+func Start(userId uint64, addr string) {
 	logHead := fmt.Sprintf("Start|userId=%v,", userId)
 
 	// dial to server

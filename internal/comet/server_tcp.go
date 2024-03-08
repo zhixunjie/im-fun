@@ -9,7 +9,6 @@ import (
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-	"github.com/zhixunjie/im-fun/pkg/tcp"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 	"io"
 	"math"
@@ -233,10 +232,9 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 		logging.Errorf(logHead+"Unmarshal body=%s,err=%v", proto.Body, err)
 		return
 	}
-
-	// update channel
-	authParams.TcpSessionId = tcp.NewSessionId(authParams.UserId, authParams.UserKey)
 	authParams.IP = ch.UserInfo.IP
+
+	// invoke connect
 	if hb, err = s.Connect(ctx, authParams); err != nil {
 		logging.Errorf(logHead+"Connect err=%v,params=%+v", err, authParams)
 		return

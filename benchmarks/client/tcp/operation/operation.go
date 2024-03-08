@@ -8,17 +8,20 @@ import (
 	"fmt"
 	"github.com/zhixunjie/im-fun/benchmarks/client/tcp/model"
 	"github.com/zhixunjie/im-fun/pkg/logging"
+	"github.com/zhixunjie/im-fun/pkg/tcp"
 	"io"
 	"net"
 	"time"
 )
 
-func Auth(rd *bufio.Reader, wr *bufio.Writer, userId int64) (err error) {
+func Auth(rd *bufio.Reader, wr *bufio.Writer, userId uint64) (err error) {
 	logHead := fmt.Sprintf("auth|userId=%v,", userId)
 
 	var authParams = &model.AuthParams{
-		UserId:   userId,
-		UserKey:  "any_key",
+		TcpSessionId: &tcp.SessionId{
+			UserId:  userId,
+			UserKey: "any_key",
+		},
 		RoomId:   "live://9999",
 		Platform: "linux",
 		Token:    "abcabcabcabc",
@@ -47,7 +50,7 @@ func Auth(rd *bufio.Reader, wr *bufio.Writer, userId int64) (err error) {
 	return
 }
 
-func Writer(ctx context.Context, seq *int32, wr *bufio.Writer, userId int64, quit chan bool) (err error) {
+func Writer(ctx context.Context, seq *int32, wr *bufio.Writer, userId uint64, quit chan bool) (err error) {
 	logHead := fmt.Sprintf("Writer|userId=%v,", userId)
 	proto := new(model.Proto)
 
@@ -75,7 +78,7 @@ func Writer(ctx context.Context, seq *int32, wr *bufio.Writer, userId int64, qui
 	}
 }
 
-func Reader(ctx context.Context, conn net.Conn, rd *bufio.Reader, userId int64, quit chan bool) (err error) {
+func Reader(ctx context.Context, conn net.Conn, rd *bufio.Reader, userId uint64, quit chan bool) (err error) {
 	logHead := fmt.Sprintf("Reader|userId=%v,", userId)
 
 	// deal with read

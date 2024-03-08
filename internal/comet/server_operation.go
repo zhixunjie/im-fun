@@ -15,7 +15,7 @@ func (s *Server) Connect(ctx context.Context, params *channel.AuthParams) (heart
 	reply, err := s.rpcToLogic.Connect(ctx, &pb.ConnectReq{
 		Comm: &pb.ConnectCommon{
 			ServerId:     s.serverId,
-			UserId:       params.UserId,
+			UserId:       params.TcpSessionId.UserId,
 			TcpSessionId: params.TcpSessionId.ToString(),
 		},
 		RoomId:   params.RoomId,
@@ -32,7 +32,7 @@ func (s *Server) Disconnect(ctx context.Context, ch *channel.Channel) (err error
 	_, err = s.rpcToLogic.Disconnect(ctx, &pb.DisconnectReq{
 		Comm: &pb.ConnectCommon{
 			ServerId:     s.serverId,
-			UserId:       ch.UserInfo.UserId,
+			UserId:       ch.UserInfo.TcpSessionId.UserId,
 			TcpSessionId: ch.UserInfo.TcpSessionId.ToString(),
 		},
 	})
@@ -43,7 +43,7 @@ func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err
 	_, err = s.rpcToLogic.Heartbeat(ctx, &pb.HeartbeatReq{
 		Comm: &pb.ConnectCommon{
 			ServerId:     s.serverId,
-			UserId:       userInfo.UserId,
+			UserId:       userInfo.TcpSessionId.UserId,
 			TcpSessionId: userInfo.TcpSessionId.ToString(),
 		},
 	})
@@ -64,7 +64,7 @@ func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err
 
 // Receive receive a message.
 func (s *Server) Receive(ctx context.Context, ch *channel.Channel, p *protocol.Proto) (err error) {
-	_, err = s.rpcToLogic.Receive(ctx, &pb.ReceiveReq{UserId: ch.UserInfo.UserId, Proto: p})
+	_, err = s.rpcToLogic.Receive(ctx, &pb.ReceiveReq{UserId: ch.UserInfo.TcpSessionId.UserId, Proto: p})
 	return
 }
 
