@@ -2,14 +2,14 @@ syntax = "proto3";
 
 package imfun.logic;
 
-option go_package = "github.com/zhixunjie/im-fun/api/pb;pb";
+option go_package = "github.com/zhixunjie/im-fun/api/pb;../pb";
 
 import "protocol.proto";
 
 service Logic {
-  // Connect
+  // 建立TCP连接，并且auth后，保存映射关系
   rpc Connect(ConnectReq) returns (ConnectReply);
-  // Disconnect
+  // 断开TCP连接，删除映射关系
   rpc Disconnect(DisconnectReq) returns (DisconnectReply);
   // Heartbeat
   rpc Heartbeat(HeartbeatReq) returns (HeartbeatReply);
@@ -36,23 +36,27 @@ message KafkaSendMsg {
   bytes msg = 7;
 }
 
-message ConnectReq {
+message ConnectCommon {
   string serverId = 1;
-  int64 userId = 2;
-  string userKey = 3;
+  uint64 userId = 2;
+  string tcpSessionId = 3;
+}
+
+// 建立TCP连接，并且auth后，保存映射关系
+message ConnectReq {
+  ConnectCommon comm = 1;
   string roomId = 4;
   string token = 5;
-  string platform = 6;
+  Platform platform = 6;
 }
 
 message ConnectReply {
   int64 heartbeat = 1;
 }
 
+// 断开TCP连接，删除映射关系
 message DisconnectReq {
-  string serverId = 1;
-  int64 userId = 2;
-  string userKey = 3;
+  ConnectCommon comm = 1;
 }
 
 message DisconnectReply {
@@ -60,9 +64,7 @@ message DisconnectReply {
 }
 
 message HeartbeatReq {
-  string serverId = 1;
-  int64 userId = 2;
-  string userKey = 3;
+  ConnectCommon comm = 1;
 }
 
 message HeartbeatReply {
@@ -78,7 +80,7 @@ message OnlineReply {
 }
 
 message ReceiveReq {
-  int64 userId = 1;
+  uint64 userId = 1;
   imfun.protocol.Proto proto = 2;
 }
 
@@ -106,4 +108,14 @@ message Backoff {
   int32  base_delay = 2;
   float  factor = 3;
   float  jitter = 4;
+}
+
+// 平台
+enum Platform {
+  Platform_None = 0;
+  Platform_PC = 1;         // PC
+  Platform_Android = 2;    // 安卓
+  Platform_Ios = 3;        // IOS
+  Platform_Web = 4;        // 网页
+  Platform_MinProgram = 5; // 小程序
 }
