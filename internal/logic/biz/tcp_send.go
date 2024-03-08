@@ -2,29 +2,34 @@ package biz
 
 import (
 	"context"
+	"github.com/samber/lo"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/pkg/logging"
+	"github.com/zhixunjie/im-fun/pkg/tcp"
 )
 
-// SendToUserKeys 发送消息（by kafka）
-func (bz *Biz) SendToUserKeys(ctx context.Context, req *request.SendToUserKeysReq) error {
-	logHead := "SendToUserKeys|"
-	res, err := bz.data.SessionGetByUserKeys(ctx, req.UserKeys)
+// SendToUsers 发送消息（by kafka）
+func (bz *Biz) SendToUsers(ctx context.Context, req *request.SendToUsersReq) error {
+	logHead := "SendToUsers|"
+	tcpSessionIds := lo.Map(req.TcpSessionIds, func(item tcp.SessionId, index int) string {
+		return item.ToString()
+	})
+	serverIds, err := bz.data.GetServerIds(ctx, tcpSessionIds)
 	if err != nil {
-		logging.Errorf(logHead+"res=%v, err=%v", res, err)
+		logging.Errorf(logHead+"res=%v, err=%v", serverIds, err)
 		return err
 	}
 
-	// 重整数据：获取某个serverId下的userKey
+	// 重整数据：获取某个serverId下的tcpSessionId
 	serverIdMap := make(map[string][]string)
-	for i, userKey := range req.UserKeys {
-		serverId := res[i]
-		serverIdMap[serverId] = append(serverIdMap[serverId], userKey)
+	for i, tcpSessionId := range req.TcpSessionIds {
+		serverId := serverIds[i]
+		serverIdMap[serverId] = append(serverIdMap[serverId], tcpSessionId.ToString())
 	}
 
-	// 同一台机器的userKey一次性发送
+	// 把同一台机器的请求聚合青睐
 	for serverId := range serverIdMap {
-		err = bz.data.KafkaSendToUserKeys(serverId, serverIdMap[serverId], req.SubId, []byte(req.Message))
+		err = bz.data.KafkaSendToUsers(serverId, serverIdMap[serverId], req.SubId, []byte(req.Message))
 		if err != nil {
 			logging.Errorf(logHead+"err=%v", err)
 		}
@@ -33,24 +38,26 @@ func (bz *Biz) SendToUserKeys(ctx context.Context, req *request.SendToUserKeysRe
 	return nil
 }
 
-// SendToUserIds 发送消息（by kafka）
-func (bz *Biz) SendToUserIds(ctx context.Context, req *request.SendToUserIdsReq) error {
-	logHead := "SendToUserIds|"
-	res, err := bz.data.SessionGetByUserIds(ctx, req.UserIds)
+// SendToUsersByIds 发送消息（by kafka）
+func (bz *Biz) SendToUsersByIds(ctx context.Context, req *request.SendToUsersByIdsReq) error {
+	logHead := "SendToUsersByIds|"
+
+	// get: data
+	mSession, err := bz.data.GetSessionByUserIds(ctx, req.UserIds)
 	if err != nil {
-		logging.Errorf(logHead+"res=%v, err=%v", res, err)
+		logging.Errorf(logHead+"res=%v, err=%v", mSession, err)
 		return err
 	}
 
-	// 重整数据：获取某个serverId下的userKey
-	serverIdMap := make(map[string][]string)
-	for userKey, serverId := range res {
-		serverIdMap[serverId] = append(serverIdMap[serverId], userKey)
+	// 重整数据：获取某个serverId下的tcpSessionId
+	m := make(map[string][]string)
+	for tcpSessionId, serverId := range mSession {
+		m[serverId] = append(m[serverId], tcpSessionId)
 	}
 
-	// 同一台机器的userKey一次性发送
-	for serverId := range serverIdMap {
-		err = bz.data.KafkaSendToUserKeys(serverId, serverIdMap[serverId], req.SubId, []byte(req.Message))
+	// 把同一台机器的请求聚合在一起
+	for serverId := range m {
+		err = bz.data.KafkaSendToUsers(serverId, m[serverId], req.SubId, []byte(req.Message))
 		if err != nil {
 			logging.Errorf(logHead+"err=%v", err)
 		}

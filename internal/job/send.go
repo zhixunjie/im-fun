@@ -8,8 +8,8 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
-func (b *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, message []byte) (err error) {
-	logHead := "SendToUserKeys|"
+func (b *Job) SendToUser(subId int32, serverId string, tcpSessionIds []string, message []byte) (err error) {
+	logHead := "SendToUser|"
 
 	// write to proto body（proto的body里面嵌套proto）
 	// 这样写的好处见：Job.SendToRoom
@@ -25,12 +25,12 @@ func (b *Job) SendToUserKeys(subId int32, serverId string, userKeys []string, me
 
 	// push to comet
 	if cm, ok := b.cometInvokers[serverId]; ok {
-		params := pb.SendToUserKeysReq{
-			UserKeys: userKeys,
-			Proto:    proto,
-			SubId:    subId,
+		params := &pb.SendToUsersReq{
+			TcpSessionIds: tcpSessionIds,
+			Proto:         proto,
+			SubId:         subId,
 		}
-		if err = cm.SendToUserKeys(&params); err != nil {
+		if err = cm.SendToUsers(params); err != nil {
 			logging.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
 		}
 	}

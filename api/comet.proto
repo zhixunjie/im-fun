@@ -2,13 +2,13 @@ syntax = "proto3";
 
 package imfun.comet;
 
-option go_package = "github.com/zhixunjie/im-fun/api/pb;../pb";
+option go_package = "github.com/zhixunjie/im-fun/api/pb;pb";
 
 import "protocol.proto";
 
 service Comet {
-  // send msg with user keys
-  rpc SendToUserKeys(SendToUserKeysReq) returns (SendToUserKeysReply);
+  // send msg to some user
+  rpc SendToUsers(SendToUsersReq) returns (SendToUsersReply);
   // send msg with room's user
   rpc SendToRoom(SendToRoomReq) returns (SendToRoomReply);
   // send msg with every user
@@ -18,13 +18,13 @@ service Comet {
 }
 
 // users
-message SendToUserKeysReq {
-  repeated string userKeys = 1;
+message SendToUsersReq {
+  repeated string tcpSessionIds = 1;
   imfun.protocol.Proto proto = 2;
   int32 subId = 3;
 }
 
-message SendToUserKeysReply {}
+message SendToUsersReply {}
 
 // all users
 message SendToAllReq{

@@ -13,7 +13,7 @@ import (
 type Bucket struct {
 	conf   *conf.Bucket
 	rwLock sync.RWMutex                // protect the channels for chs
-	chs    map[string]*channel.Channel // map：model.UserInfo.UserKey => GetChannelByUserKey
+	chs    map[string]*channel.Channel // map：model.UserInfo.TcpSessionId => GetChannel
 
 	// room
 	routineCounter atomic.Uint64
@@ -109,15 +109,16 @@ func (b *Bucket) Put(ch *channel.Channel) (err error) {
 	var room *channel.Room
 	var ok bool
 	userInfo := ch.UserInfo
+	tcpSessionId := userInfo.TcpSessionId
 	roomId := userInfo.RoomId
 
 	b.rwLock.Lock()
 	// close old channel
-	if oldCh := b.chs[userInfo.UserKey]; oldCh != nil {
+	if oldCh := b.chs[tcpSessionId.ToString()]; oldCh != nil {
 		oldCh.SendFinish()
 	}
 	// set new channel
-	b.chs[userInfo.UserKey] = ch
+	b.chs[tcpSessionId.ToString()] = ch
 	if roomId != "" {
 		if room, ok = b.rooms[roomId]; !ok {
 			room = channel.NewRoom(roomId)
@@ -139,12 +140,13 @@ func (b *Bucket) Put(ch *channel.Channel) (err error) {
 func (b *Bucket) DelChannel(currCh *channel.Channel) {
 	logging.Infof("traceId=%v] DelChannel|", currCh.TraceId)
 	userInfo := currCh.UserInfo
+	tcpSessionId := userInfo.TcpSessionId
 
 	b.rwLock.Lock()
-	if ch, ok := b.chs[userInfo.UserKey]; ok {
+	if ch, ok := b.chs[tcpSessionId.ToString()]; ok {
 		// delete channel
 		if ch == currCh {
-			delete(b.chs, userInfo.UserKey)
+			delete(b.chs, tcpSessionId.ToString())
 		}
 		// update ip counter
 		if b.ipCount[userInfo.IP] > 1 {
@@ -164,7 +166,7 @@ func (b *Bucket) DelChannel(currCh *channel.Channel) {
 	}
 }
 
-func (b *Bucket) GetChannelByUserKey(key string) (ch *channel.Channel) {
+func (b *Bucket) GetChannel(key string) (ch *channel.Channel) {
 	b.rwLock.RLock()
 	ch = b.chs[key]
 	b.rwLock.RUnlock()

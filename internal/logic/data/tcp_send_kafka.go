@@ -8,20 +8,20 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func (d *Data) KafkaSendToUserKeys(serverId string, userKeys []string, subId int32, msg []byte) (err error) {
+func (d *Data) KafkaSendToUsers(serverId string, tcpSessionIds []string, subId int32, msg []byte) (err error) {
 	protoMsg := &pb.KafkaSendMsg{
-		Type:     pb.KafkaSendMsg_UserKeys,
-		SubId:    subId,
-		ServerId: serverId,
-		UserKeys: userKeys,
-		Msg:      msg,
+		Type:          pb.KafkaSendMsg_ToUsers,
+		SubId:         subId,
+		ServerId:      serverId,
+		TcpSessionIds: tcpSessionIds,
+		Msg:           msg,
 	}
 	buf, err := proto.Marshal(protoMsg)
 	if err != nil {
 		return
 	}
 	err = d.KafkaProducer.SendProducerMessage(&sarama.ProducerMessage{
-		Key:   sarama.StringEncoder(userKeys[0]),
+		Key:   sarama.StringEncoder(tcpSessionIds[0]),
 		Topic: d.conf.Kafka[0].Topic,
 		Value: sarama.ByteEncoder(buf),
 	})
@@ -31,7 +31,7 @@ func (d *Data) KafkaSendToUserKeys(serverId string, userKeys []string, subId int
 
 func (d *Data) KafkaSendToRoom(req *request.SendToRoomReq) (err error) {
 	protoMsg := &pb.KafkaSendMsg{
-		Type:   pb.KafkaSendMsg_UserRoom,
+		Type:   pb.KafkaSendMsg_ToRoom,
 		SubId:  req.SubId,
 		RoomId: utils.EncodeRoomKey(req.RoomType, req.RoomId),
 		Msg:    []byte(req.Message),
@@ -51,7 +51,7 @@ func (d *Data) KafkaSendToRoom(req *request.SendToRoomReq) (err error) {
 
 func (d *Data) KafkaSendToAll(req *request.SendToAllReq) (err error) {
 	protoMsg := &pb.KafkaSendMsg{
-		Type:  pb.KafkaSendMsg_UserAll,
+		Type:  pb.KafkaSendMsg_ToAll,
 		SubId: req.SubId,
 		Speed: req.Speed,
 		Msg:   []byte(req.Message),

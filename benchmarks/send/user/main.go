@@ -82,8 +82,8 @@ func Start(st, ed int64) {
 	logging.Infof("send start[%d~%d],userId=%v", st, ed, userId)
 
 	// build msg
-	msg := request.SendToUserIdsReq{
-		UserIds: []int64{userId},
+	msg := request.SendToUsersByIdsReq{
+		UserIds: []uint64{userId},
 		Message: send.Msg,
 	}
 
@@ -96,7 +96,7 @@ func Start(st, ed int64) {
 	// start to request
 	var successCount, failCount int
 	var rsp http.Response
-	reqUrl := fmt.Sprintf("http://%v%v", addr, send.UrlSendUserIds)
+	reqUrl := fmt.Sprintf("http://%v%v", addr, send.UrlSendToUsersByIds)
 	for i := st; i < ed; i++ {
 		rsp, err = client.Post(reqUrl, bytes.NewBuffer(bodyStr), nil, nil)
 		if err != nil {

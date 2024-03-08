@@ -33,7 +33,7 @@
     - Room里面的Channel，通过链表的形式存放，目的是增加/删除操作方便。
         - Room：ch1 -> ch2 -> ch3
     - Bucket里面的Channel，通过哈希表的形式存放，目的是快速判断某个Channel是否存在。
-        - Bucket：UserKey => ch
+        - Bucket：TcpSessionId => ch
     - 数组与链表：查找和增删操作的取舍，哈希表和链表：O(1)查找和顺序遍历的取舍。
         - 顺序遍历：数组、链表。
         - 快速查找：数组、哈希表。

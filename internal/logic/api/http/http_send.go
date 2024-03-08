@@ -8,40 +8,42 @@ import (
 	"net/http"
 )
 
-func (s *Server) sendToUserKeys(ctx *gin.Context) {
+func (s *Server) sendToUsers(ctx *gin.Context) {
 	// request
-	var req request.SendToUserKeysReq
+	var req request.SendToUsersReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.JsonError(ctx, err)
 		return
 	}
 
 	// check params
-	if len(req.UserKeys) == 0 {
-		response.JsonError(ctx, errors.New("req.UserKeys not allow"))
+	if len(req.TcpSessionIds) == 0 {
+		err := errors.New("SessionIds not allow")
+		response.JsonError(ctx, err)
 		return
 	}
 	if len(req.Message) == 0 {
-		response.JsonError(ctx, errors.New("req.Message not allow"))
+		err := errors.New("message not allow")
+		response.JsonError(ctx, err)
 		return
 	}
 
-	// service
-	err := s.bz.SendToUserKeys(ctx, &req)
+	// invoke service
+	err := s.bz.SendToUsers(ctx, &req)
 	if err != nil {
 		response.JsonError(ctx, err)
 		return
 	}
 
 	// resp
-	var resp response.PushUserKeysResp
+	var resp response.SendToUsersResp
 	ctx.JSON(http.StatusOK, resp)
 	return
 }
 
-func (s *Server) sendToUserIds(ctx *gin.Context) {
+func (s *Server) sendToUsersByIds(ctx *gin.Context) {
 	// request
-	var req request.SendToUserIdsReq
+	var req request.SendToUsersByIdsReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.JsonError(ctx, err)
 		return
@@ -57,15 +59,15 @@ func (s *Server) sendToUserIds(ctx *gin.Context) {
 		return
 	}
 
-	// service
-	err := s.bz.SendToUserIds(ctx, &req)
+	// invoke service
+	err := s.bz.SendToUsersByIds(ctx, &req)
 	if err != nil {
 		response.JsonError(ctx, err)
 		return
 	}
 
 	// resp
-	var resp response.PushUserIdsResp
+	var resp response.SendToUsersByIdsResp
 	ctx.JSON(http.StatusOK, resp)
 	return
 }
@@ -100,7 +102,7 @@ func (s *Server) sendToRoom(ctx *gin.Context) {
 	}
 
 	// resp
-	var resp response.PushUserRoomResp
+	var resp response.SendToRoomResp
 	ctx.JSON(http.StatusOK, resp)
 	return
 }
@@ -131,7 +133,7 @@ func (s *Server) sendToAll(ctx *gin.Context) {
 	}
 
 	// resp
-	var resp response.PushUserAllResp
+	var resp response.SendToAllResp
 	ctx.JSON(http.StatusOK, resp)
 	return
 }

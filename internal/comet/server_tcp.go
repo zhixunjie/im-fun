@@ -9,7 +9,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-	"github.com/zhixunjie/im-fun/pkg/utils"
+	"github.com/zhixunjie/im-fun/pkg/tcp"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 	"io"
 	"math"
@@ -142,7 +142,7 @@ func (s *Server) serveTCP(logHead string, ch *channel.Channel, connType int) {
 		}
 
 		// set bucket
-		bucket = s.AllocBucket(ch.UserInfo.UserKey)
+		bucket = s.AllocBucket(ch.UserInfo.TcpSessionId.ToString())
 		err = bucket.Put(ch)
 		if err != nil {
 			logging.Errorf(logHead+"AllocBucket err=%v", err)
@@ -215,7 +215,7 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 		logging.Errorf(logHead+"GetProtoCanWrite err=%v,step=%v,hb=%v", err, step, hb)
 		return
 	}
-	// 一直读取，直到读取到的Proto的操作类型为protocol.OpAuth
+	// 一直读取，直到读取到的Proto操作类型为：protocol.OpAuth
 	for {
 		if err = ch.ConnReadWriter.ReadProto(proto); err != nil {
 			logging.Errorf(logHead+"ReadProto err=%v", err)
@@ -227,22 +227,22 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 		logging.Errorf(logHead+"tcp request op=%d,but not auth", proto.Op)
 	}
 
-	params := new(channel.AuthParams)
-	if err = json.Unmarshal(proto.Body, params); err != nil {
+	// 解析授权信息
+	authParams := new(channel.AuthParams)
+	if err = json.Unmarshal(proto.Body, authParams); err != nil {
 		logging.Errorf(logHead+"Unmarshal body=%s,err=%v", proto.Body, err)
 		return
 	}
 
 	// update channel
-	newUserKey := utils.UserKeyComponent(params.UserId, params.UserKey)
-	params.UserKey = newUserKey
-	params.IP = ch.UserInfo.IP
-	if hb, err = s.Connect(ctx, params); err != nil {
-		logging.Errorf(logHead+"Connect err=%v,params=%+v", err, params)
+	authParams.TcpSessionId = tcp.NewSessionId(authParams.UserId, authParams.UserKey)
+	authParams.IP = ch.UserInfo.IP
+	if hb, err = s.Connect(ctx, authParams); err != nil {
+		logging.Errorf(logHead+"Connect err=%v,params=%+v", err, authParams)
 		return
 	}
-	ch.UserInfo = &params.UserInfo
-	logging.Infof(logHead+"update user info after Connect,[%v]", ch.UserInfo)
+	ch.UserInfo = &authParams.UserInfo
+	logging.Infof(logHead+"update user info after Connect[%v]", ch.UserInfo)
 
 	// reply to client
 	proto.Op = int32(protocol.OpAuthReply)

@@ -26,16 +26,16 @@ type CometInvoker struct {
 	RoutineNum    uint64
 
 	// send msg
-	chUser []chan *pb.SendToUserKeysReq // send msg: to some user
-	chRoom []chan *pb.SendToRoomReq     // send msg: to the room
-	chAll  chan *pb.SendToAllReq        // send msg: to all user
+	chUsers []chan *pb.SendToUsersReq // send msg: to some user
+	chRoom  []chan *pb.SendToRoomReq  // send msg: to the room
+	chAll   chan *pb.SendToAllReq     // send msg: to all user
 }
 
 func NewCometInvoker(serverId string, c *conf.CometInvoker) (*CometInvoker, error) {
 	routineNum := c.RoutineNum
 	cmt := &CometInvoker{
 		serverId:   serverId,
-		chUser:     make([]chan *pb.SendToUserKeysReq, routineNum),
+		chUsers:    make([]chan *pb.SendToUsersReq, routineNum),
 		chRoom:     make([]chan *pb.SendToRoomReq, routineNum),
 		chAll:      make(chan *pb.SendToAllReq, routineNum),
 		RoutineNum: uint64(routineNum),
@@ -51,7 +51,7 @@ func NewCometInvoker(serverId string, c *conf.CometInvoker) (*CometInvoker, erro
 	// creat channel and routine
 	cmt.ctx, cmt.cancel = context.WithCancel(context.Background())
 	for i := 0; i < int(cmt.RoutineNum); i++ {
-		cmt.chUser[i] = make(chan *pb.SendToUserKeysReq, c.ChanBufferSize)
+		cmt.chUsers[i] = make(chan *pb.SendToUsersReq, c.ChanBufferSize)
 		cmt.chRoom[i] = make(chan *pb.SendToRoomReq, c.ChanBufferSize)
 		go cmt.Run(i)
 	}

@@ -13,12 +13,14 @@ import (
 
 func (s *Server) Connect(ctx context.Context, params *channel.AuthParams) (heartbeat time.Duration, err error) {
 	reply, err := s.rpcToLogic.Connect(ctx, &pb.ConnectReq{
-		ServerId: s.serverId,
-		UserId:   params.UserId,
-		UserKey:  params.UserKey,
+		Comm: &pb.ConnectCommon{
+			ServerId:     s.serverId,
+			UserId:       params.UserId,
+			TcpSessionId: params.TcpSessionId.ToString(),
+		},
 		RoomId:   params.RoomId,
-		Platform: params.Platform,
 		Token:    params.Token,
+		Platform: params.Platform,
 	})
 	if err != nil {
 		return
@@ -28,17 +30,22 @@ func (s *Server) Connect(ctx context.Context, params *channel.AuthParams) (heart
 
 func (s *Server) Disconnect(ctx context.Context, ch *channel.Channel) (err error) {
 	_, err = s.rpcToLogic.Disconnect(ctx, &pb.DisconnectReq{
-		ServerId: s.serverId,
-		UserId:   ch.UserInfo.UserId,
-		UserKey:  ch.UserInfo.UserKey,
+		Comm: &pb.ConnectCommon{
+			ServerId:     s.serverId,
+			UserId:       ch.UserInfo.UserId,
+			TcpSessionId: ch.UserInfo.TcpSessionId.ToString(),
+		},
 	})
 	return
 }
 
 func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err error) {
 	_, err = s.rpcToLogic.Heartbeat(ctx, &pb.HeartbeatReq{
-		UserId:  userInfo.UserId,
-		UserKey: userInfo.UserKey,
+		Comm: &pb.ConnectCommon{
+			ServerId:     s.serverId,
+			UserId:       userInfo.UserId,
+			TcpSessionId: userInfo.TcpSessionId.ToString(),
+		},
 	})
 	return
 }

@@ -5,15 +5,15 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-// SessionGetByUserKeys 获取多个userKey的string信息
-func (d *Data) SessionGetByUserKeys(ctx context.Context, userKeys []string) (res []string, err error) {
+// GetServerIds 获取TcpSessionId对应的ServerId
+func (d *Data) GetServerIds(ctx context.Context, tcpSessionIds []string) (res []string, err error) {
 	mem := d.RedisClient
 
 	// exec command
 	var cmds []redis.Cmder
 	cmds, err = mem.Pipelined(ctx, func(pipe redis.Pipeliner) error {
-		for i := 0; i < len(userKeys); i++ {
-			pipe.Get(ctx, keyStringUserKey(userKeys[i]))
+		for i := 0; i < len(tcpSessionIds); i++ {
+			pipe.Get(ctx, keyStringUserTcpSessionId(tcpSessionIds[i]))
 		}
 		return nil
 	})
@@ -29,8 +29,8 @@ func (d *Data) SessionGetByUserKeys(ctx context.Context, userKeys []string) (res
 	return res, nil
 }
 
-// SessionGetByUserIds 获取多个userId的Hash信息
-func (d *Data) SessionGetByUserIds(ctx context.Context, userIds []int64) (res map[string]string, err error) {
+// GetSessionByUserIds 获取用户ID对应的Session信息
+func (d *Data) GetSessionByUserIds(ctx context.Context, userIds []uint64) (res map[string]string, err error) {
 	mem := d.RedisClient
 
 	// exec command
@@ -48,8 +48,8 @@ func (d *Data) SessionGetByUserIds(ctx context.Context, userIds []int64) (res ma
 	res = make(map[string]string)
 	for _, cmd := range cmds {
 		tmpMap := cmd.(*redis.StringStringMapCmd).Val()
-		for userKey, serverId := range tmpMap {
-			res[userKey] = serverId
+		for tcpSessionId, serverId := range tmpMap {
+			res[tcpSessionId] = serverId
 		}
 	}
 	return res, nil

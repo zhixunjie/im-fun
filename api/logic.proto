@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package imfun.logic;
 
-option go_package = "github.com/zhixunjie/im-fun/api/pb;../pb";
+option go_package = "github.com/zhixunjie/im-fun/api/pb;pb";
 
 import "protocol.proto";
 
@@ -23,16 +23,16 @@ service Logic {
 
 message KafkaSendMsg {
   enum Type {
-    UserKeys = 0;
-    UserRoom = 1;
-    UserAll = 2;
+    ToUsers = 0;
+    ToRoom = 1;
+    ToAll = 2;
   }
   Type type = 1;
   int32 subId = 2;
   int32 speed = 3;
   string serverId = 4;
   string roomId = 5;
-  repeated string userKeys = 6;
+  repeated string tcpSessionIds = 6;
   bytes msg = 7;
 }
 

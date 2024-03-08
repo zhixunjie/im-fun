@@ -1,17 +1,17 @@
 package response
 
-type PushUserKeysResp struct {
+type SendToUsersResp struct {
 	Base
 }
 
-type PushUserIdsResp struct {
+type SendToUsersByIdsResp struct {
 	Base
 }
 
-type PushUserRoomResp struct {
+type SendToRoomResp struct {
 	Base
 }
 
-type PushUserAllResp struct {
+type SendToAllResp struct {
 	Base
 }

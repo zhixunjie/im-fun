@@ -11,14 +11,14 @@ const (
 	KeyExpire = 3600
 )
 
-// Hash：userId [ userKey => serverId ]
-func keyHashUserId(userId int64) string {
+// Hash：userId [ tcpSessionId => serverId ]
+func keyHashUserId(userId uint64) string {
 	return fmt.Sprintf("session_hash_%d", userId)
 }
 
-// String：userKey => serverId
-func keyStringUserKey(userKey string) string {
-	return fmt.Sprintf("session_string_%s", userKey)
+// String：tcpSessionId => serverId
+func keyStringUserTcpSessionId(tcpSessionId string) string {
+	return fmt.Sprintf("session_string_%s", tcpSessionId)
 }
 
 // server => online
@@ -27,25 +27,25 @@ func keyServerOnline(key string) string {
 }
 
 // SessionBinding add relationship
-func (d *Data) SessionBinding(ctx context.Context, userId int64, userKey, serverId string) (err error) {
+func (d *Data) SessionBinding(ctx context.Context, userId uint64, tcpSessionId, serverId string) (err error) {
 	mem := d.RedisClient
 
 	// set hash
 	if userId > 0 {
-		k1 := keyHashUserId(userId)
-		if err = mem.HSet(ctx, k1, userKey, serverId).Err(); err != nil {
-			logging.Errorf("mem.HSet(%d,%s,%s) error(%v)", userId, userKey, serverId, err)
+		key := keyHashUserId(userId)
+		if err = mem.HSet(ctx, key, tcpSessionId, serverId).Err(); err != nil {
+			logging.Errorf("mem.HSet(%d,%s,%s) error(%v)", userId, tcpSessionId, serverId, err)
 			return
 		}
-		if err = mem.Expire(ctx, k1, KeyExpire*time.Second).Err(); err != nil {
-			logging.Errorf("mem.Expire(%d,%s,%s) error(%v)", userId, userKey, serverId, err)
+		if err = mem.Expire(ctx, key, KeyExpire*time.Second).Err(); err != nil {
+			logging.Errorf("mem.Expire(%d,%s,%s) error(%v)", userId, tcpSessionId, serverId, err)
 			return
 		}
 	}
 	// set string
 	{
-		if err = mem.SetEX(ctx, keyStringUserKey(userKey), serverId, KeyExpire*time.Second).Err(); err != nil {
-			logging.Errorf("mem.SetEX(%d,%s,%s) error(%v)", userId, serverId, userKey, err)
+		if err = mem.SetEX(ctx, keyStringUserTcpSessionId(tcpSessionId), serverId, KeyExpire*time.Second).Err(); err != nil {
+			logging.Errorf("mem.SetEX(%d,%s,%s) error(%v)", userId, serverId, tcpSessionId, err)
 			return
 		}
 	}
@@ -53,19 +53,19 @@ func (d *Data) SessionBinding(ctx context.Context, userId int64, userKey, server
 	return
 }
 
-func (d *Data) SessionDel(ctx context.Context, userId int64, userKey, serverId string) (has bool, err error) {
+func (d *Data) SessionDel(ctx context.Context, userId uint64, tcpSessionId, serverId string) (has bool, err error) {
 	mem := d.RedisClient
 
 	// delete hash
 	if userId > 0 {
-		if err = mem.HDel(ctx, keyHashUserId(userId), userKey).Err(); err != nil {
-			logging.Errorf("mem.HDel(%d,%s,%s) error(%v)", userId, serverId, userKey, err)
+		if err = mem.HDel(ctx, keyHashUserId(userId), tcpSessionId).Err(); err != nil {
+			logging.Errorf("mem.HDel(%d,%s,%s) error(%v)", userId, serverId, tcpSessionId, err)
 			return
 		}
 	}
 	// delete string
-	if err = mem.Del(ctx, keyStringUserKey(userKey)).Err(); err != nil {
-		logging.Errorf("mem.Del(%d,%s,%s) error(%v)", userId, serverId, userKey, err)
+	if err = mem.Del(ctx, keyStringUserTcpSessionId(tcpSessionId)).Err(); err != nil {
+		logging.Errorf("mem.Del(%d,%s,%s) error(%v)", userId, serverId, tcpSessionId, err)
 		return
 	}
 

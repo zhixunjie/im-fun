@@ -16,8 +16,8 @@ func (c *CometInvoker) Run(i int) {
 		select {
 		case <-c.ctx.Done():
 			return
-		case msg := <-c.chUser[i]:
-			_, err := c.rpcClient.SendToUserKeys(context.Background(), msg)
+		case msg := <-c.chUsers[i]:
+			_, err := c.rpcClient.SendToUsers(context.Background(), msg)
 			if err != nil {
 				logging.Errorf(logHead+"conf.rpcClient.SendToUsers(%s),serverId=%s,error=%v",
 					msg, c.serverId, err)
@@ -38,9 +38,9 @@ func (c *CometInvoker) Run(i int) {
 	}
 }
 
-func (c *CometInvoker) SendToUserKeys(arg *pb.SendToUserKeysReq) (err error) {
+func (c *CometInvoker) SendToUsers(arg *pb.SendToUsersReq) (err error) {
 	idx := c.counterToUser.Add(1) % c.RoutineNum
-	c.chUser[idx] <- arg
+	c.chUsers[idx] <- arg
 	return
 }
 
@@ -57,7 +57,7 @@ func (c *CometInvoker) SendToAll(arg *pb.SendToAllReq) (err error) {
 
 func (c *CometInvoker) Close() (err error) {
 	finish := make(chan bool)
-	sendUserChan := c.chUser
+	sendUserChan := c.chUsers
 	sendRoomChan := c.chRoom
 	sendAllChan := c.chAll
 

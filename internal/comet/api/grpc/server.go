@@ -45,45 +45,47 @@ type server struct {
 
 var _ pb.CometServer = &server{}
 
-// SendToUserKeys 发送消息到 UserKey 数组
-func (s *server) SendToUserKeys(ctx context.Context, req *pb.SendToUserKeysReq) (reply *pb.SendToUserKeysReply, err error) {
-	if len(req.UserKeys) == 0 || req.Proto == nil {
-		return nil, errors.ErrParamsNotAllow
+func (s *server) SendToUsers(ctx context.Context, req *pb.SendToUsersReq) (reply *pb.SendToUsersReply, err error) {
+	if len(req.TcpSessionIds) == 0 || req.Proto == nil {
+		err = errors.ErrParamsNotAllow
+		return
 	}
-	for _, key := range req.UserKeys {
+	for _, key := range req.TcpSessionIds {
 		bucket := s.srv.AllocBucket(key)
-		if channel := bucket.GetChannelByUserKey(key); channel != nil {
+		if channel := bucket.GetChannel(key); channel != nil {
 			if err = channel.Push(req.Proto); err != nil {
 				return
 			}
 		}
 	}
-	return &pb.SendToUserKeysReply{}, nil
-}
-
-// SendToAll 广播消息到所有的用户（所有bucket的所有channel）
-func (s *server) SendToAll(ctx context.Context, req *pb.SendToAllReq) (*pb.SendToAllReply, error) {
-	if req.Proto == nil {
-		return nil, errors.ErrParamsNotAllow
-	}
-	comet.BroadcastToAllBucket(s.srv, req.GetProto(), int(req.Speed))
-	return &pb.SendToAllReply{}, nil
+	return
 }
 
 // SendToRoom 发送消息到指定房间
-func (s *server) SendToRoom(ctx context.Context, req *pb.SendToRoomReq) (*pb.SendToRoomReply, error) {
+func (s *server) SendToRoom(ctx context.Context, req *pb.SendToRoomReq) (reply *pb.SendToRoomReply, err error) {
 	if req.Proto == nil || req.RoomId == "" {
-		return nil, errors.ErrParamsNotAllow
+		err = errors.ErrParamsNotAllow
+		return
 	}
 	// 同一个房间ID，可能存在于多个Bucket中
 	for _, bucket := range s.srv.Buckets() {
 		bucket.BroadcastRoom(req)
 	}
-	return &pb.SendToRoomReply{}, nil
+	return
+}
+
+// SendToAll 广播消息到所有的用户（所有bucket的所有channel）
+func (s *server) SendToAll(ctx context.Context, req *pb.SendToAllReq) (reply *pb.SendToAllReply, err error) {
+	if req.Proto == nil {
+		err = errors.ErrParamsNotAllow
+		return
+	}
+	comet.BroadcastToAllBucket(s.srv, req.GetProto(), int(req.Speed))
+	return
 }
 
 // GetAllRoomId 获取所有在线人数大于0的房间
-func (s *server) GetAllRoomId(ctx context.Context, req *pb.GetAllRoomIdReq) (*pb.GetAllRoomIdReply, error) {
+func (s *server) GetAllRoomId(ctx context.Context, req *pb.GetAllRoomIdReq) (reply *pb.GetAllRoomIdReply, err error) {
 	var (
 		roomIds = make(map[string]bool)
 	)
@@ -92,5 +94,6 @@ func (s *server) GetAllRoomId(ctx context.Context, req *pb.GetAllRoomIdReq) (*pb
 			roomIds[roomID] = true
 		}
 	}
-	return &pb.GetAllRoomIdReply{Rooms: roomIds}, nil
+	reply.Rooms = roomIds
+	return
 }

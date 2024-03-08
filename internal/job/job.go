@@ -13,7 +13,7 @@ import (
 	"sync"
 )
 
-// Logic -> Job -> invoker.CometInvoker -> RPC To Comet -> Comet
+// Logic -> Kafka -> Job -> invoker.CometInvoker -> RPC To Comet -> Comet
 
 // Job 任务（消费KAFKA，执行指定行为）
 type Job struct {
@@ -66,11 +66,11 @@ func (b *Job) Consume(msg *sarama.ConsumerMessage) {
 
 	// deal msg
 	switch message.Type {
-	case pb.KafkaSendMsg_UserKeys:
-		err = b.SendToUserKeys(message.SubId, message.ServerId, message.UserKeys, message.Msg)
-	case pb.KafkaSendMsg_UserRoom:
+	case pb.KafkaSendMsg_ToUsers:
+		err = b.SendToUser(message.SubId, message.ServerId, message.TcpSessionIds, message.Msg)
+	case pb.KafkaSendMsg_ToRoom:
 		err = b.CreateOrGetRoom(message.RoomId).SendToCh(message.Msg)
-	case pb.KafkaSendMsg_UserAll:
+	case pb.KafkaSendMsg_ToAll:
 		err = b.SendToAll(message.SubId, message.Speed, message.Msg)
 	default:
 		err = fmt.Errorf("unknown send type: %s", message.Type)

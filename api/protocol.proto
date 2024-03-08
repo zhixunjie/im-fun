@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package imfun.protocol;
 
-option go_package = "github.com/zhixunjie/im-fun/api/protocol;../protocol";
+option go_package = "github.com/zhixunjie/im-fun/api/protocol;protocol";
 
 message Proto {
   // ====== Header ======

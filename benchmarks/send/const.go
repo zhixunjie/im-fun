@@ -1,20 +1,23 @@
 package send
 
-import "math/rand"
+import (
+	"github.com/spf13/cast"
+	"math/rand"
+)
 
 const Msg = "Hello World"
 
 const (
-	UrlSendUserKeys = "/im/send/user/keys"
-	UrlSendUserIds  = "/im/send/user/ids"
-	UrlSendRoom     = "/im/send/user/room"
-	UrlSendAll      = "/im/send/user/all"
+	UrlSendToUsers      = "/im/send/to/users"
+	UrlSendToUsersByIds = "/im/send/to/users/by/ids"
+	UrlSendToRoom       = "/im/send/to/room"
+	UrlSendToAll        = "/im/send/to/all"
 )
 
 const MaxUserId = 1000
 
 // RandUserId 随机一个UserId
 // value scope：[0,MaxUserId)
-func RandUserId() int64 {
-	return rand.Int63n(MaxUserId)
+func RandUserId() uint64 {
+	return cast.ToUint64(rand.Int63n(MaxUserId))
 }
