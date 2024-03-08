@@ -33,7 +33,7 @@ func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (reply *pb.Con
 		return
 	}
 	if req.Comm.TcpSessionId == "" {
-		err = errors.New("UserKey not allow")
+		err = errors.New("TcpSessionId not allow")
 		return
 	}
 	if req.Token == "" {
