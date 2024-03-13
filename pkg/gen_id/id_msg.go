@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	"github.com/spf13/cast"
+	"strconv"
 	"time"
 )
 
@@ -24,6 +24,8 @@ func MsgId(ctx context.Context, mem *redis.Client, id1, id2 *ComponentId) (msgId
 }
 
 // genMsgId 生成msg_id
+// 如果 msgId 使用int64，可以支持偏移28年。
+// 如果 msgId 使用uint64，可以支持偏移58年。
 func genMsgId(ctx context.Context, mem *redis.Client, slotId uint64) (msgId uint64, err error) {
 	// redis：每秒一个key，在key上执行原子操作+1
 	ts := time.Now().Unix()
@@ -38,7 +40,8 @@ func genMsgId(ctx context.Context, mem *redis.Client, slotId uint64) (msgId uint
 	// msg_id的组成部分：[ 10位：相对时间戳 | 6位：自增id | 4位：槽id ]
 	timeOffset := ts - baseTimeStampOffset
 	idStr := fmt.Sprintf("%d%06d%04d", timeOffset, afterIncr%1000000, slotId%10000)
-	msgId = cast.ToUint64(idStr)
+	//msgId = cast.ToUint64(idStr)
+	msgId, _ = strconv.ParseUint(idStr, 10, 64)
 
 	return
 }
