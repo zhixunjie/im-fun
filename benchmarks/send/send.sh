@@ -1,5 +1,5 @@
 for ((i=0;i<100000;i++)); do
-curl -XPOST  http://127.0.01:8080/im/send/user/keys \
+curl -XPOST  "http://127.0.0.1:8080/im/send/to/users" \
 -d '{
         "tcp_session_ids": [
             {
