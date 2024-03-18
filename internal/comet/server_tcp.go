@@ -232,7 +232,7 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 		logging.Errorf(logHead+"Unmarshal body=%s,err=%v", proto.Body, err)
 		return
 	}
-	authParams.IP = ch.UserInfo.IP
+	authParams.UserInfo.IP = ch.UserInfo.IP
 
 	// invoke connect
 	if hb, err = s.Connect(ctx, authParams); err != nil {

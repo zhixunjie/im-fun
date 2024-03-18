@@ -12,15 +12,16 @@ import (
 )
 
 func (s *Server) Connect(ctx context.Context, params *channel.AuthParams) (heartbeat time.Duration, err error) {
+	userInfo := params.UserInfo
 	reply, err := s.rpcToLogic.Connect(ctx, &pb.ConnectReq{
 		Comm: &pb.ConnectCommon{
 			ServerId:     s.serverId,
-			UserId:       params.TcpSessionId.UserId,
-			TcpSessionId: params.TcpSessionId.ToString(),
+			UserId:       userInfo.TcpSessionId.UserId,
+			TcpSessionId: userInfo.TcpSessionId.ToString(),
 		},
-		RoomId:   params.RoomId,
+		RoomId:   userInfo.RoomId,
 		Token:    params.Token,
-		Platform: params.Platform,
+		Platform: userInfo.Platform,
 	})
 	if err != nil {
 		return

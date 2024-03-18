@@ -6,8 +6,8 @@ import (
 )
 
 type AuthParams struct {
-	UserInfo
-	Token string `json:"token"`
+	UserInfo UserInfo `json:"user_info"`
+	Token    string   `json:"token"`
 }
 
 type UserInfo struct {
