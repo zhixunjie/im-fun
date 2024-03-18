@@ -46,6 +46,7 @@ type server struct {
 var _ pb.CometServer = &server{}
 
 func (s *server) SendToUsers(ctx context.Context, req *pb.SendToUsersReq) (reply *pb.SendToUsersReply, err error) {
+	reply = new(pb.SendToUsersReply)
 	if len(req.TcpSessionIds) == 0 || req.Proto == nil {
 		err = errors.ErrParamsNotAllow
 		return
@@ -63,6 +64,7 @@ func (s *server) SendToUsers(ctx context.Context, req *pb.SendToUsersReq) (reply
 
 // SendToRoom 发送消息到指定房间
 func (s *server) SendToRoom(ctx context.Context, req *pb.SendToRoomReq) (reply *pb.SendToRoomReply, err error) {
+	reply = new(pb.SendToRoomReply)
 	if req.Proto == nil || req.RoomId == "" {
 		err = errors.ErrParamsNotAllow
 		return
@@ -76,6 +78,7 @@ func (s *server) SendToRoom(ctx context.Context, req *pb.SendToRoomReq) (reply *
 
 // SendToAll 广播消息到所有的用户（所有bucket的所有channel）
 func (s *server) SendToAll(ctx context.Context, req *pb.SendToAllReq) (reply *pb.SendToAllReply, err error) {
+	reply = new(pb.SendToAllReply)
 	if req.Proto == nil {
 		err = errors.ErrParamsNotAllow
 		return
@@ -86,6 +89,7 @@ func (s *server) SendToAll(ctx context.Context, req *pb.SendToAllReq) (reply *pb
 
 // GetAllRoomId 获取所有在线人数大于0的房间
 func (s *server) GetAllRoomId(ctx context.Context, req *pb.GetAllRoomIdReq) (reply *pb.GetAllRoomIdReply, err error) {
+	reply = new(pb.GetAllRoomIdReply)
 	var (
 		roomIds = make(map[string]bool)
 	)
