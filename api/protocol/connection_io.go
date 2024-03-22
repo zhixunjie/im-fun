@@ -7,7 +7,8 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 )
 
-// 连接的读写操作（适配TCP与WebSocket连接）
+// TCP连接的读写操作
+// 能够同时适配TCP与WebSocket
 
 type ConnReadWriter interface {
 	ReadProto(proto *Proto) (err error)

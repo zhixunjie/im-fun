@@ -32,7 +32,9 @@ type Reader struct {
 
 2、**读取操作：** 参照[Reader.ReadByte函数](https://github.com/zhixunjie/im-fun/blob/584f7ec67b1140de3dcabc2bb6a73835421d0b9b/pkg/buffer/bufio/bufio.go#L258)的源码。
 
-- 执行bufio.Reader的Read操作时，如果发现缓冲区buf的内容不足以满足本次读取的字节数，会调用fill函数，从而调用底层Reader(fd)的Read（系统调用）函数，一次性读取N个字节。
+- 执行bufio.Reader的Read操作时：
+  - 如果发现缓冲区buf的内容不足以满足本次读取的字节数，会调用fill函数，从而调用底层Reader（fd）的Read（系统调用）函数，一次性读取N个字节。
+
 - 等到从底层Reader(fd)读取完毕后，再把执行最后的copy操作。
 
 3、**读取过程中 r、w 值的变化过程**：执行读取操作，会增加r的值，执行写入操作，会增加w的值。

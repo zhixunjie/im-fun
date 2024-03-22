@@ -81,6 +81,7 @@ func (c *Conn) WritePayload(b []byte) (err error) {
 	return
 }
 
+// Peek 返回n字节空间，并推进位移
 func (c *Conn) Peek(n int) ([]byte, error) {
 	return c.writer.Peek(n)
 }

@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-func InitTCP(server *Server, numCPU, connType int) (listener *net.TCPListener, err error) {
+func InitTCP(server *Server, numCPU int, connType channel.ConnType) (listener *net.TCPListener, err error) {
 	var addr *net.TCPAddr
 	var addrS []string
 
@@ -49,7 +49,7 @@ func InitTCP(server *Server, numCPU, connType int) (listener *net.TCPListener, e
 	return
 }
 
-func accept(logHead string, connType int, server *Server, listener *net.TCPListener) {
+func accept(logHead string, connType channel.ConnType, server *Server, listener *net.TCPListener) {
 	var conn *net.TCPConn
 	var err error
 	var r int
@@ -95,7 +95,7 @@ func accept(logHead string, connType int, server *Server, listener *net.TCPListe
 }
 
 // serveTCP serve a tcp connection.
-func (s *Server) serveTCP(logHead string, ch *channel.Channel, connType int) {
+func (s *Server) serveTCP(logHead string, ch *channel.Channel, connType channel.ConnType) {
 	logHead = logHead + "serveTCP|"
 
 	var (
@@ -161,8 +161,8 @@ func (s *Server) serveTCP(logHead string, ch *channel.Channel, connType int) {
 	// 数据流：client -> [comet] -> read -> send protoReady -> dispatch
 	//hbTime := s.RandHeartbeatTime()
 	for {
-		if proto, err = ch.ProtoAllocator.GetProtoCanWrite(); err != nil {
-			logging.Errorf(logHead+"GetProtoCanWrite,err=%v", err)
+		if proto, err = ch.ProtoAllocator.GetProtoForWrite(); err != nil {
+			logging.Errorf(logHead+"GetProtoForWrite,err=%v", err)
 			goto fail
 		}
 		// blocking here !!!
@@ -209,9 +209,9 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 
 	// get a proto to write
 	var proto *protocol.Proto
-	proto, err = ch.ProtoAllocator.GetProtoCanWrite()
+	proto, err = ch.ProtoAllocator.GetProtoForWrite()
 	if err != nil {
-		logging.Errorf(logHead+"GetProtoCanWrite err=%v,step=%v,hb=%v", err, step, hb)
+		logging.Errorf(logHead+"GetProtoForWrite err=%v,step=%v,hb=%v", err, step, hb)
 		return
 	}
 	// 一直读取，直到读取到的Proto操作类型为：protocol.OpAuth

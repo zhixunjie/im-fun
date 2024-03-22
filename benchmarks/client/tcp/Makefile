@@ -6,5 +6,5 @@ build-mac-amd64:
 	GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o tcp-client main.go
 
 run:
-	./tcp-client --addr=localhost:12571 --start=1 --num=1
-	#./tcp-client --addr=localhost:12571 --start=1 --num=3000
+	#./tcp-client --addr=localhost:12571 --start=1 --num=1
+	./tcp-client --addr=localhost:12571 --start=1 --num=3000

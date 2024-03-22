@@ -25,7 +25,8 @@ const headerOffset = 4;
 const verOffset = 6;
 const opOffset = 8;
 const seqOffset = 12;
-// op
+// op code
+const OpHeartbeat = 2
 const OpHeartbeatReply = 3
 const OpSendMsg = 4
 const OpAuth = 7
@@ -34,6 +35,7 @@ const OpBatchMsg = 9
 
 class WebsocketOp {
     WsClient;
+    SeqNum;
 
     constructor() {
         this.textEncoder = new TextEncoder();
@@ -41,6 +43,7 @@ class WebsocketOp {
     }
 
     clear() {
+        this.SeqNum = 1
         clearInterval(this.heartbeatInterval)
     }
 
@@ -155,11 +158,11 @@ class WebsocketOp {
         let headerView = new DataView(headerBuf, 0);
         headerView.setInt32(packetOffset, rawHeaderLen);
         headerView.setInt16(headerOffset, rawHeaderLen);
-        headerView.setInt16(verOffset, 1);
-        headerView.setInt32(opOffset, 2);
-        headerView.setInt32(seqOffset, 1);
-        // ws.WsClient.send(headerBuf);// lose this
-        this.WsClient.send(headerBuf);// lose this
+        headerView.setInt16(verOffset, protoVersion);
+        headerView.setInt32(opOffset, OpHeartbeat);
+        headerView.setInt32(seqOffset, this.SeqNum);
+        this.WsClient.send(headerBuf);
+        this.SeqNum++
         console.log(this)
         console.log("send heartbeat to server");
         appendToDialog("client: send heartbeat");
@@ -175,8 +178,9 @@ class WebsocketOp {
         headerView.setInt16(headerOffset, rawHeaderLen);
         headerView.setInt16(verOffset, protoVersion);
         headerView.setInt32(opOffset, OpAuth);
-        headerView.setInt32(seqOffset, 1);
+        headerView.setInt32(seqOffset, this.SeqNum);
         this.WsClient.send(this.mergeArrayBuffer(headerBuf, bodyBuf));
+        this.SeqNum++
         appendToDialog("client: send auth" + authInfo + ".");
     }
 
@@ -189,8 +193,9 @@ class WebsocketOp {
         headerView.setInt16(headerOffset, rawHeaderLen);
         headerView.setInt16(verOffset, protoVersion);
         headerView.setInt32(opOffset, OpSendMsg);
-        headerView.setInt32(seqOffset, 1);
+        headerView.setInt32(seqOffset, this.SeqNum);
         this.WsClient.send(this.mergeArrayBuffer(headerBuf, bodyBuf));
+        this.SeqNum++
         appendToDialog("client: send msg" + msg + ".");
     }
 

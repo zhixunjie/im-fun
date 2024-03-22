@@ -65,7 +65,7 @@
 
 批量Proto：
 
-![batch proto.png](img/batch proto.png)
+![batch proto.png](img/batch_proto.png)
 
 # 系统设计
 

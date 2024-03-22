@@ -3,13 +3,13 @@ package grpc
 import (
 	"context"
 	"github.com/zhixunjie/im-fun/internal/comet"
+	"github.com/zhixunjie/im-fun/internal/comet/api"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"net"
 	"time"
 
 	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
-	"github.com/zhixunjie/im-fun/internal/comet/errors"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -48,7 +48,7 @@ var _ pb.CometServer = &server{}
 func (s *server) SendToUsers(ctx context.Context, req *pb.SendToUsersReq) (reply *pb.SendToUsersReply, err error) {
 	reply = new(pb.SendToUsersReply)
 	if len(req.TcpSessionIds) == 0 || req.Proto == nil {
-		err = errors.ErrParamsNotAllow
+		err = api.ErrParamsNotAllow
 		return
 	}
 	for _, key := range req.TcpSessionIds {
@@ -66,7 +66,7 @@ func (s *server) SendToUsers(ctx context.Context, req *pb.SendToUsersReq) (reply
 func (s *server) SendToRoom(ctx context.Context, req *pb.SendToRoomReq) (reply *pb.SendToRoomReply, err error) {
 	reply = new(pb.SendToRoomReply)
 	if req.Proto == nil || req.RoomId == "" {
-		err = errors.ErrParamsNotAllow
+		err = api.ErrParamsNotAllow
 		return
 	}
 	// 同一个房间ID，可能存在于多个Bucket中
@@ -80,7 +80,7 @@ func (s *server) SendToRoom(ctx context.Context, req *pb.SendToRoomReq) (reply *
 func (s *server) SendToAll(ctx context.Context, req *pb.SendToAllReq) (reply *pb.SendToAllReply, err error) {
 	reply = new(pb.SendToAllReply)
 	if req.Proto == nil {
-		err = errors.ErrParamsNotAllow
+		err = api.ErrParamsNotAllow
 		return
 	}
 	comet.BroadcastToAllBucket(s.srv, req.GetProto(), int(req.Speed))

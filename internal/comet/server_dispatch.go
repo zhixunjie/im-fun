@@ -71,14 +71,14 @@ func ProtoReady(logHead string, ch *channel.Channel) error {
 	var online int32
 	var proto *protocol.Proto
 
-	// 使用for循环：
-	// 如果客户端发送消息的频率非常高，那么就可以通过for循环把连续的proto读取出来了
+	// 使用for循环：如果客户端发送消息的频率非常高，那么就可以通过for循环把连续的proto读取出来了
 	for {
 		// 1. read proto from client
-		proto, err = ch.ProtoAllocator.GetProtoCanRead()
+		proto, err = ch.ProtoAllocator.GetProtoForRead()
 		if err != nil {
-			// 说明：没有东西可读了（not any proto to read，因为外层使用了for循环，所以这类的情况还是会出现的）
-			//logging.Infof(logHead+"GetProtoCanRead err=%v", err)
+			// not any proto to read
+			// 说明：没有东西可读了（因为外层使用了for循环，所以这类情况会持续出现）
+			//logging.Infof(logHead+"GetProtoForRead err=%v", err)
 			break
 		}
 		// 2. check proto

@@ -1,7 +1,5 @@
 package model
 
-import "github.com/zhixunjie/im-fun/pkg/tcp"
-
 // Proto proto.
 type Proto struct {
 	PackLen   int32  // package length
@@ -11,11 +9,4 @@ type Proto struct {
 	Seq       int32  // sequence number chosen by client
 	Body      []byte // body
 	BodyLen   int32  // body length
-}
-
-type AuthParams struct {
-	TcpSessionId *tcp.SessionId `json:"tcp_session_id"` // 唯一地标识一条TCP连接
-	RoomId       string         `json:"room_id"`
-	Platform     string         `json:"platform"`
-	Token        string         `json:"token"`
 }

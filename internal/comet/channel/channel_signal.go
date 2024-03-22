@@ -2,7 +2,7 @@ package channel
 
 import (
 	"github.com/zhixunjie/im-fun/api/protocol"
-	"github.com/zhixunjie/im-fun/internal/comet/errors"
+	"github.com/zhixunjie/im-fun/internal/comet/api"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
@@ -14,7 +14,7 @@ func (c *Channel) Push(p *protocol.Proto) (err error) {
 	select {
 	case c.signal <- p:
 	default:
-		err = errors.ErrSignalFullMsgDropped
+		err = api.ErrSignalFullMsgDropped
 	}
 	return
 }

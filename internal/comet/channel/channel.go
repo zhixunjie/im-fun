@@ -35,7 +35,7 @@ type Channel struct {
 }
 
 // NewChannel new a channel.
-func NewChannel(conf *conf.Config, conn *net.TCPConn, traceId int64, connType int, readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) *Channel {
+func NewChannel(conf *conf.Config, conn *net.TCPConn, traceId int64, connType ConnType, readerPool, writerPool *bytes.Pool, timerPool *newtimer.Timer) *Channel {
 	// init channel
 	ch := &Channel{
 		// set ConnComponent
@@ -160,12 +160,14 @@ func (c *Channel) CleanPath3() {
 	}
 }
 
+type ConnType int
+
 const (
-	ConnTypeTcp = iota + 1
+	ConnTypeTcp ConnType = iota + 1
 	ConnTypeWebSocket
 )
 
-func LogHeadByConnType(connType int) string {
+func LogHeadByConnType(connType ConnType) string {
 	if connType == ConnTypeWebSocket {
 		return "WebSocket|"
 	}
@@ -175,7 +177,7 @@ func LogHeadByConnType(connType int) string {
 // ConnComponent 每一条连接需要用到的组件
 type ConnComponent struct {
 	TraceId  int64
-	ConnType int
+	ConnType ConnType
 
 	// Connection(fd)
 	Conn   *net.TCPConn

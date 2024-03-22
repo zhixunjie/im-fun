@@ -3,6 +3,7 @@ package bufio
 import "io"
 
 // 源码来源：Go 1.18.10，这里为其reader和write作能力加强
+// 原理说明：bufio(缓冲区读写-增强).md
 
 // Reader
 
@@ -43,7 +44,7 @@ func (b *Writer) SetFdAndResetBuffer(w io.Writer, buf []byte) {
 	b.wr = w
 }
 
-// Peek 直接返回Writer的用户缓冲区的n个字节
+// Peek 直接返回Writer的用户缓冲区的n个字节，并推进位移
 // returns the next n bytes with advancing the writer. The bytes stop
 // being used at the next write call. If Peek returns fewer than n bytes, it
 // also returns an error explaining why the read is short. The error is

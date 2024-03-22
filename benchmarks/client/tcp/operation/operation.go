@@ -6,7 +6,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/benchmarks/client/tcp/model"
+	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/tcp"
 	"io"
@@ -17,14 +19,16 @@ import (
 func Auth(rd *bufio.Reader, wr *bufio.Writer, userId uint64) (err error) {
 	logHead := fmt.Sprintf("auth|userId=%v,", userId)
 
-	var authParams = &model.AuthParams{
-		TcpSessionId: &tcp.SessionId{
-			UserId:  userId,
-			UserKey: "any_key",
+	var authParams = &channel.AuthParams{
+		UserInfo: channel.UserInfo{
+			TcpSessionId: &tcp.SessionId{
+				UserId:  userId,
+				UserKey: "any_key",
+			},
+			RoomId:   "live://9999",
+			Platform: pb.Platform_Platform_PC,
 		},
-		RoomId:   "live://9999",
-		Platform: "linux",
-		Token:    "abcabcabcabc",
+		Token: "abcabcabcabc",
 	}
 	body, _ := json.Marshal(authParams)
 	proto := &model.Proto{

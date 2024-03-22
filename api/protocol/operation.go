@@ -4,6 +4,7 @@ package protocol
 
 type Operation int32
 
+// op code
 const (
 	// OpHandshake handshake
 	OpHandshake = Operation(iota)
