@@ -20,7 +20,7 @@ func Auth(rd *bufio.Reader, wr *bufio.Writer, userId uint64) (err error) {
 	logHead := fmt.Sprintf("auth|userId=%v,", userId)
 
 	var authParams = &channel.AuthParams{
-		UserInfo: channel.UserInfo{
+		UserInfo: &channel.UserInfo{
 			TcpSessionId: &tcp.SessionId{
 				UserId:  userId,
 				UserKey: "any_key",

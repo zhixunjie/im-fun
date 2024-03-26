@@ -160,20 +160,6 @@ func (c *Channel) CleanPath3() {
 	}
 }
 
-type ConnType int
-
-const (
-	ConnTypeTcp ConnType = iota + 1
-	ConnTypeWebSocket
-)
-
-func LogHeadByConnType(connType ConnType) string {
-	if connType == ConnTypeWebSocket {
-		return "WebSocket|"
-	}
-	return "TCP|"
-}
-
 // ConnComponent 每一条连接需要用到的组件
 type ConnComponent struct {
 	TraceId  int64
@@ -186,7 +172,7 @@ type ConnComponent struct {
 	// 分配buffer池子
 	WriterPool *bytes.Pool
 	ReaderPool *bytes.Pool
-	// 分配成功：得到Buffer
+	// 从池子分配得到Buffer
 	writeBuf *bytes.Buffer
 	readBuf  *bytes.Buffer
 

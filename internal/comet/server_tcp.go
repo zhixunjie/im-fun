@@ -204,29 +204,37 @@ fail:
 	}
 }
 
+// 一直读取，直到读取到的Proto操作类型为：protocol.OpAuth
+func (s *Server) getAuthProto(logHead string, ch *channel.Channel, proto *protocol.Proto) (err error) {
+	for {
+		if err = ch.ConnReadWriter.ReadProto(proto); err != nil {
+			logging.Infof(logHead+"ReadProto err=%v", err)
+			return
+		}
+		if protocol.Operation(proto.Op) == protocol.OpAuth {
+			return
+		}
+		logging.Infof(logHead+"tcp request op=%d, but not auth", proto.Op)
+	}
+}
+
 func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, step int) (hb time.Duration, err error) {
 	logHead = logHead + "auth|"
 
-	// get a proto to write
-	var proto *protocol.Proto
-	proto, err = ch.ProtoAllocator.GetProtoForWrite()
+	// 获取：proto（用于写入）
+	proto, err := ch.ProtoAllocator.GetProtoForWrite()
 	if err != nil {
 		logging.Errorf(logHead+"GetProtoForWrite err=%v,step=%v,hb=%v", err, step, hb)
 		return
 	}
-	// 一直读取，直到读取到的Proto操作类型为：protocol.OpAuth
-	for {
-		if err = ch.ConnReadWriter.ReadProto(proto); err != nil {
-			logging.Errorf(logHead+"ReadProto err=%v", err)
-			return
-		}
-		if protocol.Operation(proto.Op) == protocol.OpAuth {
-			break
-		}
-		logging.Errorf(logHead+"tcp request op=%d,but not auth", proto.Op)
+
+	// 读取：auth信息
+	err = s.getAuthProto(logHead, ch, proto)
+	if err != nil {
+		return
 	}
 
-	// 解析授权信息
+	// 解析：授权信息
 	authParams := new(channel.AuthParams)
 	if err = json.Unmarshal(proto.Body, authParams); err != nil {
 		logging.Errorf(logHead+"Unmarshal body=%s,err=%v", proto.Body, err)
@@ -234,12 +242,12 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 	}
 	authParams.UserInfo.IP = ch.UserInfo.IP
 
-	// invoke connect
+	// RPC：建立绑定关系
 	if hb, err = s.Connect(ctx, authParams); err != nil {
 		logging.Errorf(logHead+"Connect err=%v,params=%+v", err, authParams)
 		return
 	}
-	ch.UserInfo = &authParams.UserInfo
+	ch.UserInfo = authParams.UserInfo
 	logging.Infof(logHead+"update user info after Connect[%v]", ch.UserInfo)
 
 	// reply to client
@@ -251,22 +259,23 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel, 
 		return
 	}
 	err = ch.ConnReadWriter.Flush()
+
 	return
 }
 
 func (s *Server) upgradeToWebSocket(ctx context.Context, logHead string, ch *channel.Channel) (err error) {
-	logHead = logHead + "upgradeToWebSocket|"
 	conn := ch.Conn
+	logHead += fmt.Sprintf("upgradeToWebSocket,UserInfo=%+v,addr=%v|", ch.UserInfo, conn.RemoteAddr().String())
 
 	// read request line && upgrade（websocket独有）
 	var req *websocket.Request
 	if req, err = websocket.ReadRequest(ch.Reader); err != nil {
-		logging.Errorf(logHead+"websocket.ReadRequest err=%v,UserInfo=%+v,addr=%v", err, ch.UserInfo, conn.RemoteAddr().String())
+		logging.Errorf(logHead+"ReadRequest err=%v", err)
 		return
 	}
 	var wsConn *websocket.Conn
 	if wsConn, err = websocket.Upgrade(conn, ch.Reader, ch.Writer, req); err != nil {
-		logging.Errorf(logHead+"websocket.Upgrade err=%v,UserInfo=%+v,addr=%v", err, ch.UserInfo, conn.RemoteAddr().String())
+		logging.Errorf(logHead+"Upgrade err=%v", err)
 		return
 	}
 	ch.SetWebSocketConnReaderWriter(wsConn)
