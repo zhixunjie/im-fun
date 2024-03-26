@@ -26,7 +26,10 @@ func (s *Server) Connect(ctx context.Context, params *channel.AuthParams) (heart
 	if err != nil {
 		return
 	}
-	return time.Duration(reply.Heartbeat), nil
+	heartbeat = time.Duration(reply.Heartbeat)
+	logging.Infof("RPC Connect,err=%v", err)
+
+	return
 }
 
 func (s *Server) Disconnect(ctx context.Context, ch *channel.Channel) (err error) {
@@ -37,6 +40,8 @@ func (s *Server) Disconnect(ctx context.Context, ch *channel.Channel) (err error
 			TcpSessionId: ch.UserInfo.TcpSessionId.ToString(),
 		},
 	})
+	logging.Infof("RPC Disconnect,err=%v", err)
+
 	return
 }
 
@@ -48,6 +53,7 @@ func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err
 			TcpSessionId: userInfo.TcpSessionId.ToString(),
 		},
 	})
+	logging.Infof("RPC Heartbeat,err=%v", err)
 	return
 }
 
@@ -66,44 +72,53 @@ func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err
 // Receive receive a message.
 func (s *Server) Receive(ctx context.Context, ch *channel.Channel, p *protocol.Proto) (err error) {
 	_, err = s.rpcToLogic.Receive(ctx, &pb.ReceiveReq{UserId: ch.UserInfo.TcpSessionId.UserId, Proto: p})
+	logging.Infof("RPC Receive,err=%v", err)
+
 	return
 }
 
-func (s *Server) Operate(ctx context.Context, logHead string, proto *protocol.Proto, ch *channel.Channel, bucket *Bucket) error {
-	logHead = logHead + "Operate|"
+// DealClientMsg 专门处理客户端上行的TCP消息
+func (s *Server) DealClientMsg(ctx context.Context, logHead string, proto *protocol.Proto, ch *channel.Channel, bucket *Bucket) (err error) {
+	logHead = logHead + "DealClientMsg|"
 
 	switch protocol.Operation(proto.Op) {
-	case protocol.OpHeartbeat:
-		// 1. 客户端-心跳上报
+	case protocol.OpHeartbeat: // 心跳上报
 		proto.Op = int32(protocol.OpHeartbeatReply)
 		proto.Ver = protocol.ProtoVersion
 		proto.Seq = int32(gen_id.SeqId())
 		proto.Body = nil
-		//logging.Infof(logHead + "OpHeartbeat generate")
-		//timerPool.Set(trd, hb)
-		//if now := time.Now(); now.Sub(lastHb) > hbTime {
-		//	if err1 := s.Heartbeat(ctx, ch.UserInfo); err1 == nil {
-		//		lastHb = now
-		//	}
-		//}
-	case protocol.OpChangeRoom:
-		// 2. 客户端房间切换
-		if err := bucket.ChangeRoom(string(proto.Body), ch); err != nil {
+		logging.Infof(logHead + "Heartbeat Proto is generated")
+		// reset timer
+		s.ResetTimerHeartbeat(ctx, logHead, ch)
+		// rpc: lease（节流: 即使客户端上报心跳过来，也不一定要调用RPC接口进行续约）
+		if now := time.Now(); now.Sub(ch.LastHb) > ch.HbLeaseDuration {
+			tErr := s.Heartbeat(ctx, ch.UserInfo)
+			if tErr != nil {
+				logging.Errorf(logHead+"Heartbeat lease fail,err=%v", tErr)
+				return
+			}
+			ch.LastHb = now
+			logging.Infof(logHead + "Heartbeat lease success")
+		}
+	case protocol.OpChangeRoom: // 房间切换
+		err = bucket.ChangeRoom(string(proto.Body), ch)
+		if err != nil {
 			logging.Errorf(logHead+"bucket.ChangeRoom(%s) error(%v)", proto.Body, err)
+			return
 		}
 		proto.Op = int32(protocol.OpChangeRoomReply)
-	case protocol.OpSub:
-		// 客户端-添加订阅消息
+	case protocol.OpSub: // 订阅
 		// TBD
-	case protocol.OpUnsub:
-		// 客户端-取消订阅消息
+	case protocol.OpUnsub: // 取消订阅
 		// TBD
-	default: // 客户端-收到其他消息（直接转到logic进行处理）
+	default: // 其他类型的消息（直接转到logic进行处理）
 		// TBD
-		if err := s.Receive(ctx, ch, proto); err != nil {
+		err = s.Receive(ctx, ch, proto)
+		if err != nil {
 			logging.Errorf(logHead+"UserInfo=%+v,op=%v,err=%v", ch.UserInfo, proto.Op, err)
+			return
 		}
-		proto.Body = nil
+		//proto.Body = nil
 	}
-	return nil
+	return
 }

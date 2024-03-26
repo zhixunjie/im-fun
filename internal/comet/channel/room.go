@@ -65,10 +65,11 @@ func (r *Room) SendToAllChan(proto *protocol.Proto) {
 }
 
 func (r *Room) Close() {
+	logHead := "Close|"
 	r.rwLock.RLock()
 	// close channel one by one in the room
 	for ch := r.linklist; ch != nil; ch = ch.Next {
-		ch.SendFinish()
+		ch.SendFinish(logHead)
 	}
 	r.rwLock.RUnlock()
 }

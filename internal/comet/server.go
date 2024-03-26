@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	minServerHeartbeat = time.Minute * 10
-	maxServerHeartbeat = time.Minute * 30
+	minServerHeartbeat = time.Minute * 41
+	maxServerHeartbeat = time.Minute * 45
 )
 
 // Server 服务器（主体入口）
@@ -37,9 +37,9 @@ func NewServer(conf *conf.Config) *Server {
 	}
 
 	// init bucket
-	s.buckets = make([]*Bucket, conf.Bucket.Size)
-	s.bucketTotal = uint32(conf.Bucket.Size)
-	for i := 0; i < conf.Bucket.Size; i++ {
+	s.buckets = make([]*Bucket, conf.Bucket.HashNum)
+	s.bucketTotal = uint32(conf.Bucket.HashNum)
+	for i := 0; i < conf.Bucket.HashNum; i++ {
 		s.buckets[i] = NewBucket(conf.Bucket)
 	}
 	return s

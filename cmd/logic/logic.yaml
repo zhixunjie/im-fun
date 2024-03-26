@@ -34,7 +34,7 @@ kafka:
 node:
   defaultDomain: "conn.imfun.io"
   hostDomain: ".imfun.io"
-  heartbeat: "4m"
+  heartbeat: "20m"
   heartbeatMax: 2
   tcpPort: 12571
   wsPort: 12572

@@ -31,15 +31,15 @@ connect:
       batchNum: 1024
       bufSize: 8192
 protocol:
-  timer: 32
-  timerSize: 2048
-  serverProtoNum: 10
-  clientProtoNum: 5
+  timerHashNum: 32
+  initSizeTimerPool: 2048
+  protoChannelSize: 10
+  protoAllocatorSize: 5
   handshakeTimeout: "8s"
 
 bucket:
-  size: 32
-  channel: 1024
-  room: 1024
-  routineAmount: 32
-  routineSize: 1024
+  hashNum: 32
+  initSizeChannelMap: 1024
+  initSizeRoomMap: 1024
+  routineHashNum: 32
+  routineChannelSize: 1024

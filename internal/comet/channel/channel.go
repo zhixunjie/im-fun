@@ -10,6 +10,7 @@ import (
 	newtimer "github.com/zhixunjie/im-fun/pkg/time"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 	"net"
+	"time"
 )
 
 // Channel 每一个Channel代表一个长连接
@@ -49,13 +50,14 @@ func NewChannel(conf *conf.Config, conn *net.TCPConn, traceId int64, connType Co
 			writeBuf:   writerPool.Get(),
 			readBuf:    readerPool.Get(),
 			TimerPool:  timerPool,
+			Trd:        nil,
 		},
-		signal:   make(chan *protocol.Proto, conf.Protocol.ServerProtoNum),
+		signal:   make(chan *protocol.Proto, conf.Protocol.ProtoChannelSize),
 		UserInfo: new(UserInfo),
 	}
 
 	// set ProtoAllocator
-	ch.ProtoAllocator.Init(uint64(conf.Protocol.ClientProtoNum))
+	ch.ProtoAllocator.Init(uint64(conf.Protocol.ProtoAllocatorSize))
 
 	// set user ip
 	ch.UserInfo.IP, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
@@ -122,19 +124,22 @@ func (c *Channel) CleanPath2() {
 			logging.Info(logHead + "Conn.Close")
 		}
 	}
+
 	// 2. 把buffer重新放回到Pool(only read buffer)
-	// writePool's buffer will be released  in Server.dispatchTCP()
+	// note: writePool's buffer will be released in Server.dispatch
 	if c.readBuf != nil {
 		c.ReaderPool.Put(c.readBuf)
 		logging.Info(logHead + "ReaderPool.Put")
 	}
+
 	// 3. 把timer从Pool里面删除
 	if c.Trd != nil {
 		c.TimerPool.Del(c.Trd)
 	}
+
 	// 4. SendFinish
 	if c.signal != nil {
-		c.SendFinish()
+		c.SendFinish(logHead)
 		logging.Info(logHead + "SendFinish")
 	}
 }
@@ -178,6 +183,11 @@ type ConnComponent struct {
 
 	// 分配定时器的池子
 	TimerPool *newtimer.Timer
-	// 分配成功：得到Timer
+	// 从池子分配得到Timer
 	Trd *newtimer.TimerData
+
+	// 心跳相关
+	LastHb          time.Time     // 上一次接收到心跳的时间
+	HbExpire        time.Duration // 心跳超时的时间
+	HbLeaseDuration time.Duration // 心跳续约频率
 }

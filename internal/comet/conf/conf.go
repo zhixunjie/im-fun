@@ -24,18 +24,18 @@ func defaultConfig() *Config {
 		RPC:     DefaultRPC(),
 		Connect: DefaultConnect(),
 		Protocol: &Protocol{
-			Timer:            32,
-			TimerSize:        2048,
-			ClientProtoNum:   64,
-			ServerProtoNum:   64,
-			HandshakeTimeout: newtime.Duration(time.Second * 5),
+			TimerHashNum:       32,
+			InitSizeTimerPool:  2048,
+			ProtoAllocatorSize: 64,
+			ProtoChannelSize:   64,
+			HandshakeTimeout:   newtime.Duration(time.Second * 5),
 		},
 		Bucket: &Bucket{
-			Size:          32,
-			Channel:       1024,
-			Room:          1024,
-			RoutineAmount: 32,
-			RoutineSize:   1024,
+			HashNum:            32,
+			InitSizeChannelMap: 1024,
+			InitSizeRoomMap:    1024,
+			RoutineAmount:      32,
+			RoutineChannelSize: 1024,
 		},
 	}
 
@@ -98,9 +98,9 @@ type RPCClient struct {
 
 type TCP struct {
 	Bind      []string `yaml:"bind"`
-	Sndbuf    int      `yaml:"sndbuf"` // 内核缓冲区
-	Rcvbuf    int      `yaml:"rcvbuf"` // 内核缓冲区
-	Keepalive bool     `yaml:"keepalive"`
+	Sndbuf    int      `yaml:"sndbuf"`    // 内核缓冲区
+	Rcvbuf    int      `yaml:"rcvbuf"`    // 内核缓冲区
+	Keepalive bool     `yaml:"keepalive"` // 操作系统的Keepalive机制（自带的心跳机制）
 }
 
 type Websocket struct {
@@ -112,17 +112,17 @@ type Websocket struct {
 }
 
 type Protocol struct {
-	Timer            int              `yaml:"timer"`
-	TimerSize        int              `yaml:"timerSize"`
-	ServerProtoNum   int              `yaml:"serverProtoNum"`
-	ClientProtoNum   int              `yaml:"clientProtoNum"`
-	HandshakeTimeout newtime.Duration `yaml:"handshakeTimeout"`
+	TimerHashNum       int              `yaml:"timerHashNum"`       // Hash切片数量（每个切片是一个Timer池子）
+	InitSizeTimerPool  int              `yaml:"initSizeTimerPool"`  // 每个Timer池子拥有的Timer数量（初始数量）
+	ProtoChannelSize   int              `yaml:"protoChannelSize"`   // 接收Proto的Channel的大小
+	ProtoAllocatorSize int              `yaml:"protoAllocatorSize"` // Proto分配器的大小（本质是一个Ring）
+	HandshakeTimeout   newtime.Duration `yaml:"handshakeTimeout"`   // TCP 握手超时
 }
 
 type Bucket struct {
-	Size          int `yaml:"size"`
-	Channel       int `yaml:"channel"`
-	Room          int `yaml:"room"`
-	RoutineAmount int `yaml:"routineAmount"`
-	RoutineSize   int `yaml:"routineSize"`
+	HashNum            int `yaml:"hashNum"`            // Hash切片数量（每个切片是一个Bucket）
+	InitSizeChannelMap int `yaml:"initSizeChannelMap"` // Channel Map的大小（初始大小）
+	InitSizeRoomMap    int `yaml:"initSizeRoomMap"`    // Room Map的大小（初始大小）
+	RoutineAmount      int `yaml:"routineHashNum"`     // Hash切片数量（每个切片是一个协程）
+	RoutineChannelSize int `yaml:"routineChannelSize"` // 每个协程拥有一个指定缓冲大小的Channel
 }

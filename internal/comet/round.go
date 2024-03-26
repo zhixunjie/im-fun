@@ -8,14 +8,14 @@ import (
 
 // RoundOptions round options.
 type RoundOptions struct {
-	Timer     int
-	TimerSize int
+	TimerHashNum      int
+	InitSizeTimerPool int
 }
 
 // Round used for connection round-robin get a reader/writer/timer for split big lock.
 type Round struct {
 	Timers     []time.Timer
-	BufferPool bytes.Hash
+	BufferHash bytes.Hash
 
 	options RoundOptions
 }
@@ -24,21 +24,21 @@ type Round struct {
 func NewRound(c *conf.Config) (round *Round) {
 	round = &Round{
 		options: RoundOptions{
-			Timer:     c.Protocol.Timer,
-			TimerSize: c.Protocol.TimerSize,
+			TimerHashNum:      c.Protocol.TimerHashNum,
+			InitSizeTimerPool: c.Protocol.InitSizeTimerPool,
 		}}
 
 	// make timer
-	round.Timers = make([]time.Timer, round.options.Timer)
-	for i := 0; i < round.options.Timer; i++ {
-		round.Timers[i].Init(round.options.TimerSize)
+	round.Timers = make([]time.Timer, round.options.TimerHashNum)
+	for i := 0; i < round.options.TimerHashNum; i++ {
+		round.Timers[i].Init(round.options.InitSizeTimerPool)
 	}
 	// make buffer pool
-	round.BufferPool = bytes.NewHash(c.Connect.BufferOptions)
+	round.BufferHash = bytes.NewHash(c.Connect.BufferOptions)
 	return
 }
 
 // TimerPool get a timer.
 func (r *Round) TimerPool(rn int) *time.Timer {
-	return &(r.Timers[rn%r.options.Timer])
+	return &(r.Timers[rn%r.options.TimerHashNum])
 }

@@ -20,11 +20,12 @@ func (c *Channel) Push(p *protocol.Proto) (err error) {
 }
 
 func (c *Channel) SendReady() {
+	logging.Infof("[traceId=%v] SendReady|", c.TraceId)
 	c.signal <- protocol.ProtoReady
 }
 
 // SendFinish 通知Write协程结束
-func (c *Channel) SendFinish() {
-	logging.Infof("traceId=%v] SendFinish|", c.TraceId)
+func (c *Channel) SendFinish(logHead string) {
+	logging.Infof(logHead+"[traceId=%v] SendFinish|", c.TraceId)
 	c.signal <- protocol.ProtoFinish
 }

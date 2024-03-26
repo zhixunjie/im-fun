@@ -26,15 +26,15 @@ type Bucket struct {
 func NewBucket(conf *conf.Bucket) *Bucket {
 	b := &Bucket{
 		conf:     conf,
-		chs:      make(map[string]*channel.Channel, conf.Channel),
-		rooms:    make(map[string]*channel.Room, conf.Room),
+		chs:      make(map[string]*channel.Channel, conf.InitSizeChannelMap),
+		rooms:    make(map[string]*channel.Room, conf.InitSizeRoomMap),
 		routines: make([]chan *pb.SendToRoomReq, conf.RoutineAmount),
 		ipCount:  make(map[string]int32),
 	}
 
 	// init routines：处理房间的广播事件
 	for i := 0; i < conf.RoutineAmount; i++ {
-		b.routines[i] = make(chan *pb.SendToRoomReq, conf.RoutineSize)
+		b.routines[i] = make(chan *pb.SendToRoomReq, conf.RoutineChannelSize)
 		go b.ProcessProtoToRoom(i)
 	}
 	return b
@@ -106,6 +106,8 @@ func (b *Bucket) ChangeRoom(newRoomId string, ch *channel.Channel) (err error) {
 }
 
 func (b *Bucket) Put(ch *channel.Channel) (err error) {
+	logHead := "Put|"
+
 	var room *channel.Room
 	var ok bool
 	userInfo := ch.UserInfo
@@ -115,7 +117,7 @@ func (b *Bucket) Put(ch *channel.Channel) (err error) {
 	b.rwLock.Lock()
 	// close old channel
 	if oldCh := b.chs[tcpSessionId.ToString()]; oldCh != nil {
-		oldCh.SendFinish()
+		oldCh.SendFinish(logHead)
 	}
 	// set new channel
 	b.chs[tcpSessionId.ToString()] = ch

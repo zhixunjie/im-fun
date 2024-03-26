@@ -3,9 +3,9 @@ package bytes
 // 利用Hash算法，均摊池子的请求流量
 
 type Hash struct {
-	Readers []Pool
-	Writers []Pool
-	options *Options
+	options *Options // 选项
+	Readers []Pool   // Reader池子
+	Writers []Pool   // Writer池子
 }
 
 func NewHash(config *Options) Hash {

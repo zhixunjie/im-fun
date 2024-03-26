@@ -13,7 +13,7 @@ func (d *Data) GetServerIds(ctx context.Context, tcpSessionIds []string) (res []
 	var cmds []redis.Cmder
 	cmds, err = mem.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		for i := 0; i < len(tcpSessionIds); i++ {
-			pipe.Get(ctx, keyStringUserTcpSessionId(tcpSessionIds[i]))
+			pipe.Get(ctx, keyStringTcpSessionId(tcpSessionIds[i]))
 		}
 		return nil
 	})

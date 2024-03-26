@@ -13,3 +13,11 @@ func LogHeadByConnType(connType ConnType) string {
 	}
 	return "TCP|"
 }
+
+type CleanPath int
+
+const (
+	CleanPath1 CleanPath = iota + 1
+	CleanPath2
+	CleanPath3
+)

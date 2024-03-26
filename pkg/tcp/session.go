@@ -12,9 +12,9 @@ func (t *SessionId) ToString() string {
 	return fmt.Sprintf("%v:%v", t.UserId, t.UserKey)
 }
 
-func NewSessionId(userId uint64, userKey string) *SessionId {
-	return &SessionId{
-		UserId:  userId,
-		UserKey: userKey,
-	}
-}
+//func NewSessionId(userId uint64, userKey string) *SessionId {
+//	return &SessionId{
+//		UserId:  userId,
+//		UserKey: userKey,
+//	}
+//}

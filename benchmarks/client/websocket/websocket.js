@@ -196,7 +196,7 @@ class WebsocketOp {
         headerView.setInt32(seqOffset, this.SeqNum);
         this.WsClient.send(this.mergeArrayBuffer(headerBuf, bodyBuf));
         this.SeqNum++
-        appendToDialog("client: send msg" + msg + ".");
+        appendToDialog("client: send msg: " + msg + ".");
     }
 
     mergeArrayBuffer(ab1, ab2) {
