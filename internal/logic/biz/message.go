@@ -73,7 +73,6 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		senderContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
 			OwnerId: senderId,
 			PeerId:  receiverId,
-			PeerAck: model.PeerNotAck,
 		})
 		if err != nil {
 			return
@@ -85,7 +84,6 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		peerContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
 			OwnerId: receiverId,
 			PeerId:  senderId,
-			PeerAck: model.PeerAcked,
 		})
 		if err != nil {
 			return
@@ -100,13 +98,13 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 
 	// 4. update contact's info（写扩散）
 	if senderContact != nil {
-		err = b.repoContact.UpdateLastMsgId(ctx, logHead, msg.MsgID, senderContact.ID, senderId)
+		err = b.repoContact.UpdateLastMsgId(ctx, logHead, senderContact.ID, senderId, msg.MsgID, model.PeerNotAck)
 		if err != nil {
 			return
 		}
 	}
 	if peerContact != nil {
-		err = b.repoContact.UpdateLastMsgId(ctx, logHead, msg.MsgID, peerContact.ID, receiverId)
+		err = b.repoContact.UpdateLastMsgId(ctx, logHead, peerContact.ID, receiverId, msg.MsgID, model.PeerAcked)
 		if err != nil {
 			return
 		}

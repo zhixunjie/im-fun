@@ -88,7 +88,6 @@ type FetchContactRangeParams struct {
 type BuildContactParams struct {
 	OwnerId *gen_id.ComponentId
 	PeerId  *gen_id.ComponentId
-	PeerAck PeerAckStatus
 }
 
 // UpdateLastMsgId 更新最后一条消息

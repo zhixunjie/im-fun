@@ -113,8 +113,7 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 		contact = &model.Contact{
 			OwnerID: params.OwnerId.Id(), OwnerType: params.OwnerId.Type(),
 			PeerID: params.PeerId.Id(), PeerType: params.PeerId.Type(),
-			PeerAck: uint32(params.PeerAck),
-			Status:  model.ContactStatusNormal,
+			Status: model.ContactStatusNormal,
 		}
 
 		// save to db
@@ -162,7 +161,7 @@ func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRan
 }
 
 // UpdateLastMsgId 更新contact的最后一条消息（发消息）
-func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, lastMsgId uint64, contactId uint64, ownerId *gen_id.ComponentId) (err error) {
+func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, contactId uint64, ownerId *gen_id.ComponentId, lastMsgId uint64, peerAck model.PeerAckStatus) (err error) {
 	logHead += "UpdateLastMsgId|"
 	mem := repo.RedisClient
 	_, tbName := repo.TableName(ownerId.Id())
@@ -179,11 +178,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, la
 	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
 
 	// contact: get version_id
-	var versionId uint64
-	versionId, err = gen_id.ContactVersionId(ctx, &gen_id.ContactVerParams{
-		Mem:     mem,
-		OwnerId: ownerId,
-	})
+	versionId, err := gen_id.ContactVersionId(ctx, &gen_id.ContactVerParams{Mem: mem, OwnerId: ownerId})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionId error=%v", err)
 		return
@@ -191,9 +186,10 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, la
 
 	// 只更新一部分的字段
 	row := &model.Contact{
-		LastMsgID: lastMsgId, // 1. 双方聊天记录中，最新一次发送的消息id
-		VersionID: versionId, // 2. 版本号（用于拉取会话框）
-		SortKey:   versionId, // 3. sort_key的值等同于version_id
+		LastMsgID: lastMsgId,       // 1. 双方聊天记录中，最新一次发送的消息id
+		VersionID: versionId,       // 2. 版本号（用于拉取会话框）
+		SortKey:   versionId,       // 3. sort_key的值等同于version_id
+		PeerAck:   uint32(peerAck), // 对方是否回应Owner
 	}
 
 	// save to db（要求：数据库的最后一条消息id小于当前消息id）
