@@ -25,14 +25,14 @@ func userSessionId(id1, id2 *ComponentId) string {
 	smallerId, largerId := Sort(id1, id2)
 
 	// session_id的组成部分：[ smallerId ":" largerId]
-	return fmt.Sprintf("%s:%s", smallerId.ToString(), largerId.ToString())
+	return fmt.Sprintf("pair:%s:%s", smallerId.ToString(), largerId.ToString())
 }
 
 // groupSessionId 标识群聊timeline（使用群组id）
 func groupSessionId(group *ComponentId) string {
 
 	// session_id的组成部分：[ groupId ]
-	return fmt.Sprintf("%s", group.ToString())
+	return fmt.Sprintf("group:%s", group.ToString())
 }
 
 // ParseSessionId 解析SessionId
