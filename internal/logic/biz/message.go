@@ -17,6 +17,7 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/goredis/distrib_lock"
 	k "github.com/zhixunjie/im-fun/pkg/goredis/key"
 	"github.com/zhixunjie/im-fun/pkg/logging"
+	"github.com/zhixunjie/im-fun/pkg/routine"
 	"github.com/zhixunjie/im-fun/pkg/utils"
 	"gorm.io/gorm"
 	"math"
@@ -95,23 +96,26 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	if err != nil {
 		return
 	}
+	currMsgId := msg.MsgID
 
 	// 4. update contact's info（写扩散）
-	if senderContact != nil {
-		err = b.repoContact.UpdateLastMsgId(ctx, logHead, senderContact.ID, senderId, msg.MsgID, model.PeerNotAck)
-		if err != nil {
-			return
+	routine.Go(ctx, func() {
+		if senderContact != nil {
+			err = b.repoContact.UpdateLastMsgId(ctx, logHead, senderContact.ID, senderId, currMsgId, model.PeerNotAck)
+			if err != nil {
+				return
+			}
 		}
-	}
-	if peerContact != nil {
-		err = b.repoContact.UpdateLastMsgId(ctx, logHead, peerContact.ID, receiverId, msg.MsgID, model.PeerAcked)
-		if err != nil {
-			return
+		if peerContact != nil {
+			err = b.repoContact.UpdateLastMsgId(ctx, logHead, peerContact.ID, receiverId, currMsgId, model.PeerAcked)
+			if err != nil {
+				return
+			}
+			if err != nil {
+				return
+			}
 		}
-		if err != nil {
-			return
-		}
-	}
+	})
 
 	// 5. build response
 	rsp = response.MessageSendRsp{
