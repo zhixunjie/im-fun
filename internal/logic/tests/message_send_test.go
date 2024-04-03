@@ -4,9 +4,35 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"testing"
 )
+
+func TestSendSimple(t *testing.T) {
+	ctx := context.Background()
+	var senderId, receiverId *gen_id.ComponentId
+	senderId = gen_id.NewUserComponentId(1001)
+	receiverId = gen_id.NewUserComponentId(1005)
+
+	rsp, err := messageUseCase.Send(ctx, &request.MessageSendReq{
+		SeqId:        uint64(gen_id.SeqId()),
+		SenderId:     senderId.Id(),
+		SenderType:   gen_id.ContactIdType(senderId.Type()),
+		ReceiverId:   receiverId.Id(),
+		ReceiverType: gen_id.ContactIdType(receiverId.Type()),
+		MsgBody: format.MsgBody{
+			MsgType: format.MsgTypeText,
+			MsgContent: &format.MsgContent{
+				TextContent: &format.TextContent{
+					Text: "哈哈哈",
+				},
+			},
+		},
+	})
+	fmt.Printf("rsp=%+v,err=%v\n", rsp, err)
+}
 
 // 发送消息：用户之间互相通信
 func TestSendBetweenUser(t *testing.T) {

@@ -79,6 +79,10 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			return
 		}
 	}
+	var needIncrUnreadCount bool
+	if !lo.Contains(req.InvisibleList, req.ReceiverId) {
+		needIncrUnreadCount = true
+	}
 
 	// 2. create contact if not exists（receiver's contact）
 	if !lo.Contains(req.InvisibleList, req.ReceiverId) && b.canCreateContact(logHead, receiverId) {
@@ -97,6 +101,10 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		return
 	}
 	currMsgId := msg.MsgID
+	// 增加未读数（先save db，再incr cache，保证尽快执行）
+	if needIncrUnreadCount {
+		_ = b.repoMessage.IncrUnreadAfterSend(ctx, logHead, receiverId, senderId, 1)
+	}
 
 	// 4. update contact's info（写扩散）
 	routine.Go(ctx, func() {
@@ -160,18 +168,6 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 		}
 		lastDelMsgVersionId = messageInfo.VersionID
 	}
-
-	// set pivotVersionId
-	//switch req.FetchType {
-	//case model.FetchTypeBackward: // 拉取历史消息
-	//case model.FetchTypeForward: // 拉取最新消息
-	//	// 避免：拉取最新消息时拉到已删除消息
-	//	if pivotVersionId < lastDelMsgVersionId {
-	//		pivotVersionId = lastDelMsgVersionId
-	//	}
-	//default:
-	//	return
-	//}
 
 	// get: message list
 	sessionId := gen_id.SessionId(ownerId, peerId)
@@ -238,6 +234,11 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	default:
 		return
 	}
+
+	// 异步协程：减少未读数（先read db，再decr cache）
+	routine.Go(ctx, func() {
+		_ = b.repoMessage.DecrUnreadAfterFetch(ctx, logHead, ownerId, peerId, int64(len(retList)))
+	})
 
 	// sort: 返回之前进行重新排序
 	sort.Sort(response.MessageSortByVersion(retList))

@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"fmt"
+	"github.com/samber/lo"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
@@ -15,10 +16,11 @@ import (
 
 type ContactUseCase struct {
 	contactRepo *data.ContactRepo
+	repoMessage *data.MessageRepo
 }
 
-func NewContactUseCase(contactRepo *data.ContactRepo) *ContactUseCase {
-	return &ContactUseCase{contactRepo: contactRepo}
+func NewContactUseCase(contactRepo *data.ContactRepo, repoMessage *data.MessageRepo) *ContactUseCase {
+	return &ContactUseCase{contactRepo: contactRepo, repoMessage: repoMessage}
 }
 
 // Fetch 拉取会话
@@ -38,6 +40,15 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 		return
 	}
 
+	// extract: all peer ids
+	peerIds := lo.Map(list, func(item *model.Contact, index int) *gen_id.ComponentId {
+		return gen_id.NewComponentId(item.PeerID, item.PeerType)
+	})
+	retMap, err := b.repoMessage.MGetSessionUnread(ctx, logHead, ownerId, peerIds)
+	if err != nil {
+		return
+	}
+
 	// rebuild list
 	var retList []*response.ContactEntity
 	minVersionId := uint64(math.MaxUint64)
@@ -45,6 +56,12 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	for _, item := range list {
 		minVersionId = utils.Min(minVersionId, item.VersionID)
 		maxVersionId = utils.Max(maxVersionId, item.VersionID)
+		peerId := gen_id.NewComponentId(item.PeerID, item.PeerType)
+
+		var sessionUnreadCount int64
+		if v, ok := retMap[peerId.ToString()]; ok {
+			sessionUnreadCount = v
+		}
 
 		// build message list
 		retList = append(retList, &response.ContactEntity{
@@ -58,7 +75,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 			Status:       model.ContactStatus(item.Status),
 			Labels:       item.Labels,
 			LastMsg:      nil,
-			UnreadMsgNum: 0,
+			UnreadMsgNum: sessionUnreadCount,
 		})
 	}
 
