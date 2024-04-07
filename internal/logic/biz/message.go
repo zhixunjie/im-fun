@@ -504,6 +504,9 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 		}
 	case gen_id.PrefixGroup: // 群组的timeline
 		receiverId = parseResult.IdArr[0]
+	default:
+		err = errors.New("can not find peer")
+		return
 	}
 
 	// note: 同一个消息timeline的版本变动，需要加锁
