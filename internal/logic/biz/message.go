@@ -488,21 +488,22 @@ type Fn func(versionId uint64) (err error)
 func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, sessionId string, senderId *gen_id.ComponentId, fn Fn) (err error) {
 	mem := b.repoMessage.RedisClient
 
-	// get receiver id
+	// get: 接收者的信息
 	var receiverId *gen_id.ComponentId
-	id1, id2 := gen_id.ParseSessionId(sessionId)
-	if id2 == nil { // 群组的timeline
-		receiverId = id1
-	} else { // 1对1的timeline
+	parseResult := gen_id.ParseSessionId(sessionId)
+	switch parseResult.Prefix {
+	case gen_id.PrefixPair: // 1对1的timeline
 		switch {
-		case id1.Equal(senderId):
-			receiverId = id2
-		case id2.Equal(senderId):
-			receiverId = id1
+		case parseResult.IdArr[0].Equal(senderId):
+			receiverId = parseResult.IdArr[1]
+		case parseResult.IdArr[1].Equal(senderId):
+			receiverId = parseResult.IdArr[0]
 		default:
 			err = errors.New("can not find peer")
 			return
 		}
+	case gen_id.PrefixGroup: // 群组的timeline
+		receiverId = parseResult.IdArr[0]
 	}
 
 	// note: 同一个消息timeline的版本变动，需要加锁

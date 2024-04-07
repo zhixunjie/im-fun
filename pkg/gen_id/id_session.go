@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+const (
+	PrefixPair  = "pair"
+	PrefixGroup = "group"
+)
+
 // SessionId 根据id的类型，生成sessionId
 func SessionId(id1, id2 *ComponentId) (sessionId string) {
 	switch {
@@ -25,28 +30,38 @@ func userSessionId(id1, id2 *ComponentId) string {
 	smallerId, largerId := Sort(id1, id2)
 
 	// session_id的组成部分：[ smallerId ":" largerId]
-	return fmt.Sprintf("pair:%s:%s", smallerId.ToString(), largerId.ToString())
+	return fmt.Sprintf(PrefixPair+":%s:%s", smallerId.ToString(), largerId.ToString())
 }
 
 // groupSessionId 标识群聊timeline（使用群组id）
 func groupSessionId(group *ComponentId) string {
 
 	// session_id的组成部分：[ groupId ]
-	return fmt.Sprintf("group:%s", group.ToString())
+	return fmt.Sprintf(PrefixGroup+":%s", group.ToString())
+}
+
+type ParseResult struct {
+	Prefix string
+	IdArr  []*ComponentId
 }
 
 // ParseSessionId 解析SessionId
-func ParseSessionId(sessionId string) (id1, id2 *ComponentId) {
+func ParseSessionId(sessionId string) (result ParseResult) {
 	slice := strings.Split(sessionId, ":")
-	if len(slice) == 1 { // 群聊
-		val := strings.Split(slice[0], "_")
-		id1 = NewComponentId(cast.ToUint64(val[1]), cast.ToUint32(val[0]))
-	} else { // 单聊
-		val := strings.Split(slice[0], "_")
-		id1 = NewComponentId(cast.ToUint64(val[1]), cast.ToUint32(val[0]))
 
-		val = strings.Split(slice[1], "_")
-		id2 = NewComponentId(cast.ToUint64(val[1]), cast.ToUint32(val[0]))
+	if len(slice) > 0 {
+		result.Prefix = slice[0]
+		switch slice[0] {
+		case PrefixPair: // 单聊
+			v := strings.Split(slice[1], "_")
+			result.IdArr = append(result.IdArr, NewComponentId(cast.ToUint64(v[1]), cast.ToUint32(v[0])))
+
+			v = strings.Split(slice[2], "_")
+			result.IdArr = append(result.IdArr, NewComponentId(cast.ToUint64(v[1]), cast.ToUint32(v[0])))
+		case PrefixGroup: // 群聊
+			val := strings.Split(slice[1], "_")
+			result.IdArr = append(result.IdArr, NewComponentId(cast.ToUint64(val[1]), cast.ToUint32(val[0])))
+		}
 	}
 
 	return

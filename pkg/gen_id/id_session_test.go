@@ -29,3 +29,17 @@ func TestSort(t *testing.T) {
 	}
 	fmt.Println(Sort(id1, id2))
 }
+
+func TestParseSessionId(t *testing.T) {
+	sessionId := SessionId(NewUserComponentId(1001), NewGroupComponentId(100000000001))
+	result := ParseSessionId(sessionId)
+	fmt.Println(result, result.IdArr[0])
+
+	sessionId = SessionId(NewUserComponentId(1001), NewUserComponentId(1002))
+	result = ParseSessionId(sessionId)
+	fmt.Println(result, result.IdArr[0], result.IdArr[1])
+
+	sessionId = SessionId(NewUserComponentId(1001), NewRobotComponentId(111111))
+	result = ParseSessionId(sessionId)
+	fmt.Println(result, result.IdArr[0], result.IdArr[1])
+}

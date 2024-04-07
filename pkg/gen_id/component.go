@@ -59,17 +59,17 @@ func NewUserComponentId(id uint64) *ComponentId {
 	return NewComponentId(id, uint32(ContactIdTypeUser))
 }
 
-// NewRobotComponentId 用户ID
+// NewRobotComponentId 机器人ID
 func NewRobotComponentId(id uint64) *ComponentId {
 	return NewComponentId(id, uint32(ContactIdTypeRobot))
 }
 
-// NewSystemComponentId 用户ID
+// NewSystemComponentId 系统ID
 func NewSystemComponentId(id uint64) *ComponentId {
 	return NewComponentId(id, uint32(ContactIdTypeSystem))
 }
 
-// NewGroupComponentId 用户ID
+// NewGroupComponentId 群组ID
 func NewGroupComponentId(id uint64) *ComponentId {
 	return NewComponentId(id, uint32(ContactIdTypeGroup))
 }
