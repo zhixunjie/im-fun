@@ -6,10 +6,10 @@ import (
 )
 
 type HighLight struct {
-	Text   string `json:"text,omitempty"`   // 高亮的文本
-	Link   string `json:"link,omitempty"`   // 跳转链接
-	Color  string `json:"color,omitempty"`  // 高亮的颜色
-	Offset [2]int `json:"offset,omitempty"` // 文本偏移量
+	Text   string `json:"text,omitempty"`   // 高亮：文本
+	Link   string `json:"link,omitempty"`   // 高亮：跳转链接
+	Color  string `json:"color,omitempty"`  // 高亮：颜色
+	Offset [2]int `json:"offset,omitempty"` // 文本偏移量（在源字符串中的偏移）
 }
 
 // GetOffset 获取高亮的位置

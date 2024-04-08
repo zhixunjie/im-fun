@@ -16,6 +16,7 @@ type MsgContent struct {
 	TipsContent   *TipsContent   `json:"tips_content,omitempty"`   // 提示消息
 	ImageContent  *ImageContent  `json:"image_content,omitempty"`  // 图片消息
 	AudioContent  *AudioContent  `json:"audio_content,omitempty"`  // 音频消息
+	VideoContent  *VideoContent  `json:"video_content,omitempty"`  // 视频消息
 
 	// 其他信息
 	CheckFail int `json:"check_fail,omitempty"` // 让客户端展示感叹号！

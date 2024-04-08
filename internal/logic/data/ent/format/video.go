@@ -1,8 +1,13 @@
 package format
 
 type VideoContent struct {
-	Url      string `json:"url,omitempty"`      // 视频链接
-	Duration int32  `json:"duration,omitempty"` // 视频的持续时间（秒）
+	VideoUrl    string `json:"video_url,omitempty"`    // 视频：链接
+	VideoSecond int32  `json:"video_second,omitempty"` // 视频：时长（秒）
+	VideoUuid   string `json:"video_uuid,omitempty"`   // 资源标识
+	ThumbUrl    string `json:"thumb_url,omitempty"`    // 视频封面：链接
+	ThumbWidth  int32  `json:"thumb_width,omitempty"`  // 视频封面：宽
+	ThumbHeight int32  `json:"thumb_height,omitempty"` // 视频封面：高
+	ThumbUuid   string `json:"thumb_uuid,omitempty"`   // 资源标识
 }
 
 func (c VideoContent) GetType() MsgType {
