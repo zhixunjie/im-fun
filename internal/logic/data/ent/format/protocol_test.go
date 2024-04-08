@@ -2,6 +2,7 @@ package format
 
 import (
 	"encoding/json"
+	uuid "github.com/satori/go.uuid"
 	"github.com/zhixunjie/im-fun/pkg/utils"
 	"testing"
 )
@@ -117,9 +118,10 @@ func TestAudio(t *testing.T) {
 		MsgType: MsgTypeAudio,
 		MsgContent: &MsgContent{
 			AudioContent: &AudioContent{
-				Url:      "https://xxxx.mp3",
-				Duration: 1,
-				Text:     "我是音频",
+				Url:    "https://xxxx.mp3",
+				Second: 15,
+				Uuid:   uuid.NewV1().String(),
+				Text:   "我是音频",
 			},
 		},
 	}
