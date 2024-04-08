@@ -99,7 +99,7 @@ func (repo *MessageRepo) checkBeforeIncrTotalUnread(ctx context.Context, logHead
 		return
 	}
 
-	// check result
+	// 兼容错误：当遇到错误的数据时，把未读数据进行重置
 	if srcVal < 0 {
 		err = repo.cleanTotalUnread(ctx, logHead, receiverId)
 		if err != nil {
