@@ -1,4 +1,5 @@
 ---
+name: "comet"
 debug: false
 discovery:
   addr: "127.0.0.1:12379"

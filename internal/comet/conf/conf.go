@@ -44,6 +44,7 @@ func defaultConfig() *Config {
 
 // Config is comet config.
 type Config struct {
+	Name      string     `yaml:"name"`
 	Debug     bool       `yaml:"debug"`
 	Env       *Env       `yaml:"env"`
 	Discovery *Discovery `yaml:"discovery"`

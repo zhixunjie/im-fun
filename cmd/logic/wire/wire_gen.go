@@ -7,6 +7,7 @@
 package wire
 
 import (
+	"context"
 	grpc2 "github.com/zhixunjie/im-fun/internal/logic/api/grpc"
 	"github.com/zhixunjie/im-fun/internal/logic/api/http"
 	"github.com/zhixunjie/im-fun/internal/logic/biz"
@@ -17,15 +18,20 @@ import (
 
 // Injectors from wire.go:
 
-func InitGrpc(c *conf.Config) *grpc.Server {
+func InitGrpc(ctx context.Context, c *conf.Config) (*grpc.Server, func(), error) {
 	bizBiz := biz.NewBiz(c)
 	dataData := data.NewData(c)
 	contactRepo := data.NewContactRepo(dataData)
 	messageRepo := data.NewMessageRepo(dataData)
 	contactUseCase := biz.NewContactUseCase(contactRepo, messageRepo)
 	messageUseCase := biz.NewMessageUseCase(messageRepo, contactRepo)
-	server := grpc2.NewServer(c, bizBiz, contactUseCase, messageUseCase)
-	return server
+	server, cleanup, err := grpc2.NewServer(ctx, c, bizBiz, contactUseCase, messageUseCase)
+	if err != nil {
+		return nil, nil, err
+	}
+	return server, func() {
+		cleanup()
+	}, nil
 }
 
 func InitHttp(c *conf.Config) *http.Server {

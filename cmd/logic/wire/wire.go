@@ -6,6 +6,7 @@
 package wire
 
 import (
+	"context"
 	"github.com/google/wire"
 	"github.com/zhixunjie/im-fun/internal/logic/api/grpc"
 	"github.com/zhixunjie/im-fun/internal/logic/api/http"
@@ -15,10 +16,10 @@ import (
 	google_grpc "google.golang.org/grpc"
 )
 
-func InitGrpc(c *conf.Config) *google_grpc.Server {
+func InitGrpc(ctx context.Context, c *conf.Config) (*google_grpc.Server, func(), error) {
 	wire.Build(grpc.ProviderSet, biz.ProviderSet, data.ProviderSet)
 
-	return nil
+	return &google_grpc.Server{}, nil, nil
 }
 
 func InitHttp(c *conf.Config) *http.Server {

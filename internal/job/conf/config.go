@@ -14,6 +14,7 @@ func InitConfig(path string) (err error) {
 }
 
 type Config struct {
+	Name         string                    `yaml:"name"`
 	Debug        bool                      `yaml:"debug"`
 	Discovery    *Discovery                `yaml:"discovery"`
 	Kafka        []kafka.ConsumerGroupConf `yaml:"kafka"`

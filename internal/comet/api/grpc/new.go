@@ -2,10 +2,9 @@ package grpc
 
 import (
 	"context"
-	"github.com/google/wire"
 	"github.com/zhixunjie/im-fun/api/pb"
-	"github.com/zhixunjie/im-fun/internal/logic/biz"
-	"github.com/zhixunjie/im-fun/internal/logic/conf"
+	"github.com/zhixunjie/im-fun/internal/comet"
+	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/micro_registry"
 	google_grpc "google.golang.org/grpc"
@@ -14,34 +13,25 @@ import (
 	"time"
 )
 
-// ProviderSet is server providers.
-var ProviderSet = wire.NewSet(NewServer)
-
-// NewServer logic grpc server
-func NewServer(ctx context.Context, conf *conf.Config, bz *biz.Biz, bzContact *biz.ContactUseCase, bzMessage *biz.MessageUseCase) (*google_grpc.Server, func(), error) {
+func NewServer(ctx context.Context, s *comet.Server, conf *conf.Config) (*google_grpc.Server, func(), error) {
 	rpcConfig := conf.RPC.Server
 	params := google_grpc.KeepaliveParams(google_grpc_keepalive.ServerParameters{
 		MaxConnectionIdle:     time.Duration(rpcConfig.IdleTimeout),
 		MaxConnectionAgeGrace: time.Duration(rpcConfig.ForceCloseWait),
-		Time:                  time.Duration(rpcConfig.KeepAliveInterval),
-		Timeout:               time.Duration(rpcConfig.KeepAliveTimeout),
+		Time:                  time.Duration(rpcConfig.KeepaliveInterval),
+		Timeout:               time.Duration(rpcConfig.KeepaliveTimeout),
 		MaxConnectionAge:      time.Duration(rpcConfig.MaxLifeTime),
 	})
 
 	// register
 	srv := google_grpc.NewServer(params)
-	pb.RegisterLogicServer(srv, &server{
-		UnimplementedLogicServer: pb.UnimplementedLogicServer{},
-		bz:                       bz,
-		bzContact:                bzContact,
-		bzMessage:                bzMessage,
-	})
-
-	// begin to listen
+	pb.RegisterCometServer(srv, &server{srv: s, UnimplementedCometServer: pb.UnimplementedCometServer{}})
 	listener, err := net.Listen(rpcConfig.Network, rpcConfig.Addr)
 	if err != nil {
 		panic(err)
 	}
+
+	// begin to listen
 	logging.Infof("GRPC server is listening %v：%v", rpcConfig.Network, rpcConfig.Addr)
 	go func() {
 		if err = srv.Serve(listener); err != nil {

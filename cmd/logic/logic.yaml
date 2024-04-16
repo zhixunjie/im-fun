@@ -1,4 +1,5 @@
 ---
+name: "logic"
 debug: true
 discovery:
   addr: "127.0.0.1:12379"

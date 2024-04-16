@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/zhixunjie/im-fun/internal/comet"
 	commetgrpc "github.com/zhixunjie/im-fun/internal/comet/api/grpc"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
@@ -45,8 +46,14 @@ func main() {
 		}
 	}
 
+	// create context
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	// init GRPC server
-	rpcSrv := commetgrpc.New(srv, conf.Conf.RPC.Server)
+	rpcSrv, deRegister, err := commetgrpc.NewServer(ctx, srv, conf.Conf)
+	if err != nil {
+		panic(err)
+	}
 
 	// signal
 	c := make(chan os.Signal, 1)
@@ -56,6 +63,7 @@ func main() {
 		logging.Infof("get signal %s", s.String())
 		switch s {
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
+			deRegister()
 			rpcSrv.GracefulStop()
 			lis2.Close()
 			lis1.Close()

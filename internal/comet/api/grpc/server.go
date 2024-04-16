@@ -2,41 +2,10 @@ package grpc
 
 import (
 	"context"
+	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/comet"
 	"github.com/zhixunjie/im-fun/internal/comet/api"
-	"github.com/zhixunjie/im-fun/pkg/logging"
-	"net"
-	"time"
-
-	pb "github.com/zhixunjie/im-fun/api/pb"
-	"github.com/zhixunjie/im-fun/internal/comet/conf"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
 )
-
-func New(s *comet.Server, conf *conf.RPCServer) *grpc.Server {
-	srv := grpc.NewServer(grpc.KeepaliveParams(keepalive.ServerParameters{
-		MaxConnectionIdle:     time.Duration(conf.IdleTimeout),
-		MaxConnectionAgeGrace: time.Duration(conf.ForceCloseWait),
-		Time:                  time.Duration(conf.KeepaliveInterval),
-		Timeout:               time.Duration(conf.KeepaliveTimeout),
-		MaxConnectionAge:      time.Duration(conf.MaxLifeTime),
-	}))
-	pb.RegisterCometServer(srv, &server{srv: s, UnimplementedCometServer: pb.UnimplementedCometServer{}})
-	listener, err := net.Listen(conf.Network, conf.Addr)
-	if err != nil {
-		panic(err)
-	}
-	// begin to listen
-	logging.Infof("GRPC server is listening %v：%v", conf.Network, conf.Addr)
-	go func() {
-		if err = srv.Serve(listener); err != nil {
-			panic(err)
-		}
-	}()
-	return srv
-}
 
 type server struct {
 	srv *comet.Server

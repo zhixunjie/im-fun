@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/zhixunjie/im-fun/cmd/logic/wire"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/pkg/logging"
@@ -20,11 +21,17 @@ func main() {
 	if err := conf.InitConfig("cmd/logic/logic.yaml"); err != nil {
 		panic(err)
 	}
-	// init service
+
+	// create context
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	// init HTTP server
 	httpSrv := wire.InitHttp(conf.Conf)
 	// init GRPC server
-	rpcSrv := wire.InitGrpc(conf.Conf)
+	rpcSrv, deRegister, err := wire.InitGrpc(ctx, conf.Conf)
+	if err != nil {
+		panic(err)
+	}
 
 	// signal
 	c := make(chan os.Signal, 1)
@@ -34,6 +41,7 @@ func main() {
 		logging.Infof("get a signal %s", s.String())
 		switch s {
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
+			deRegister()
 			httpSrv.Close()
 			rpcSrv.GracefulStop()
 			return
