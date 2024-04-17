@@ -11,6 +11,53 @@ import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 )
 
+// OpFromClient 专门处理客户端上行的TCP消息
+func (s *Server) OpFromClient(ctx context.Context, logHead string, proto *protocol.Proto, ch *channel.Channel, bucket *Bucket) (err error) {
+	logHead += "OpFromClient|"
+
+	switch protocol.Operation(proto.Op) {
+	case protocol.OpHeartbeat: // 心跳上报
+		proto.Op = int32(protocol.OpHeartbeatReply)
+		proto.Ver = protocol.ProtoVersion
+		proto.Seq = int32(gen_id.SeqId())
+		proto.Body = nil
+		logging.Infof(logHead + "Heartbeat Proto is generated")
+		// reset timer
+		s.ResetTimerHeartbeat(ctx, logHead, ch)
+		// rpc: lease
+		// 节流: 即使客户端上报心跳过来，也不一定要调用RPC接口进行续约
+		if now := time.Now(); now.Sub(ch.LastHb) > ch.HbLeaseDuration {
+			tErr := s.Heartbeat(ctx, ch.UserInfo)
+			if tErr != nil {
+				logging.Errorf(logHead+"Heartbeat lease fail,err=%v", tErr)
+				return
+			}
+			ch.LastHb = now
+			logging.Infof(logHead + "Heartbeat lease success")
+		}
+	case protocol.OpChangeRoom: // 房间切换
+		err = bucket.ChangeRoom(string(proto.Body), ch)
+		if err != nil {
+			logging.Errorf(logHead+"bucket.ChangeRoom(%s) error(%v)", proto.Body, err)
+			return
+		}
+		proto.Op = int32(protocol.OpChangeRoomReply)
+	case protocol.OpSub: // 订阅
+		// TBD
+	case protocol.OpUnsub: // 取消订阅
+		// TBD
+	default: // 其他类型的消息（直接转到logic进行处理）
+		// TBD
+		err = s.Receive(ctx, ch, proto)
+		if err != nil {
+			logging.Errorf(logHead+"UserInfo=%+v,op=%v,err=%v", ch.UserInfo, proto.Op, err)
+			return
+		}
+		//proto.Body = nil
+	}
+	return
+}
+
 func (s *Server) Connect(ctx context.Context, params *channel.AuthParams) (heartbeat time.Duration, err error) {
 	userInfo := params.UserInfo
 	reply, err := s.rpcToLogic.Connect(ctx, &pb.ConnectReq{
@@ -74,51 +121,5 @@ func (s *Server) Receive(ctx context.Context, ch *channel.Channel, p *protocol.P
 	_, err = s.rpcToLogic.Receive(ctx, &pb.ReceiveReq{UserId: ch.UserInfo.TcpSessionId.UserId, Proto: p})
 	logging.Infof("RPC Receive,err=%v", err)
 
-	return
-}
-
-// DealClientMsg 专门处理客户端上行的TCP消息
-func (s *Server) DealClientMsg(ctx context.Context, logHead string, proto *protocol.Proto, ch *channel.Channel, bucket *Bucket) (err error) {
-	logHead = logHead + "DealClientMsg|"
-
-	switch protocol.Operation(proto.Op) {
-	case protocol.OpHeartbeat: // 心跳上报
-		proto.Op = int32(protocol.OpHeartbeatReply)
-		proto.Ver = protocol.ProtoVersion
-		proto.Seq = int32(gen_id.SeqId())
-		proto.Body = nil
-		logging.Infof(logHead + "Heartbeat Proto is generated")
-		// reset timer
-		s.ResetTimerHeartbeat(ctx, logHead, ch)
-		// rpc: lease（节流: 即使客户端上报心跳过来，也不一定要调用RPC接口进行续约）
-		if now := time.Now(); now.Sub(ch.LastHb) > ch.HbLeaseDuration {
-			tErr := s.Heartbeat(ctx, ch.UserInfo)
-			if tErr != nil {
-				logging.Errorf(logHead+"Heartbeat lease fail,err=%v", tErr)
-				return
-			}
-			ch.LastHb = now
-			logging.Infof(logHead + "Heartbeat lease success")
-		}
-	case protocol.OpChangeRoom: // 房间切换
-		err = bucket.ChangeRoom(string(proto.Body), ch)
-		if err != nil {
-			logging.Errorf(logHead+"bucket.ChangeRoom(%s) error(%v)", proto.Body, err)
-			return
-		}
-		proto.Op = int32(protocol.OpChangeRoomReply)
-	case protocol.OpSub: // 订阅
-		// TBD
-	case protocol.OpUnsub: // 取消订阅
-		// TBD
-	default: // 其他类型的消息（直接转到logic进行处理）
-		// TBD
-		err = s.Receive(ctx, ch, proto)
-		if err != nil {
-			logging.Errorf(logHead+"UserInfo=%+v,op=%v,err=%v", ch.UserInfo, proto.Op, err)
-			return
-		}
-		//proto.Body = nil
-	}
 	return
 }

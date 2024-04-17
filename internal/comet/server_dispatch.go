@@ -67,8 +67,7 @@ func (s *Server) dispatchFail(ctx context.Context, logHead string, ch *channel.C
 	// 把signal这个channel的消息全部消费掉
 	// 防止：其他地方往signal发送东西时，由于signal没有消费方，而导致进入无限的阻塞。
 	for !finish {
-		tmp := ch.Waiting() == protocol.ProtoFinish
-		finish = tmp
+		finish = ch.Waiting() == protocol.ProtoFinish
 	}
 	logging.Infof(logHead + "finally ended")
 }

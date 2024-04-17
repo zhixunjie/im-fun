@@ -20,7 +20,7 @@ func DefaultEnv() *Env {
 		Region:    os.Getenv("REGION"),
 		Zone:      os.Getenv("ZONE"),
 		DeployEnv: os.Getenv("DEPLOY_ENV"),
-		Host:      defHost,
+		HostName:  defHost,
 		Weight:    defWeight,
 		Addrs:     strings.Split(defAddrs, ","),
 		Offline:   defOffline,

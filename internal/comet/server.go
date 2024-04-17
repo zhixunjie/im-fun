@@ -2,9 +2,11 @@ package comet
 
 import (
 	"context"
+	kratos_registry "github.com/go-kratos/kratos/v2/registry"
 	"github.com/zhenjl/cityhash"
 	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
+	"github.com/zhixunjie/im-fun/pkg/micro_registry"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"math/rand"
@@ -18,11 +20,11 @@ const (
 
 // Server 服务器（主体入口）
 type Server struct {
-	serverId    string       // 服务器ID（当消息需要发到多台机器，就需要这个ID了）
-	conf        *conf.Config // config
-	round       *Round       // round sth
-	buckets     []*Bucket    // bucket 数组
-	bucketTotal uint32       // bucket总数
+	serviceInstance *kratos_registry.ServiceInstance
+	conf            *conf.Config // config
+	round           *Round       // round sth
+	buckets         []*Bucket    // bucket 数组
+	bucketTotal     uint32       // bucket总数
 
 	rpcToLogic pb.LogicClient
 }
@@ -30,7 +32,7 @@ type Server struct {
 // NewServer returns a new Server.
 func NewServer(conf *conf.Config) *Server {
 	s := &Server{
-		serverId:   conf.Env.Host,
+		serverId:   micro_registry.ServiceInstance,
 		conf:       conf,
 		round:      NewRound(conf),
 		rpcToLogic: newLogicClient(conf.RPC.Client),

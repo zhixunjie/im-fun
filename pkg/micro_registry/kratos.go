@@ -11,26 +11,28 @@ import (
 	"net"
 )
 
+var ServiceInstance *kratos_registry.ServiceInstance
+
 func Register(ctx context.Context, srvName, addr string, listener net.Listener) (func(), error) {
 	// get registry
 	client, err := etcdclient.New(etcdclient.Config{
 		Endpoints: []string{"127.0.0.1:12379"},
 	})
 	if err != nil {
-		logging.Errorf("BuildInstance error: %v", err)
+		logging.Errorf("New error: %v", err)
 		return nil, err
 	}
 	registry := etcd.New(client)
 
 	// build instance
-	instance, err := BuildInstance(srvName, addr, listener)
+	ServiceInstance, err = buildInstance(srvName, addr, listener)
 	if err != nil {
 		logging.Errorf("BuildInstance error: %v", err)
 		return nil, err
 	}
 
 	// register to etcd
-	err = registry.Register(ctx, instance)
+	err = registry.Register(ctx, ServiceInstance)
 	if err != nil {
 		logging.Errorf("Register error: %v", err)
 		return nil, err
@@ -38,7 +40,7 @@ func Register(ctx context.Context, srvName, addr string, listener net.Listener) 
 
 	// 注销
 	fn := func() {
-		err = registry.Deregister(ctx, instance)
+		err = registry.Deregister(ctx, ServiceInstance)
 		if err != nil {
 			logging.Errorf("Deregister error: %v", err)
 			return
@@ -49,7 +51,7 @@ func Register(ctx context.Context, srvName, addr string, listener net.Listener) 
 }
 
 // BuildInstance 构建一个实例对象
-func BuildInstance(name, address string, lis net.Listener) (*kratos_registry.ServiceInstance, error) {
+func buildInstance(name, address string, lis net.Listener) (*kratos_registry.ServiceInstance, error) {
 	// 提取IP地址
 	addr, err := host.Extract(address, lis)
 	if err != nil {

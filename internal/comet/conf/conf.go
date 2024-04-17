@@ -63,7 +63,7 @@ type Env struct {
 	Region    string   `yaml:"region"`    // 地域
 	Zone      string   `yaml:"zone"`      // 可用区
 	DeployEnv string   `yaml:"deployEnv"` // 部署环境
-	Host      string   `yaml:"host"`      // 主机
+	HostName  string   `yaml:"host"`      // 主机
 	Weight    int64    `yaml:"weight"`    // 权重（负载均衡权重）
 	Offline   bool     `yaml:"offline"`
 	Addrs     []string `yaml:"addrs"`

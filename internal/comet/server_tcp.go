@@ -155,7 +155,7 @@ func (s *Server) readLoop(ctx context.Context, logHead string, ch *channel.Chann
 		}
 
 		// deal with the msg
-		if err = s.DealClientMsg(ctx, logHead, proto, ch, bucket); err != nil {
+		if err = s.OpFromClient(ctx, logHead, proto, ch, bucket); err != nil {
 			logging.Errorf(logHead+"DealClientMsg err=%v", err)
 			goto fail
 		}
