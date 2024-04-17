@@ -186,10 +186,13 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 
 	// 只更新一部分的字段
 	row := &model.Contact{
-		LastMsgID: lastMsgId,       // 1. 双方聊天记录中，最新一次发送的消息id
-		VersionID: versionId,       // 2. 版本号（用于拉取会话框）
-		SortKey:   versionId,       // 3. sort_key的值等同于version_id
-		PeerAck:   uint32(peerAck), // 对方是否回应Owner
+		LastMsgID: lastMsgId, // 1. 双方聊天记录中，最新一次发送的消息id
+		VersionID: versionId, // 2. 版本号（用于拉取会话框）
+		SortKey:   versionId, // 3. sort_key的值等同于version_id
+	}
+
+	if peerAck == model.PeerAcked {
+		row.PeerAck = uint32(peerAck) // 对方是否回应Owner
 	}
 
 	// save to db（要求：数据库的最后一条消息id小于当前消息id）
