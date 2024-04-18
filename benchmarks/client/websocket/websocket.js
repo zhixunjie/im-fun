@@ -49,10 +49,12 @@ class WebsocketOp {
 
     // 连接
     connect() {
-        let url = "ws://127.0.0.1:12572";// ws://是web socket协议,发送到websocket服务器的16779端口
-        // url = "ws://127.0.0.1:15001";// ws://是web socket协议,发送到websocket服务器的16779端口
-        // url = "ws://127.0.0.1:15002";// ws://是web socket协议,发送到websocket服务器的16779端口
-        // url = "ws://127.0.0.1:15003";// ws://是web socket协议,发送到websocket服务器的16779端口
+        // ws://是web socket协议，发送到websocket服务器的指定端口
+        let url = "ws://127.0.0.1:12572";     // 单实例请求
+        url = "ws://127.0.0.1:15001";         // 多实例请求（1）
+        url = "ws://127.0.0.1:15002";         // 多实例请求（2）
+        url = "ws://127.0.0.1:15003";         // 多实例请求（3）
+        url = "ws://127.0.0.1:9876";          // 直接向Nginx发起请求
         this.WsClient = new WebSocket(url);
         this.WsClient.binaryType = 'arraybuffer';
         this.clear()
