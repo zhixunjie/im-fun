@@ -2,12 +2,13 @@ package comet
 
 import (
 	"context"
-	kratos_registry "github.com/go-kratos/kratos/v2/registry"
+	kratos_discovery "github.com/go-kratos/kratos/v2/transport/grpc/resolver/discovery"
 	"github.com/zhenjl/cityhash"
 	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
-	"github.com/zhixunjie/im-fun/pkg/micro_registry"
+	"github.com/zhixunjie/im-fun/pkg/registry"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 	"math/rand"
 	"time"
@@ -18,21 +19,28 @@ const (
 	maxServerHeartbeat = time.Minute * 45
 )
 
-// Server 服务器（主体入口）
-type Server struct {
-	serviceInstance *kratos_registry.ServiceInstance
-	conf            *conf.Config // config
-	round           *Round       // round sth
-	buckets         []*Bucket    // bucket 数组
-	bucketTotal     uint32       // bucket总数
+// TcpServer 服务器（主体入口）
+type TcpServer struct {
+	serverId    string       // 服务器ID
+	conf        *conf.Config // config
+	round       *Round       // round sth
+	buckets     []*Bucket    // bucket 数组
+	bucketTotal uint32       // bucket总数
 
 	rpcToLogic pb.LogicClient
 }
 
-// NewServer returns a new Server.
-func NewServer(conf *conf.Config) *Server {
-	s := &Server{
-		serverId:   micro_registry.ServiceInstance,
+// NewTcpServer returns a new TcpServer.
+func NewTcpServer(conf *conf.Config) (*TcpServer, *registry.KratosServiceInstance) {
+	// build grpc server instance
+	rpcConfig := conf.RPC.Server
+	instance, err := registry.BuildServiceInstance(conf.Name, rpcConfig.Network, rpcConfig.Addr)
+	if err != nil {
+		panic(err)
+	}
+
+	s := &TcpServer{
+		serverId:   instance.ServiceInstance.ID,
 		conf:       conf,
 		round:      NewRound(conf),
 		rpcToLogic: newLogicClient(conf.RPC.Client),
@@ -44,26 +52,26 @@ func NewServer(conf *conf.Config) *Server {
 	for i := 0; i < conf.Bucket.HashNum; i++ {
 		s.buckets[i] = NewBucket(conf.Bucket)
 	}
-	return s
+	return s, instance
 }
 
 // Buckets return all buckets.
-func (s *Server) Buckets() []*Bucket {
+func (s *TcpServer) Buckets() []*Bucket {
 	return s.buckets
 }
 
-func (s *Server) AllocBucket(key string) *Bucket {
+func (s *TcpServer) AllocBucket(key string) *Bucket {
 	idx := cityhash.CityHash32([]byte(key), uint32(len(key))) % s.bucketTotal
 
 	return s.buckets[idx]
 }
 
 // RandHeartbeatTime 生成一个随机的心跳时间
-func (s *Server) RandHeartbeatTime() time.Duration {
+func (s *TcpServer) RandHeartbeatTime() time.Duration {
 	return minServerHeartbeat + time.Duration(rand.Int63n(int64(maxServerHeartbeat-minServerHeartbeat)))
 }
 
-func (s *Server) Close() (err error) {
+func (s *TcpServer) Close() (err error) {
 	return
 }
 
@@ -81,9 +89,10 @@ const (
 func newLogicClient(conf *conf.RPCClient) pb.LogicClient {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	conn, err := grpc.DialContext(ctx, "127.0.0.1:12670",
+
+	conn, err := grpc.DialContext(ctx, "discovery:///logic",
 		[]grpc.DialOption{
-			grpc.WithInsecure(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
 			grpc.WithInitialWindowSize(grpcInitialWindowSize),
 			grpc.WithInitialConnWindowSize(grpcInitialConnWindowSize),
 			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(grpcMaxCallMsgSize)),
@@ -94,6 +103,8 @@ func newLogicClient(conf *conf.RPCClient) pb.LogicClient {
 				Timeout:             grpcKeepAliveTimeout,
 				PermitWithoutStream: true,
 			}),
+			// GRPC服务发现机制（使用Kratos的注册中心和解析器）
+			grpc.WithResolvers(kratos_discovery.NewBuilder(registry.KratosEtcdRegistry, kratos_discovery.WithInsecure(true))),
 		}...)
 	if err != nil {
 		panic(err)

@@ -15,10 +15,10 @@ var (
 	ErrTimerNoItem = errors.New("timer item not exist")
 
 	// ErrParamsNotAllow channel
-	ErrParamsNotAllow       = errors.New("params error")
-	ErrSignalFullMsgDropped = errors.New("signal channel full, msg dropped")
+	ErrParamsNotAllow    = errors.New("params error")
+	ErrChannelSignalFull = errors.New("signal channel full and msg will be dropped")
 
-	ErrBroadCastRoomArg = errors.New("rpc broadcast  room arg error")
+	ErrBroadCastRoomArg = errors.New("rpc broadcast room arg error")
 
 	// ErrRoomDrop room
 	ErrRoomDrop = errors.New("room has drop")

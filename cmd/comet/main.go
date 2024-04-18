@@ -34,7 +34,7 @@ func main() {
 
 	// init server
 	var lis1, lis2 *net.TCPListener
-	srv := comet.NewServer(conf.Conf)
+	srv, instance := comet.NewTcpServer(conf.Conf)
 	{
 		// init TCP server
 		if lis1, err = comet.InitTCP(srv, runtime.NumCPU(), channel.ConnTypeTcp); err != nil {
@@ -50,7 +50,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	// init GRPC server
-	rpcSrv, deRegister, err := commetgrpc.NewServer(ctx, srv, conf.Conf)
+	rpcSrv, deRegister, err := commetgrpc.NewServer(ctx, srv, conf.Conf, instance)
 	if err != nil {
 		panic(err)
 	}
@@ -65,9 +65,9 @@ func main() {
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
 			deRegister()
 			rpcSrv.GracefulStop()
-			lis2.Close()
-			lis1.Close()
-			srv.Close()
+			_ = lis2.Close()
+			_ = lis1.Close()
+			_ = srv.Close()
 			return
 		case syscall.SIGHUP:
 			return

@@ -1,6 +1,7 @@
 package job
 
 import (
+	"context"
 	"fmt"
 	"github.com/Shopify/sarama"
 	pb "github.com/zhixunjie/im-fun/api/pb"
@@ -8,9 +9,11 @@ import (
 	"github.com/zhixunjie/im-fun/internal/job/invoker"
 	"github.com/zhixunjie/im-fun/pkg/kafka"
 	"github.com/zhixunjie/im-fun/pkg/logging"
+	"github.com/zhixunjie/im-fun/pkg/registry"
+	"github.com/zhixunjie/im-fun/pkg/registry/endpoint"
 	"google.golang.org/protobuf/proto"
-	"os"
 	"sync"
+	"time"
 )
 
 // Logic -> Kafka -> Job -> invoker.CometInvoker -> RPC To Comet -> Comet
@@ -42,12 +45,7 @@ func NewJob(conf *conf.Config) *Job {
 	}
 
 	// 2. make comet invoker
-	defHost, _ := os.Hostname()
-	cmt, err := invoker.NewCometInvoker(defHost, conf.CometInvoker)
-	if err != nil {
-		panic(err)
-	}
-	b.cometInvokers[defHost] = cmt
+	b.Watch(conf)
 
 	return b
 }
@@ -78,4 +76,76 @@ func (b *Job) Consume(msg *sarama.ConsumerMessage) {
 	if err != nil {
 		logging.Errorf(logHead+"err=%v", err)
 	}
+}
+
+func (b *Job) Watch(conf *conf.Config) {
+	name := "comet"
+
+	// get watcher
+	watcher, err := registry.KratosEtcdRegistry.Watch(context.Background(), name)
+	if err != nil {
+		panic(err)
+	}
+
+	// start watcher
+	go func() {
+		for {
+			var tErr error
+			// 任意一个instance变化，都会触发Next（并返回当前有效的instance）
+			instances, tErr := watcher.Next()
+			if tErr != nil {
+				logging.Errorf("watch Next err=%v", err)
+				time.Sleep(time.Second)
+				continue
+			}
+
+			// create invoker
+			var cmt *invoker.CometInvoker
+			var ept string
+			oldComet := b.cometInvokers
+			newComet := make(map[string]*invoker.CometInvoker, len(oldComet))
+			for _, ins := range instances {
+				serverId := ins.ID
+				endpoints := ins.Endpoints
+				logging.Infof("deal with instance,serverId=%v,endpoints=%v", serverId, endpoints)
+
+				// parse endpoint
+				ept, err = endpoint.ParseEndpoint(ins.Endpoints, endpoint.Scheme("grpc", false))
+				if err != nil {
+					logging.Errorf("parse endpoint err=%v,serverId=%v,endpoints=%v", err, serverId, endpoints)
+					continue
+				}
+				if ept == "" {
+					logging.Errorf("ept is empty,serverId=%v,endpoints=%v", serverId, endpoints)
+					continue
+				}
+
+				// check invoker is exists
+				if _, ok := oldComet[serverId]; ok {
+					logging.Infof("comet invoke don't exists,serverId=%v", serverId)
+					newComet[serverId] = oldComet[serverId]
+					continue
+				} else {
+					cmt, tErr = invoker.NewCometInvoker(serverId, ept, conf.CometInvoker)
+					if tErr != nil {
+						logging.Errorf("NewCometInvoker err=%v", tErr)
+						continue
+					}
+					logging.Infof("comet invoke exists,serverId=%v", serverId)
+					newComet[serverId] = cmt
+				}
+			}
+
+			// 关闭无效的实例
+			for serverId, old := range oldComet {
+				if _, ok := newComet[serverId]; !ok {
+					logging.Infof("remove comet,serverId=%v", serverId)
+					old.Cancel()
+				}
+			}
+
+			// 完整地覆盖当前的MAP
+			b.cometInvokers = newComet
+		}
+	}()
 }

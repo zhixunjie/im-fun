@@ -42,7 +42,7 @@ func (r *RoomJob) SendToCh(msg []byte) error {
 	var p = &protocol.Proto{
 		Ver:  protocol.ProtoVersion,
 		Op:   int32(protocol.OpBatchMsg),
-		Seq:  int32(gen_id.SeqId()),
+		Seq:  gen_id.SeqId32(),
 		Body: msg,
 	}
 

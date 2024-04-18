@@ -13,7 +13,7 @@ var (
 )
 
 // dispatch 处理发送到Channel的Proto（Just like a state machine）
-func (s *Server) dispatch(ctx context.Context, logHead string, ch *channel.Channel) {
+func (s *TcpServer) dispatch(ctx context.Context, logHead string, ch *channel.Channel) {
 	logHead = logHead + "dispatch|"
 	var err error
 	var finish bool
@@ -53,7 +53,7 @@ fail:
 	s.dispatchFail(ctx, logHead, ch, err, finish)
 }
 
-func (s *Server) dispatchFail(ctx context.Context, logHead string, ch *channel.Channel, err error, finish bool) {
+func (s *TcpServer) dispatchFail(ctx context.Context, logHead string, ch *channel.Channel, err error, finish bool) {
 	// check error
 	if err != nil {
 		logging.Errorf(logHead+"err=%v", err)

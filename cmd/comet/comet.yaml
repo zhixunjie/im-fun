@@ -5,6 +5,7 @@ discovery:
   addr: "127.0.0.1:12379"
 rpc:
   server:
+    c: "tcp"
     addr: ":12570"
     timeout: "1s"
   client:
@@ -32,8 +33,9 @@ connect:
       batchNum: 1024
       bufSize: 8192
 protocol:
-  timerHashNum: 32
-  initSizeTimerPool: 2048
+  timerPool:
+    hashNum: 32
+    initSizeInPool: 2048
   protoChannelSize: 10
   protoAllocatorSize: 5
   handshakeTimeout: "8s"

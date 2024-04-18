@@ -12,14 +12,14 @@ import (
 )
 
 // OpFromClient 专门处理客户端上行的TCP消息
-func (s *Server) OpFromClient(ctx context.Context, logHead string, proto *protocol.Proto, ch *channel.Channel, bucket *Bucket) (err error) {
+func (s *TcpServer) OpFromClient(ctx context.Context, logHead string, proto *protocol.Proto, ch *channel.Channel, bucket *Bucket) (err error) {
 	logHead += "OpFromClient|"
 
 	switch protocol.Operation(proto.Op) {
 	case protocol.OpHeartbeat: // 心跳上报
 		proto.Op = int32(protocol.OpHeartbeatReply)
 		proto.Ver = protocol.ProtoVersion
-		proto.Seq = int32(gen_id.SeqId())
+		proto.Seq = gen_id.SeqId32()
 		proto.Body = nil
 		logging.Infof(logHead + "Heartbeat Proto is generated")
 		// reset timer
@@ -58,7 +58,7 @@ func (s *Server) OpFromClient(ctx context.Context, logHead string, proto *protoc
 	return
 }
 
-func (s *Server) Connect(ctx context.Context, params *channel.AuthParams) (heartbeat time.Duration, err error) {
+func (s *TcpServer) Connect(ctx context.Context, params *channel.AuthParams) (heartbeat time.Duration, err error) {
 	userInfo := params.UserInfo
 	reply, err := s.rpcToLogic.Connect(ctx, &pb.ConnectReq{
 		Comm: &pb.ConnectCommon{
@@ -79,7 +79,7 @@ func (s *Server) Connect(ctx context.Context, params *channel.AuthParams) (heart
 	return
 }
 
-func (s *Server) Disconnect(ctx context.Context, ch *channel.Channel) (err error) {
+func (s *TcpServer) Disconnect(ctx context.Context, ch *channel.Channel) (err error) {
 	_, err = s.rpcToLogic.Disconnect(ctx, &pb.DisconnectReq{
 		Comm: &pb.ConnectCommon{
 			ServerId:     s.serverId,
@@ -92,7 +92,7 @@ func (s *Server) Disconnect(ctx context.Context, ch *channel.Channel) (err error
 	return
 }
 
-func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err error) {
+func (s *TcpServer) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err error) {
 	_, err = s.rpcToLogic.Heartbeat(ctx, &pb.HeartbeatReq{
 		Comm: &pb.ConnectCommon{
 			ServerId:     s.serverId,
@@ -105,9 +105,9 @@ func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err
 }
 
 // RenewOnline renew room online.
-//func (s *Server) RenewOnline(ctx context.Context, serverID string, roomCount map[string]int32) (allRoom map[string]int32, err error) {
+//func (s *TcpServer) RenewOnline(ctx context.Context, serverID string, roomCount map[string]int32) (allRoom map[string]int32, err error) {
 //	reply, err := s.rpcToLogic.RenewOnline(ctx, &logic.OnlineReq{
-//		Server:    s.serverID,
+//		TcpServer:    s.serverID,
 //		RoomCount: roomCount,
 //	}, grpc.UseCompressor(gzip.Name))
 //	if err != nil {
@@ -117,7 +117,7 @@ func (s *Server) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err
 //}
 
 // Receive receive a message.
-func (s *Server) Receive(ctx context.Context, ch *channel.Channel, p *protocol.Proto) (err error) {
+func (s *TcpServer) Receive(ctx context.Context, ch *channel.Channel, p *protocol.Proto) (err error) {
 	_, err = s.rpcToLogic.Receive(ctx, &pb.ReceiveReq{UserId: ch.UserInfo.TcpSessionId.UserId, Proto: p})
 	logging.Infof("RPC Receive,err=%v", err)
 

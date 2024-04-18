@@ -7,10 +7,9 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/biz"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-	"github.com/zhixunjie/im-fun/pkg/micro_registry"
+	"github.com/zhixunjie/im-fun/pkg/registry"
 	google_grpc "google.golang.org/grpc"
 	google_grpc_keepalive "google.golang.org/grpc/keepalive"
-	"net"
 	"time"
 )
 
@@ -28,7 +27,13 @@ func NewServer(ctx context.Context, conf *conf.Config, bz *biz.Biz, bzContact *b
 		MaxConnectionAge:      time.Duration(rpcConfig.MaxLifeTime),
 	})
 
-	// register
+	// build instance
+	instance, err := registry.BuildServiceInstance(conf.Name, rpcConfig.Network, rpcConfig.Addr)
+	if err != nil {
+		panic(err)
+	}
+
+	// register to grpc.Server
 	srv := google_grpc.NewServer(params)
 	pb.RegisterLogicServer(srv, &server{
 		UnimplementedLogicServer: pb.UnimplementedLogicServer{},
@@ -38,19 +43,15 @@ func NewServer(ctx context.Context, conf *conf.Config, bz *biz.Biz, bzContact *b
 	})
 
 	// begin to listen
-	listener, err := net.Listen(rpcConfig.Network, rpcConfig.Addr)
-	if err != nil {
-		panic(err)
-	}
 	logging.Infof("GRPC server is listening %v：%v", rpcConfig.Network, rpcConfig.Addr)
 	go func() {
-		if err = srv.Serve(listener); err != nil {
+		if err = srv.Serve(instance.GrpcServerListener); err != nil {
 			panic(err)
 		}
 	}()
 
 	// register micro
-	deRegisterFn, err := micro_registry.Register(ctx, conf.Name, rpcConfig.Addr, listener)
+	deRegisterFn, err := registry.Register(ctx, instance)
 	if err != nil {
 		panic(err)
 	}

@@ -9,12 +9,13 @@ import (
 )
 
 func (c *CometInvoker) Run(i int) {
-	logHead := "Run|"
+	logHead := fmt.Sprintf("Run[%v]|", i)
 
 	// loop to send msg to allComet
 	for {
 		select {
 		case <-c.ctx.Done():
+			logging.Info(logHead + "routine exit,because ctx.Done()")
 			return
 		case msg := <-c.chUsers[i]:
 			_, err := c.rpcClient.SendToUsers(context.Background(), msg)
@@ -55,6 +56,9 @@ func (c *CometInvoker) SendToAll(arg *pb.SendToAllReq) (err error) {
 	return
 }
 
+// Close 关闭（暂时没有任何的调用地方）
+// - 确保所有channel的内容消费完毕后，再继续往下走
+// - 如果超时时间内还没消费完，也继续往下走
 func (c *CometInvoker) Close() (err error) {
 	finish := make(chan bool)
 	sendUserChan := c.chUsers
@@ -85,6 +89,6 @@ func (c *CometInvoker) Close() (err error) {
 		err = fmt.Errorf("close all CometInvoker timeout"+format, c.serverId, len(sendUserChan), len(sendRoomChan), len(sendAllChan))
 		logging.Error(err)
 	}
-	c.cancel()
+	c.Cancel()
 	return
 }

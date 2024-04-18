@@ -14,7 +14,7 @@ func (c *Channel) Push(p *protocol.Proto) (err error) {
 	select {
 	case c.signal <- p:
 	default:
-		err = api.ErrSignalFullMsgDropped
+		err = api.ErrChannelSignalFull
 	}
 	return
 }

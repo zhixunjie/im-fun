@@ -24,8 +24,10 @@ func defaultConfig() *Config {
 		RPC:     DefaultRPC(),
 		Connect: DefaultConnect(),
 		Protocol: &Protocol{
-			TimerHashNum:       32,
-			InitSizeTimerPool:  2048,
+			TimerPool: &TimerPool{
+				HashNum:        32,
+				InitSizeInPool: 2048,
+			},
 			ProtoAllocatorSize: 64,
 			ProtoChannelSize:   64,
 			HandshakeTimeout:   newtime.Duration(time.Second * 5),
@@ -113,11 +115,16 @@ type Websocket struct {
 }
 
 type Protocol struct {
-	TimerHashNum       int              `yaml:"timerHashNum"`       // Hash切片数量（每个切片是一个Timer池子）
-	InitSizeTimerPool  int              `yaml:"initSizeTimerPool"`  // 每个Timer池子拥有的Timer数量（初始数量）
+	TimerPool          *TimerPool       `yaml:"timerPool"`          // Timer池子的配置
 	ProtoChannelSize   int              `yaml:"protoChannelSize"`   // 接收Proto的Channel的大小
 	ProtoAllocatorSize int              `yaml:"protoAllocatorSize"` // Proto分配器的大小（本质是一个Ring）
 	HandshakeTimeout   newtime.Duration `yaml:"handshakeTimeout"`   // TCP 握手超时
+}
+
+// TimerPool Timer池子的配置
+type TimerPool struct {
+	HashNum        int `yaml:"hashNum"`        // Hash切片数量：每个切片是一个Timer池子
+	InitSizeInPool int `yaml:"initSizeInPool"` // 每个Timer池子中，拥有的Timer初始数量
 }
 
 type Bucket struct {

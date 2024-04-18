@@ -8,7 +8,7 @@ import (
 )
 
 type server struct {
-	srv *comet.Server
+	srv *comet.TcpServer
 	pb.UnimplementedCometServer
 }
 
@@ -52,7 +52,7 @@ func (s *server) SendToAll(ctx context.Context, req *pb.SendToAllReq) (reply *pb
 		err = api.ErrParamsNotAllow
 		return
 	}
-	comet.BroadcastToAllBucket(s.srv, req.GetProto(), int(req.Speed))
+	s.srv.BroadcastToAllBucket(req.GetProto(), int(req.Speed))
 	return
 }
 

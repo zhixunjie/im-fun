@@ -6,6 +6,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/job/conf"
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 	"time"
 )
@@ -15,7 +16,7 @@ import (
 // CometInvoker 调用comet的服务
 type CometInvoker struct {
 	ctx    context.Context
-	cancel context.CancelFunc
+	Cancel context.CancelFunc
 
 	serverId  string
 	rpcClient pb.CometClient
@@ -31,8 +32,8 @@ type CometInvoker struct {
 	chAll   chan *pb.SendToAllReq     // send msg: to all user
 }
 
-func NewCometInvoker(serverId string, c *conf.CometInvoker) (*CometInvoker, error) {
-	routineNum := c.RoutineNum
+func NewCometInvoker(serverId, grpcAddr string, conf *conf.CometInvoker) (*CometInvoker, error) {
+	routineNum := conf.RoutineNum
 	cmt := &CometInvoker{
 		serverId:   serverId,
 		chUsers:    make([]chan *pb.SendToUsersReq, routineNum),
@@ -43,16 +44,15 @@ func NewCometInvoker(serverId string, c *conf.CometInvoker) (*CometInvoker, erro
 
 	// create rpc client
 	var err error
-	grpcAddr := "127.0.0.1:12570"
 	if cmt.rpcClient, err = newCometClient(grpcAddr); err != nil {
 		return nil, err
 	}
 
 	// creat channel and routine
-	cmt.ctx, cmt.cancel = context.WithCancel(context.Background())
+	cmt.ctx, cmt.Cancel = context.WithCancel(context.Background())
 	for i := 0; i < int(cmt.RoutineNum); i++ {
-		cmt.chUsers[i] = make(chan *pb.SendToUsersReq, c.ChanBufferSize)
-		cmt.chRoom[i] = make(chan *pb.SendToRoomReq, c.ChanBufferSize)
+		cmt.chUsers[i] = make(chan *pb.SendToUsersReq, conf.ChanBufferSize)
+		cmt.chRoom[i] = make(chan *pb.SendToRoomReq, conf.ChanBufferSize)
 		go cmt.Run(i)
 	}
 	return cmt, nil
@@ -78,7 +78,7 @@ func newCometClient(addr string) (pb.CometClient, error) {
 	defer cancel()
 	conn, err := grpc.DialContext(ctx, addr,
 		[]grpc.DialOption{
-			grpc.WithInsecure(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
 			grpc.WithInitialWindowSize(grpcInitialWindowSize),
 			grpc.WithInitialConnWindowSize(grpcInitialConnWindowSize),
 			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(grpcMaxCallMsgSize)),

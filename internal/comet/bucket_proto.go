@@ -9,14 +9,13 @@ import (
 
 // BroadcastToAllBucket
 // 消息广播：广播到所有Bucket的所有Channel
-func BroadcastToAllBucket(srv *Server, proto *protocol.Proto, speed int) {
+func (s *TcpServer) BroadcastToAllBucket(proto *protocol.Proto, speed int) {
 	// TODO 使用队列进行广播的处理
 	go func() {
-		for _, bucket := range srv.Buckets() {
+		for _, bucket := range s.Buckets() {
 			bucket.broadcast(proto)
+			// 如果100个连接（channel），speed等于5。每次广播一个bucket，广播后睡眠20秒。
 			if speed > 0 {
-				// 如果100个连接（channel），速度等于5。
-				// 那么就会，每次广播一个bucket，广播完毕后，睡眠20秒。
 				t := time.Duration(bucket.ChannelCount() / speed)
 				time.Sleep(t * time.Second)
 			}

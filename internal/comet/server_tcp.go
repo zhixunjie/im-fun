@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-func InitTCP(server *Server, numCPU int, connType channel.ConnType) (listener *net.TCPListener, err error) {
+func InitTCP(server *TcpServer, numCPU int, connType channel.ConnType) (listener *net.TCPListener, err error) {
 	var addr *net.TCPAddr
 	var addrS []string
 
@@ -49,7 +49,7 @@ func InitTCP(server *Server, numCPU int, connType channel.ConnType) (listener *n
 	return
 }
 
-func accept(logHead string, connType channel.ConnType, server *Server, listener *net.TCPListener) {
+func accept(logHead string, connType channel.ConnType, server *TcpServer, listener *net.TCPListener) {
 	var conn *net.TCPConn
 	var err error
 	var r int
@@ -80,7 +80,7 @@ func accept(logHead string, connType channel.ConnType, server *Server, listener 
 		}
 
 		// begin to serve
-		go func(s *Server, conn *net.TCPConn, r int) {
+		go func(s *TcpServer, conn *net.TCPConn, r int) {
 			var tr = s.round.TimerPool(r)
 			var rp = s.round.BufferHash.ReaderPool(r)
 			var wp = s.round.BufferHash.WriterPool(r)
@@ -94,7 +94,7 @@ func accept(logHead string, connType channel.ConnType, server *Server, listener 
 }
 
 // 清除资源
-func (s *Server) cleanAfterFn(ctx context.Context, logHead string, cleanPath channel.CleanPath, ch *channel.Channel, bucket *Bucket) {
+func (s *TcpServer) cleanAfterFn(ctx context.Context, logHead string, cleanPath channel.CleanPath, ch *channel.Channel, bucket *Bucket) {
 	var err error
 
 	switch cleanPath {
@@ -118,7 +118,7 @@ func (s *Server) cleanAfterFn(ctx context.Context, logHead string, cleanPath cha
 	}
 }
 
-func (s *Server) readLoopFail(ctx context.Context, logHead string, ch *channel.Channel, bucket *Bucket, err error) {
+func (s *TcpServer) readLoopFail(ctx context.Context, logHead string, ch *channel.Channel, bucket *Bucket, err error) {
 	// check error
 	if err != nil {
 		switch {
@@ -137,7 +137,7 @@ func (s *Server) readLoopFail(ctx context.Context, logHead string, ch *channel.C
 
 // loop to read client msg
 // 数据流：client -> [comet] -> read -> send protoReady -> dispatch
-func (s *Server) readLoop(ctx context.Context, logHead string, ch *channel.Channel, bucket *Bucket) {
+func (s *TcpServer) readLoop(ctx context.Context, logHead string, ch *channel.Channel, bucket *Bucket) {
 	var err error
 	var proto *protocol.Proto
 
@@ -169,7 +169,7 @@ fail:
 }
 
 // serveTCP serve a tcp connection.
-func (s *Server) serveTCP(logHead string, ch *channel.Channel, connType channel.ConnType) {
+func (s *TcpServer) serveTCP(logHead string, ch *channel.Channel, connType channel.ConnType) {
 	logHead = logHead + "serveTCP|"
 
 	var (
@@ -235,7 +235,7 @@ func (s *Server) serveTCP(logHead string, ch *channel.Channel, connType channel.
 }
 
 // 一直读取，直到读取到的Proto操作类型为：protocol.OpAuth
-func (s *Server) getAuthProto(logHead string, ch *channel.Channel, proto *protocol.Proto) (err error) {
+func (s *TcpServer) getAuthProto(logHead string, ch *channel.Channel, proto *protocol.Proto) (err error) {
 	for {
 		if err = ch.ConnReadWriter.ReadProto(proto); err != nil {
 			logging.Infof(logHead+"ReadProto err=%v", err)
@@ -248,7 +248,7 @@ func (s *Server) getAuthProto(logHead string, ch *channel.Channel, proto *protoc
 	}
 }
 
-func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel) (hb time.Duration, bucket *Bucket, err error) {
+func (s *TcpServer) auth(ctx context.Context, logHead string, ch *channel.Channel) (hb time.Duration, bucket *Bucket, err error) {
 	logHead += "auth|"
 
 	// 获取：proto（用于写入）
@@ -282,7 +282,7 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel) 
 
 	// TCP响应：下发TCP消息给给客户端（授权结果）
 	proto.Op = int32(protocol.OpAuthReply)
-	proto.Seq = int32(gen_id.SeqId())
+	proto.Seq = gen_id.SeqId32()
 	proto.Body = nil
 	if err = ch.ConnReadWriter.WriteProto(proto); err != nil {
 		logging.Errorf(logHead+"WriteTCP err=%v,UserInfo=%v", err, ch.UserInfo)
@@ -293,7 +293,7 @@ func (s *Server) auth(ctx context.Context, logHead string, ch *channel.Channel) 
 	return
 }
 
-func (s *Server) upgradeToWebSocket(ctx context.Context, logHead string, ch *channel.Channel) (err error) {
+func (s *TcpServer) upgradeToWebSocket(ctx context.Context, logHead string, ch *channel.Channel) (err error) {
 	conn := ch.Conn
 	logHead += fmt.Sprintf("upgradeToWebSocket,UserInfo=%+v,addr=%v|", ch.UserInfo, conn.RemoteAddr().String())
 
@@ -314,7 +314,7 @@ func (s *Server) upgradeToWebSocket(ctx context.Context, logHead string, ch *cha
 }
 
 // SetTimerHandshake set timer: for handshake
-func (s *Server) SetTimerHandshake(logHead string, ch *channel.Channel) {
+func (s *TcpServer) SetTimerHandshake(logHead string, ch *channel.Channel) {
 	conn := ch.Conn
 	duration := time.Duration(s.conf.Protocol.HandshakeTimeout)
 
@@ -327,7 +327,7 @@ func (s *Server) SetTimerHandshake(logHead string, ch *channel.Channel) {
 }
 
 // SetTimerHeartbeat set timer: for heartbeat
-func (s *Server) SetTimerHeartbeat(ctx context.Context, logHead string, ch *channel.Channel, timerExpire time.Duration, bucket *Bucket) {
+func (s *TcpServer) SetTimerHeartbeat(ctx context.Context, logHead string, ch *channel.Channel, timerExpire time.Duration, bucket *Bucket) {
 	logHead += "SetTimerHeartbeat|"
 
 	if timerExpire.Seconds() == 0 {
@@ -346,7 +346,7 @@ func (s *Server) SetTimerHeartbeat(ctx context.Context, logHead string, ch *chan
 }
 
 // ResetTimerHeartbeat reset timer: for heartbeat
-func (s *Server) ResetTimerHeartbeat(ctx context.Context, logHead string, ch *channel.Channel) {
+func (s *TcpServer) ResetTimerHeartbeat(ctx context.Context, logHead string, ch *channel.Channel) {
 	if ch.HbExpire.Seconds() == 0 {
 		logging.Errorf(logHead + "hbDuration not allow")
 		return

@@ -19,7 +19,7 @@ import (
 // Connect connected a conn.
 func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (hb int64, err error) {
 	rr := req.Comm
-	logHead := fmt.Sprintf("Connect,rr=%v|", rr)
+	logHead := fmt.Sprintf("Connect,req.Comm=%v|", rr)
 
 	if err = bz.data.SessionBinding(ctx, logHead, rr); err != nil {
 		logging.Errorf(logHead+"SessionBinding fail,error=%v", err)
@@ -36,7 +36,7 @@ func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (hb int64, err e
 // Disconnect disconnect a conn.
 func (bz *Biz) Disconnect(ctx context.Context, req *pb.DisconnectReq) (has bool, err error) {
 	rr := req.Comm
-	logHead := fmt.Sprintf("Disconnect,rr=%v|", rr)
+	logHead := fmt.Sprintf("Disconnect,req.Comm=%v|", rr)
 
 	has, err = bz.data.SessionDel(ctx, logHead, rr)
 	if err != nil {
@@ -52,7 +52,7 @@ func (bz *Biz) Disconnect(ctx context.Context, req *pb.DisconnectReq) (has bool,
 // Heartbeat heartbeat a conn.
 func (bz *Biz) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (err error) {
 	rr := req.Comm
-	logHead := fmt.Sprintf("Heartbeat,rr=%v|", rr)
+	logHead := fmt.Sprintf("Heartbeat,req.Comm=%v|", rr)
 
 	// 如果KEY不存在，就不要再去续约Redis的KEY了
 	_, err = bz.data.SessionLease(ctx, logHead, rr)
