@@ -1,0 +1,56 @@
+---
+name: "logic"
+debug: true
+#discovery:
+#  addr: "127.0.0.1:12379"
+http:
+  addr: ":8082"
+rpc:
+  server:
+    network: "tcp"
+    addr: ":12602"
+    timeout: "1s"
+  client:
+    dial: "1s"
+    timeout: "1s"
+mysql:
+  - addr: "127.0.0.1"
+    port: "3306"
+    userName: "root"
+    password: ""
+    dbName: "im"
+redis:
+  - addr: "127.0.0.1:6379"
+    active: 60000
+    idle: 1024
+    dialTimeout: "200ms"
+    readTimeout: "500ms"
+    writeTimeout: "500ms"
+    idleTimeout: "120s"
+    keyExpire: "30m"
+kafka:
+  - topic: "im_push"
+    brokers:
+      - "127.0.0.1:9092"
+node:
+  defaultDomain: "connection.imfun.io"
+  hostDomain: ".imfun.io"
+  heartbeat:
+    interval: "30s"
+    failCount: 5
+  tcpPort: 12571
+  wsPort: 12572
+  wssPort: 12573
+  regionWeight: 1.6
+backoff:
+  baseDelay: 3
+  multiplier: 1.8
+  jitter: 0.3
+  maxDelay: 300
+
+regions:
+  bj: ["北京", "天津", "河北", "山东", "山西", "内蒙古", "辽宁", "吉林", "黑龙江", "甘肃", "宁夏", "新疆"]
+  sh: ["上海", "江苏", "浙江", "安徽", "江西", "湖北", "重庆", "陕西", "青海", "河南", "台湾"]
+  gz: ["广东", "福建", "广西", "海南", "湖南", "四川", "贵州", "云南", "西藏", "香港", "澳门"]
+
+

@@ -9,9 +9,9 @@ function appendToDialog(content) {
 
 function date() {
     let today = new Date();
-    let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+    let date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
     let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-    let dateTime = date+' '+time;
+    let dateTime = date + ' ' + time;
 
     return dateTime
 }
@@ -50,6 +50,9 @@ class WebsocketOp {
     // 连接
     connect() {
         let url = "ws://127.0.0.1:12572";// ws://是web socket协议,发送到websocket服务器的16779端口
+        // url = "ws://127.0.0.1:15001";// ws://是web socket协议,发送到websocket服务器的16779端口
+        // url = "ws://127.0.0.1:15002";// ws://是web socket协议,发送到websocket服务器的16779端口
+        // url = "ws://127.0.0.1:15003";// ws://是web socket协议,发送到websocket服务器的16779端口
         this.WsClient = new WebSocket(url);
         this.WsClient.binaryType = 'arraybuffer';
         this.clear()

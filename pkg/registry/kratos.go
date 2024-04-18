@@ -12,7 +12,6 @@ import (
 )
 
 // kratos registry
-// etcdctl-d get --prefix /microservices/
 
 const EtcdAddr = "127.0.0.1:12379"
 

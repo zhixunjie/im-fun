@@ -1,0 +1,13 @@
+➜  ~ etcdctl  get --prefix /
+/microservices/comet/267e8ee3-3b70-4653-a622-c76bc90a6fc3
+{"id":"267e8ee3-3b70-4653-a622-c76bc90a6fc3","name":"comet","version":"","metadata":null,"endpoints":["grpc://192.168.0.101:13002"]}
+/microservices/comet/5ead0fe1-a41a-4cc9-9215-c87d54ff9a9d
+{"id":"5ead0fe1-a41a-4cc9-9215-c87d54ff9a9d","name":"comet","version":"","metadata":null,"endpoints":["grpc://192.168.0.101:13003"]}
+/microservices/comet/ca6087e3-67fa-4947-b6e8-13432439354d
+{"id":"ca6087e3-67fa-4947-b6e8-13432439354d","name":"comet","version":"","metadata":null,"endpoints":["grpc://192.168.0.101:13001"]}
+/microservices/logic/d3e82b2f-a00a-48f1-9ad1-52401aaffd6f
+{"id":"d3e82b2f-a00a-48f1-9ad1-52401aaffd6f","name":"logic","version":"","metadata":null,"endpoints":["grpc://192.168.0.101:12603"]}
+/microservices/logic/d9073c4d-363d-4002-b457-edd7ad53e9d3
+{"id":"d9073c4d-363d-4002-b457-edd7ad53e9d3","name":"logic","version":"","metadata":null,"endpoints":["grpc://192.168.0.101:12601"]}
+/microservices/logic/ef3736f9-404a-4cbf-a8c1-e7ece81cd602
+{"id":"ef3736f9-404a-4cbf-a8c1-e7ece81cd602","name":"logic","version":"","metadata":null,"endpoints":["grpc://192.168.0.101:12602"]}

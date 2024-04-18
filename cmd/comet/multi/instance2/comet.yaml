@@ -1,0 +1,48 @@
+---
+name: "comet"
+debug: false
+#discovery:
+#  addr: "127.0.0.1:12379"
+rpc:
+  server:
+    network: "tcp"
+    addr: ":13002"
+    timeout: "1s"
+  client:
+    dial: "1s"
+    timeout: "1s"
+connect:
+  tcp:
+    bind: [ ":14002" ]
+    sndbuf: 4096
+    rcvbuf: 4096
+    keepalive: false
+  websocket:
+    bind: [ ":15002" ]
+    tlsOpen: false
+    tlsBind: [ ":16002" ]
+    certFile: "../../cert.pem"
+    privateFile: "../../private.pem"
+  bufferOptions:
+    readPoolOption:
+      poolNum: 32
+      batchNum: 1024
+      bufSize: 8192
+    writePoolOption:
+      poolNum: 32
+      batchNum: 1024
+      bufSize: 8192
+protocol:
+  timerPool:
+    hashNum: 32
+    initSizeInPool: 2048
+  proto:
+    channelSize: 10
+    allocatorSize: 5
+  handshakeTimeout: "8s"
+bucket:
+  hashNum: 32
+  initSizeChannelMap: 1024
+  initSizeRoomMap: 1024
+  routineHashNum: 32
+  routineChannelSize: 1024
