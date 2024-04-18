@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
@@ -19,27 +20,27 @@ import (
 
 func InitTCP(server *TcpServer, numCPU int, connType channel.ConnType) (listener *net.TCPListener, err error) {
 	var addr *net.TCPAddr
-	var addrS []string
+	var bindList []string
 
 	// 同时支持TCP和WebSocket
 	logHead := channel.LogHeadByConnType(connType)
 	if connType == channel.ConnTypeWebSocket {
-		addrS = conf.Conf.Connect.Websocket.Bind
+		bindList = conf.Conf.Connect.Websocket.Bind
 	} else {
-		addrS = conf.Conf.Connect.TCP.Bind
+		bindList = conf.Conf.Connect.TCP.Bind
 	}
 
 	// bind address
-	for _, bind := range addrS {
-		if addr, err = net.ResolveTCPAddr("tcp", bind); err != nil {
-			logging.Errorf(logHead+"ResolveTCPAddr(bind=%v) err=%v", bind, err)
+	for _, bindItem := range bindList {
+		if addr, err = net.ResolveTCPAddr("tcp", bindItem); err != nil {
+			logging.Errorf(logHead+"ResolveTCPAddr(bind=%v) err=%v", bindItem, err)
 			return
 		}
 		if listener, err = net.ListenTCP("tcp", addr); err != nil {
-			logging.Errorf(logHead+"ListenTCP(bind=%v) err=%v", bind, err)
+			logging.Errorf(logHead+"ListenTCP(bind=%v) err=%v", bindItem, err)
 			return
 		}
-		logging.Infof(logHead+"server is listening：%s", bind)
+		logging.Infof(logHead+"server is listening：%s", bindItem)
 		// 启动N个协程，每个协程开启后进行accept（需要使用REUSE解决惊群问题）
 		for i := 0; i < numCPU; i++ {
 			// TODO 使用协程池进行管理
@@ -96,6 +97,7 @@ func accept(logHead string, connType channel.ConnType, server *TcpServer, listen
 // 清除资源
 func (s *TcpServer) cleanAfterFn(ctx context.Context, logHead string, cleanPath channel.CleanPath, ch *channel.Channel, bucket *Bucket) {
 	var err error
+	logging.Infof(logHead + "run cleanAfterFn")
 
 	switch cleanPath {
 	case channel.CleanPath1:
@@ -177,7 +179,7 @@ func (s *TcpServer) serveTCP(logHead string, ch *channel.Channel, connType chann
 
 		bucket *Bucket
 	)
-	var timerExpire time.Duration
+	var hbCfg *pb.HbCfg
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -200,7 +202,7 @@ func (s *TcpServer) serveTCP(logHead string, ch *channel.Channel, connType chann
 		}
 
 		// auth（check token）
-		timerExpire, bucket, err = s.auth(ctx, logHead, ch)
+		hbCfg, bucket, err = s.auth(ctx, logHead, ch)
 		if err != nil {
 			logging.Errorf(logHead+"auth err=%v", err)
 			return
@@ -223,7 +225,7 @@ func (s *TcpServer) serveTCP(logHead string, ch *channel.Channel, connType chann
 			return
 		}
 		// recreate: timer
-		s.SetTimerHeartbeat(ctx, logHead, ch, timerExpire, bucket)
+		s.SetTimerHeartbeat(ctx, logHead, ch, hbCfg, bucket)
 	}
 	fn2()
 
@@ -248,13 +250,13 @@ func (s *TcpServer) getAuthProto(logHead string, ch *channel.Channel, proto *pro
 	}
 }
 
-func (s *TcpServer) auth(ctx context.Context, logHead string, ch *channel.Channel) (hb time.Duration, bucket *Bucket, err error) {
+func (s *TcpServer) auth(ctx context.Context, logHead string, ch *channel.Channel) (hbCfg *pb.HbCfg, bucket *Bucket, err error) {
 	logHead += "auth|"
 
 	// 获取：proto（用于写入）
 	proto, err := ch.ProtoAllocator.GetProtoForWrite()
 	if err != nil {
-		logging.Errorf(logHead+"GetProtoForWrite err=%v,hb=%v", err, hb)
+		logging.Errorf(logHead+"GetProtoForWrite err=%v", err)
 		return
 	}
 
@@ -273,7 +275,7 @@ func (s *TcpServer) auth(ctx context.Context, logHead string, ch *channel.Channe
 	authParams.UserInfo.IP = ch.UserInfo.IP
 
 	// RPC：建立绑定关系
-	if hb, err = s.Connect(ctx, authParams); err != nil {
+	if hbCfg, err = s.Connect(ctx, authParams); err != nil {
 		logging.Errorf(logHead+"Connect err=%v,params=%+v", err, authParams)
 		return
 	}
@@ -327,22 +329,25 @@ func (s *TcpServer) SetTimerHandshake(logHead string, ch *channel.Channel) {
 }
 
 // SetTimerHeartbeat set timer: for heartbeat
-func (s *TcpServer) SetTimerHeartbeat(ctx context.Context, logHead string, ch *channel.Channel, timerExpire time.Duration, bucket *Bucket) {
-	logHead += "SetTimerHeartbeat|"
+func (s *TcpServer) SetTimerHeartbeat(ctx context.Context, logHead string, ch *channel.Channel, hbCfg *pb.HbCfg, bucket *Bucket) {
+	logHead += fmt.Sprintf("SetTimerHeartbeat,hbCfg=%+v|", hbCfg)
+	hbInterval := time.Duration(hbCfg.Interval) * time.Second
+	hbExpire := hbInterval * time.Duration(hbCfg.FailCount)
 
-	if timerExpire.Seconds() == 0 {
+	if hbExpire.Seconds() == 0 {
 		logging.Errorf(logHead + "hbDuration not allow")
 		return
 	}
 
 	ch.TimerPool.Del(ch.Trd)
-	ch.Trd = ch.TimerPool.Add(timerExpire, func() {
+	ch.Trd = ch.TimerPool.Add(hbExpire, func() {
+		logging.Errorf(logHead + "trigger timer(hbExpire)")
 		s.cleanAfterFn(ctx, logHead, channel.CleanPath2, ch, bucket)
 	})
 	ch.LastHb = time.Now()
-	ch.HbExpire = timerExpire
-	ch.HbLeaseDuration = s.RandHeartbeatTime()
-	logging.Infof(logHead+"timer set success,params(LastHb=%v,HbExpire=%v,HbLease=%v)", ch.LastHb, ch.HbExpire, ch.HbLeaseDuration)
+	ch.HbExpire = hbExpire
+	ch.HbInterval = hbInterval
+	logging.Infof(logHead+"timer set success,params(LastHb=%v,HbExpire=%v)", ch.LastHb, ch.HbExpire)
 }
 
 // ResetTimerHeartbeat reset timer: for heartbeat

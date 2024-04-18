@@ -51,7 +51,12 @@ message ConnectReq {
 }
 
 message ConnectReply {
-  int64 heartbeat = 1;
+  HbCfg hb_cfg = 1;
+}
+
+message HbCfg {
+  int64 interval = 1;   // 心跳间隔(s)
+  int64 fail_count = 2; // 心跳失败次数
 }
 
 // 断开TCP连接，删除映射关系
@@ -68,6 +73,7 @@ message HeartbeatReq {
 }
 
 message HeartbeatReply {
+  bool has = 1;
 }
 
 message OnlineReq {
@@ -88,7 +94,7 @@ message ReceiveReply {
 }
 
 message NodesReq {
-  string platform = 1;
+  Platform platform = 1;
   string clientIP = 2;
 }
 
@@ -97,17 +103,16 @@ message NodesReply {
   int32 tcp_port = 2;
   int32 ws_port = 3;
   int32 wss_port = 4;
-  int32 heartbeat = 5;
+  HbCfg hb_cfg = 5;
   repeated string nodes = 6;
   Backoff backoff = 7;
-  int32 heartbeat_max = 8;
 }
 
 message Backoff {
-  int32  max_delay = 1;
-  int32  base_delay = 2;
-  float  factor = 3;
-  float  jitter = 4;
+  int32  base_delay = 1;
+  float  multiplier = 2;
+  float  jitter = 3;
+  int32  max_delay = 4;
 }
 
 // 平台

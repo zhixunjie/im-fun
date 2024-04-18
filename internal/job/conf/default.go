@@ -7,15 +7,17 @@ import (
 
 func defaultConfig() *Config {
 	return &Config{
-		Debug: false,
-		Discovery: &Discovery{
-			Addr: "127.0.0.1:7171",
+		Debug:     false,
+		Name:      "job",
+		Discovery: &Discovery{},
+		Kafka:     DefaultKafka(),
+		CometInvoker: &CometInvoker{
+			RoutineNum:     32,
+			ChanBufferSize: 1024,
 		},
-		Kafka:        DefaultKafka(),
-		CometInvoker: &CometInvoker{RoutineNum: 32, ChanBufferSize: 1024},
 		Room: &Room{
 			Batch:    20,
-			Duration: newtime.Duration(time.Millisecond * 500),
+			Interval: newtime.Duration(time.Millisecond * 500),
 		},
 	}
 }

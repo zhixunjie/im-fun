@@ -7,6 +7,7 @@ import (
 
 func defaultConfig() *Config {
 	return &Config{
+		Name:  "logic",
 		Debug: false,
 		Discovery: &Discovery{
 			Addr: "127.0.0.1:7171",

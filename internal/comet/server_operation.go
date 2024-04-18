@@ -26,7 +26,7 @@ func (s *TcpServer) OpFromClient(ctx context.Context, logHead string, proto *pro
 		s.ResetTimerHeartbeat(ctx, logHead, ch)
 		// rpc: lease
 		// 节流: 即使客户端上报心跳过来，也不一定要调用RPC接口进行续约
-		if now := time.Now(); now.Sub(ch.LastHb) > ch.HbLeaseDuration {
+		if now := time.Now(); now.Sub(ch.LastHb) > ch.HbInterval {
 			tErr := s.Heartbeat(ctx, ch.UserInfo)
 			if tErr != nil {
 				logging.Errorf(logHead+"Heartbeat lease fail,err=%v", tErr)
@@ -58,7 +58,7 @@ func (s *TcpServer) OpFromClient(ctx context.Context, logHead string, proto *pro
 	return
 }
 
-func (s *TcpServer) Connect(ctx context.Context, params *channel.AuthParams) (heartbeat time.Duration, err error) {
+func (s *TcpServer) Connect(ctx context.Context, params *channel.AuthParams) (hbCfg *pb.HbCfg, err error) {
 	userInfo := params.UserInfo
 	reply, err := s.rpcToLogic.Connect(ctx, &pb.ConnectReq{
 		Comm: &pb.ConnectCommon{
@@ -71,10 +71,11 @@ func (s *TcpServer) Connect(ctx context.Context, params *channel.AuthParams) (he
 		Platform: userInfo.Platform,
 	})
 	if err != nil {
+		logging.Errorf("RPC Connect,err=%v", err)
 		return
 	}
-	heartbeat = time.Duration(reply.Heartbeat)
-	logging.Infof("RPC Connect,err=%v", err)
+	logging.Infof("RPC Connect success")
+	hbCfg = reply.HbCfg
 
 	return
 }
@@ -87,7 +88,11 @@ func (s *TcpServer) Disconnect(ctx context.Context, ch *channel.Channel) (err er
 			TcpSessionId: ch.UserInfo.TcpSessionId.ToString(),
 		},
 	})
-	logging.Infof("RPC Disconnect,err=%v", err)
+	if err != nil {
+		logging.Errorf("RPC Disconnect,err=%v", err)
+		return
+	}
+	logging.Infof("RPC Disconnect success")
 
 	return
 }
@@ -100,7 +105,11 @@ func (s *TcpServer) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (
 			TcpSessionId: userInfo.TcpSessionId.ToString(),
 		},
 	})
-	logging.Infof("RPC Heartbeat,err=%v", err)
+	if err != nil {
+		logging.Errorf("RPC Heartbeat,err=%v", err)
+		return
+	}
+	logging.Infof("RPC Heartbeat success")
 	return
 }
 
@@ -118,7 +127,10 @@ func (s *TcpServer) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (
 
 // Receive receive a message.
 func (s *TcpServer) Receive(ctx context.Context, ch *channel.Channel, p *protocol.Proto) (err error) {
-	_, err = s.rpcToLogic.Receive(ctx, &pb.ReceiveReq{UserId: ch.UserInfo.TcpSessionId.UserId, Proto: p})
+	_, err = s.rpcToLogic.Receive(ctx, &pb.ReceiveReq{
+		UserId: ch.UserInfo.TcpSessionId.UserId,
+		Proto:  p,
+	})
 	logging.Infof("RPC Receive,err=%v", err)
 
 	return

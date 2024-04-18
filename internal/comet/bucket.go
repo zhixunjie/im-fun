@@ -140,7 +140,7 @@ func (b *Bucket) Put(ch *channel.Channel) (err error) {
 
 // DelChannel 删除一个用户的Channel
 func (b *Bucket) DelChannel(currCh *channel.Channel) {
-	logging.Infof("traceId=%v] DelChannel|", currCh.TraceId)
+	logging.Infof("[traceId=%v] DelChannel|", currCh.TraceId)
 	userInfo := currCh.UserInfo
 	tcpSessionId := userInfo.TcpSessionId
 

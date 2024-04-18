@@ -21,7 +21,6 @@ type server struct {
 var _ pb.LogicServer = &server{}
 
 func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (reply *pb.ConnectReply, err error) {
-	reply = new(pb.ConnectReply)
 	defer func() {
 		if err != nil {
 			logging.Errorf("err=%v,req=%+v", err, req)
@@ -42,45 +41,40 @@ func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (reply *pb.Con
 	}
 
 	// invoke svc
-	hb, err := s.bz.Connect(ctx, req)
+	reply, err = s.bz.Connect(ctx, req)
 	if err != nil {
 		return
 	}
-	reply.Heartbeat = hb
 
 	return
 }
 
 func (s *server) Disconnect(ctx context.Context, req *pb.DisconnectReq) (reply *pb.DisconnectReply, err error) {
-	reply = new(pb.DisconnectReply)
-
 	// invoke svc
-	has, err := s.bz.Disconnect(ctx, req)
+	reply, err = s.bz.Disconnect(ctx, req)
 	if err != nil {
 		return
 	}
-	reply.Has = has
 
 	return
 }
 
 func (s *server) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (reply *pb.HeartbeatReply, err error) {
-	reply = new(pb.HeartbeatReply)
+	// invoke svc
+	reply, err = s.bz.Heartbeat(ctx, req)
+	if err != nil {
+		return
+	}
 
-	//if err := s.svc.Heartbeat(ctx, req.Mid, req.Key, req.Server); err != nil {
-	//	return &pb.HeartbeatReply{}, err
-	//}
 	return
 }
 
 func (s *server) RenewOnline(ctx context.Context, req *pb.OnlineReq) (reply *pb.OnlineReply, err error) {
-	reply = new(pb.OnlineReply)
-
-	allRoomCount, err := s.bz.RenewOnline(ctx, req.ServerId, req.RoomCount)
+	// invoke svc
+	reply, err = s.bz.RenewOnline(ctx, req.ServerId, req.RoomCount)
 	if err != nil {
 		return
 	}
-	reply.AllRoomCount = allRoomCount
 
 	return
 }
@@ -97,6 +91,11 @@ func (s *server) Receive(ctx context.Context, req *pb.ReceiveReq) (reply *pb.Rec
 func (s *server) Nodes(ctx context.Context, req *pb.NodesReq) (reply *pb.NodesReply, err error) {
 	reply = new(pb.NodesReply)
 
+	// invoke svc
+	reply, err = s.bz.Nodes(ctx, req)
+	if err != nil {
+		return
+	}
 	//return s.svc.NodesWeighted(ctx, req.Platform, req.ClientIP), nil
 	return
 }

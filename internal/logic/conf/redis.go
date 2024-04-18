@@ -23,5 +23,5 @@ type Redis struct {
 	ReadTimeout  newtime.Duration `yaml:"readTimeout"`
 	WriteTimeout newtime.Duration `yaml:"writeTimeout"`
 	IdleTimeout  newtime.Duration `yaml:"idleTimeout"`
-	Expire       newtime.Duration `yaml:"expire"`
+	KeyExpire    newtime.Duration `yaml:"keyExpire"`
 }

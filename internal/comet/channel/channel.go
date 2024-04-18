@@ -52,12 +52,12 @@ func NewChannel(conf *conf.Config, conn *net.TCPConn, traceId int64, connType Co
 			TimerPool:  timerPool,
 			Trd:        nil,
 		},
-		signal:   make(chan *protocol.Proto, conf.Protocol.ProtoChannelSize),
+		signal:   make(chan *protocol.Proto, conf.Protocol.Proto.ChannelSize),
 		UserInfo: new(UserInfo),
 	}
 
 	// set ProtoAllocator
-	ch.ProtoAllocator.Init(uint64(conf.Protocol.ProtoAllocatorSize))
+	ch.ProtoAllocator.Init(uint64(conf.Protocol.Proto.AllocatorSize))
 
 	// set user ip
 	ch.UserInfo.IP, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
@@ -187,7 +187,7 @@ type ConnComponent struct {
 	Trd *newtimer.TimerData
 
 	// 心跳相关
-	LastHb          time.Time     // 上一次接收到心跳的时间
-	HbExpire        time.Duration // 心跳超时的时间
-	HbLeaseDuration time.Duration // 心跳续约频率
+	LastHb     time.Time     // 上一次接收到心跳的时间
+	HbExpire   time.Duration // 心跳超时的时间
+	HbInterval time.Duration // 心跳续约频率
 }

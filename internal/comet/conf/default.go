@@ -9,6 +9,37 @@ import (
 	"time"
 )
 
+func defaultConfig() *Config {
+	val := &Config{
+		Env:       DefaultEnv(),
+		Name:      "comet",
+		Debug:     false,
+		Discovery: &Discovery{},
+		RPC:       DefaultRPC(),
+		Connect:   DefaultConnect(),
+		Protocol: &Protocol{
+			TimerPool: &TimerPool{
+				HashNum:        32,
+				InitSizeInPool: 2048,
+			},
+			Proto: &Proto{
+				ChannelSize:   64,
+				AllocatorSize: 64,
+			},
+			HandshakeTimeout: newtime.Duration(time.Second * 5),
+		},
+		Bucket: &Bucket{
+			HashNum:            32,
+			InitSizeChannelMap: 1024,
+			InitSizeRoomMap:    1024,
+			RoutineAmount:      32,
+			RoutineChannelSize: 1024,
+		},
+	}
+
+	return val
+}
+
 func DefaultEnv() *Env {
 	defHost, _ := os.Hostname()
 	defWeight, _ := strconv.ParseInt(os.Getenv("WEIGHT"), 10, 32)

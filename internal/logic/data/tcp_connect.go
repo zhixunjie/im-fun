@@ -28,10 +28,9 @@ func keyServerOnline(key string) string {
 }
 
 // SessionBinding KEY绑定
-func (d *Data) SessionBinding(ctx context.Context, logHead string, rr *pb.ConnectCommon) (err error) {
-	logHead += "SessionBinding|"
+func (d *Data) SessionBinding(ctx context.Context, logHead string, rr *pb.ConnectCommon, expire time.Duration) (err error) {
+	logHead += fmt.Sprintf("SessionBinding,expire=%v|", expire)
 	mem := d.RedisClient
-	expire := KeyExpire * time.Second
 	serverId := rr.ServerId
 	userId := rr.UserId
 	tcpSessionId := rr.TcpSessionId
@@ -94,26 +93,27 @@ func (d *Data) SessionDel(ctx context.Context, logHead string, rr *pb.ConnectCom
 }
 
 // SessionLease KEY续约
-func (d *Data) SessionLease(ctx context.Context, logHead string, rr *pb.ConnectCommon) (has bool, err error) {
+func (d *Data) SessionLease(ctx context.Context, logHead string, rr *pb.ConnectCommon, expire time.Duration) (has bool, err error) {
 	logHead += "SessionLease|"
 
 	mem := d.RedisClient
-	expire := KeyExpire * time.Second
 	//serverId := rr.ServerId
 	userId := rr.UserId
 	tcpSessionId := rr.TcpSessionId
 
-	// expire 1
+	// expire 1（续约 Hash KEY）
 	key := keyHashUserId(userId)
-	if err = mem.Expire(ctx, key, expire).Err(); err != nil {
+	has, err = mem.Expire(ctx, key, expire).Result()
+	if err != nil {
 		logging.Errorf(logHead+"Expire(1) error=%v,key=%v", err, key)
 		return
 	}
 	logging.Infof(logHead+"Expire(1) success,key=%v", key)
 
-	// expire 2
+	// expire 2（续约 String KEY）
 	key = keyStringTcpSessionId(tcpSessionId)
-	if err = mem.Expire(ctx, key, expire).Err(); err != nil {
+	has, err = mem.Expire(ctx, key, expire).Result()
+	if err != nil {
 		logging.Errorf(logHead+"Expire(2) error=%v,key=%v", err, key)
 		return
 	}

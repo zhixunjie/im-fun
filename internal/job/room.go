@@ -31,7 +31,7 @@ func NewRoom(b *Job, roomId string) (r *RoomJob) {
 		job:     b,
 		protoCh: make(chan *protocol.Proto, c.Batch*2),
 	}
-	go r.receiveFromCh(c.Batch, time.Duration(c.Duration))
+	go r.receiveFromCh(c.Batch, time.Duration(c.Interval))
 	return
 }
 
@@ -60,8 +60,8 @@ func (r *RoomJob) SendToCh(msg []byte) error {
 func (r *RoomJob) receiveFromCh(accumulate int, interval time.Duration) {
 	logHead := fmt.Sprintf("receiveFromCh|roowId=%v,", r.roomId)
 
-	duration := interval * 100
-	timer := time.NewTicker(duration)
+	timerDuration := interval * 100
+	timer := time.NewTimer(timerDuration)
 	defer timer.Stop()
 
 	var writer = bytes.NewWriterSize(int(protocol.MaxBodySize))
@@ -82,10 +82,11 @@ func (r *RoomJob) receiveFromCh(accumulate int, interval time.Duration) {
 		counter = 0
 		writer.Reset()
 		last = time.Now()
-		timer.Reset(duration)
+		timer.Reset(timerDuration)
 	}
 
-	logging.Infof(logHead + "create room")
+	// 事件循环：有三种不同的策略
+	logging.Infof(logHead + "start room's loop")
 	for {
 		select {
 		case proto = <-r.protoCh:
@@ -105,7 +106,7 @@ func (r *RoomJob) receiveFromCh(accumulate int, interval time.Duration) {
 					}
 				}
 			}
-		// 策略3：如果很久没有收到消息，那么就删除房间（释放内存）
+		// 策略3：如果一个房间很久没有收到消息，那么就删除房间（释放内存）
 		case <-timer.C:
 			goto end
 		}

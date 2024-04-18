@@ -14,6 +14,7 @@ func LogHeadByConnType(connType ConnType) string {
 	return "TCP|"
 }
 
+// CleanPath 清理路径
 type CleanPath int
 
 const (
