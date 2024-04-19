@@ -14,7 +14,7 @@ var (
 	keyGUID = []byte("258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
 	// ErrBadRequestMethod bad request method
 	ErrBadRequestMethod = errors.New("bad method")
-	// ErrNotWebSocket not websocket protocal
+	// ErrNotWebSocket not websocket protocol
 	ErrNotWebSocket = errors.New("not websocket protocol")
 	// ErrBadWebSocketVersion bad websocket version
 	ErrBadWebSocketVersion = errors.New("missing or bad WebSocket Version")

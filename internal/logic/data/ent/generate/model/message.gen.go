@@ -18,8 +18,8 @@ type Message struct {
 	MsgType       uint32    `gorm:"column:msg_type;not null;comment:消息类型" json:"msg_type"`                                    // 消息类型
 	Content       string    `gorm:"column:content;not null;comment:消息内容，json格式" json:"content"`                               // 消息内容，json格式
 	SessionID     string    `gorm:"column:session_id;not null;comment:会话id" json:"session_id"`                                // 会话id
-	SenderID      uint64    `gorm:"column:sender_id;not null;comment:私信发送者id" json:"sender_id"`                               // 私信发送者id
-	SenderType    uint32    `gorm:"column:sender_type;not null;comment:私信发送者的用户类型" json:"sender_type"`                        // 私信发送者的用户类型
+	SenderID      uint64    `gorm:"column:sender_id;not null;comment:消息发送者id" json:"sender_id"`                               // 消息发送者id
+	SenderType    uint32    `gorm:"column:sender_type;not null;comment:消息发送者的用户类型" json:"sender_type"`                        // 消息发送者的用户类型
 	VersionID     uint64    `gorm:"column:version_id;not null;comment:版本id（用于拉取消息）" json:"version_id"`                        // 版本id（用于拉取消息）
 	SortKey       uint64    `gorm:"column:sort_key;not null;comment:消息展示顺序（按顺序展示消息）" json:"sort_key"`                         // 消息展示顺序（按顺序展示消息）
 	Status        uint32    `gorm:"column:status;not null;comment:消息状态" json:"status"`                                        // 消息状态

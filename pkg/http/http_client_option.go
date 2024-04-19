@@ -100,7 +100,8 @@ func NewClient(optionFunc ...Option) *Client {
 	return client
 }
 
-/**
+/*
+*
 参数调研：
 http.Client、http.Transport的具体研究
 - https://duyanghao.github.io/http-transport/
@@ -108,8 +109,8 @@ http.Client、http.Transport的具体研究
 
 q1: Transport.IdleConnTimeout与net.Dialer.KeepAlive有什么关系，哪一个是所谓的HTTP keep-alives？？？
 q2: 实际使用时，配置Deadline后，HTTP请求一段时间后会报错：dial timeout？
-	- 因为Deadline是一个绝对时间，如果在声明http.Client时，指定了一个绝对时间的Deadline。
-	- 当到达Deadline时间后，从Deadline时间点开始，所有创建的新连接都会返回dial timeout的错误（根本就dial不了了）。
+  - 因为Deadline是一个绝对时间，如果在声明http.Client时，指定了一个绝对时间的Deadline。
+  - 当到达Deadline时间后，从Deadline时间点开始，所有创建的新连接都会返回dial timeout的错误（根本就dial不了了）。
 */
 func newClient() *Client {
 	client := new(Client)

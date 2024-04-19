@@ -60,8 +60,8 @@ type message struct {
 	MsgType       field.Uint32 // 消息类型
 	Content       field.String // 消息内容，json格式
 	SessionID     field.String // 会话id
-	SenderID      field.Uint64 // 私信发送者id
-	SenderType    field.Uint32 // 私信发送者的用户类型
+	SenderID      field.Uint64 // 消息发送者id
+	SenderType    field.Uint32 // 消息发送者的用户类型
 	VersionID     field.Uint64 // 版本id（用于拉取消息）
 	SortKey       field.Uint64 // 消息展示顺序（按顺序展示消息）
 	Status        field.Uint32 // 消息状态

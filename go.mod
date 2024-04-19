@@ -1,6 +1,6 @@
 module github.com/zhixunjie/im-fun
 
-go 1.18
+go 1.19
 
 require (
 	github.com/gin-gonic/gin v1.9.0
@@ -15,7 +15,6 @@ require (
 	github.com/Shopify/sarama v1.38.1
 	github.com/felixge/fgprof v0.9.3
 	github.com/go-kratos/kratos/contrib/registry/etcd/v2 v2.0.0-20240401040316-f715eb0bd808
-	github.com/golang/glog v1.1.2
 	github.com/google/uuid v1.4.0
 	github.com/google/wire v0.5.0
 	github.com/gorilla/websocket v1.5.0

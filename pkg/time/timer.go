@@ -4,8 +4,6 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"sync"
 	"time"
-
-	"github.com/golang/glog"
 )
 
 const (
@@ -46,7 +44,6 @@ type Timer struct {
 // can be used. Init is idempotent with respect to the heap invariants
 // and may be called whenever the heap invariants may have been invalidated.
 // Its complexity is O(n) where n = h.Len().
-//
 func NewTimer(num int) (t *Timer) {
 	t = new(Timer)
 	t.init(num)
@@ -199,7 +196,7 @@ func (t *Timer) expire() {
 		if len(t.timers) == 0 {
 			d = infiniteDuration
 			if Debug {
-				glog.Info("timer: no other instance")
+				logging.Info("timer: no other instance")
 			}
 			break
 		}
@@ -212,7 +209,7 @@ func (t *Timer) expire() {
 		t.del(td)
 		t.lock.Unlock()
 		if fn == nil {
-			glog.Warning("expire timer no fn")
+			logging.Warnf("expire timer no fn")
 		} else {
 			if Debug {
 				logging.Infof("timer key: %s, expire: %s, index: %d expired, call fn", td.Key, td.ExpireString(), td.index)
