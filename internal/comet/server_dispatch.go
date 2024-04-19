@@ -2,14 +2,9 @@ package comet
 
 import (
 	"context"
-	"errors"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-)
-
-var (
-	ErrTCPWriteError = errors.New("write err")
 )
 
 // dispatch 处理发送到Channel的Proto（Just like a state machine）

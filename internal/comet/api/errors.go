@@ -25,4 +25,6 @@ var (
 
 	// ErrRPCLogic rpc
 	ErrRPCLogic = errors.New("logic rpc is not available")
+
+	ErrTCPWriteError = errors.New("write err")
 )
