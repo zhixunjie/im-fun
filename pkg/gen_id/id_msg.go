@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"github.com/spf13/cast"
 	"strconv"
 	"time"
 )
@@ -43,6 +44,39 @@ func genMsgId(ctx context.Context, mem *redis.Client, slotId uint64) (msgId uint
 	//msgId = cast.ToUint64(idStr)
 	msgId, _ = strconv.ParseUint(idStr, 10, 64)
 
+	return
+}
+
+// genMsgId1 生成msg_id
+// 如果 msgId 使用int64，可以支持偏移28年。
+// 如果 msgId 使用uint64，可以支持偏移58年。
+func genMsgId1(ctx context.Context, mem *redis.Client, slotId uint64, t time.Time, needType string) (msgId any, err error) {
+	// redis：每秒一个key，在key上执行原子操作+1
+	ts := t.Unix()
+	key := keyMsgId(ts)
+
+	// incr
+	afterIncr, err := incNum(ctx, mem, key, expireMsgKey)
+	if err != nil {
+		return
+	}
+
+	// msg_id的组成部分：[ 10位：相对时间戳 | 6位：自增id | 4位：槽id ]
+	timeOffset := ts - baseTimeStampOffset
+	idStr := fmt.Sprintf("%d%06d%04d", timeOffset, afterIncr%1000000, slotId%10000)
+
+	switch needType {
+	case "uint64":
+		//msgId = cast.ToUint64(idStr) 有bug，相当于cast.ToInt64的效果
+		msgId, _ = strconv.ParseUint(idStr, 10, 64)
+	case "int64":
+		msgId = cast.ToInt64(idStr)
+		msgId, _ = strconv.ParseInt(idStr, 10, 64)
+	case "uint32":
+		msgId = cast.ToUint32(idStr)
+	case "int32":
+		msgId = cast.ToInt32(idStr)
+	}
 	return
 }
 
