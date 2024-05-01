@@ -2,8 +2,8 @@ package generate
 
 import "testing"
 
-func TestGenCode2(t *testing.T) {
-	genCode2()
+func TestGenCode(t *testing.T) {
+	genCode()
 }
 
 func TestGenCreateTable(t *testing.T) {

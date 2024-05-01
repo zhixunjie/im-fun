@@ -40,7 +40,7 @@ func applyTableNames(g *gen.Generator) {
 }
 
 // 封装函数使用：生成query文件和model文件
-func genCode2() {
+func genCode() {
 	// gen.Config: https://gorm.io/zh_CN/gen/dao.html#gen-Config
 	g := gen.NewGenerator(gen.Config{
 		Mode:          gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface, // generate mode
