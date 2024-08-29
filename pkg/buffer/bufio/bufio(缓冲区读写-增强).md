@@ -63,7 +63,10 @@ type Writer struct {
 
 大致跟Reader相同，参照[Writer.WriteByte函数](https://github.com/zhixunjie/im-fun/blob/584f7ec67b1140de3dcabc2bb6a73835421d0b9b/pkg/buffer/bufio/bufio.go#L687)的源码。
 
-- 特点是：写入时，如果发现存放写入内容的缓冲区buf（用户缓冲区）空间不足时，会调用系统调用函数Write，把用户缓冲区的内容刷入（Flush）到内核缓存区后，从而释放buf（用户缓冲区）的内容以满足写入操作。
+- 特点是：
+  - 写入时，如果发现存放写入内容的缓冲区buf（用户缓冲区）空间不足时，会调用系统调用函数Write；
+  - 从而把用户缓冲区的内容刷入（Flush）到内核缓存区后，从而释放 buf（用户缓冲区）的内容以满足写入操作。
+
 
 # 2. 功能加强
 
@@ -84,7 +87,10 @@ func (b *Reader) ReadBytesN(buf []byte) error {
 
 **2、SetFdAndResetBuffer()：**设置**底层IO对象(fd)**，然后设置**底层IO对象**在读写操作（Read/Write系统调用）时用到的用户缓冲区。
 
-- 优化：通过SetFdAndResetBuffer + Buffer Pool，能够在每条TCP链接中重复使用缓冲池子中的内存，从而使得长期运行的程序中大大减少GC的发生。
+- 优化：
+  - 通过SetFdAndResetBuffer + Buffer Pool，能够在每条TCP链接中重复使用缓冲池子中的内存；
+  - 从而使得长期运行的程序中大大减少GC的发生。
+
 - 以下的代码，针对Reader和Writer都实现了SetFdAndResetBuffer操作。
 
 ~~~go
