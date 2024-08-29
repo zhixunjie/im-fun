@@ -1,4 +1,4 @@
-# Buffer Pool
+# 1. Buffer Pool
 
 ~~~shell
 # 关系图
@@ -16,38 +16,102 @@ type Pool struct {
 	batchNum int     // create Buffer continuously
 }
 
-// 一个内存块
+~~~
+
+## 1.1 Buffer
+
+> 代表一段内存块
+
+~~~go
+// Buffer：缓冲区，参考：bytes.Buffer
+// - 每个缓冲区代表一段指定大小的内存
+// - 缓冲区与缓冲区之间，使用链表连接在一起
+
 type Buffer struct {
 	buf  []byte
 	next *Buffer // Point to the next free Buffer
 }
-~~~
 
-具体说明：
+func NewBuffer(size int) *Buffer {
+	return &Buffer{
+		buf:  make([]byte, size),
+		next: nil,
+	}
+}
 
-**1、Pool & Buffer：** 内存池，用于分配内存。
-
-- Pool 负责管理和分配 Buffer（池子里面的一个「内存单元」，就是一个「Buffer对象」）。
-- **Pool 是如何分配内存的？ **  How to allocate memory？
-  - Pool 的本质是通过链表方式把「内存单元」连接在一起。
-  - 每次分配内存时，从链表头部取出一个Buffer对象即可。
-  - 如果发现Buffer Pool内没有Buffer，需要预先分配一大段内存再进行切分（批量创建buffer）。
-    - 相对于golang自带的sync.Pool， 好处就是批量New，而不是一个个去New。
-
----
-
-**2、Pool Hash：**  池子分片，基于「哈希取余」的方式进行池子分配。好处：减少单个池子的 Mutex 冲突。
-
-~~~go
-// 利用Hash算法，均摊池子的请求流量
-type Hash struct {
-	Readers []Pool
-	Writers []Pool
-	options *Options
+func (b *Buffer) Bytes() []byte {
+	return b.buf
 }
 ~~~
 
-# Bufio
+## 1.2 Buffer Pool
+
+> 📚 自己编写的BufferPool；代表一个内存池，负责内存分配；
+>
+> 负责管理和分配 Buffer（池子里面的一个「内存单元」，就是一个「Buffer对象」）。
+
+~~~go
+// Pool：自己编写的BufferPool
+// TODO try sth lock free，like: sync.Pool
+
+type Pool struct {
+	lock     sync.Mutex
+	free     *Buffer // check this detail in batchNew
+	bufSize  int     // each Buffer Size
+	batchNum int     // create Buffer continuously
+}
+~~~
+
+**Buffer Pool 是如何分配内存的？ **  How to allocate memory？
+
+- Pool 的本质是通过链表方式把「内存单元」连接在一起。
+- 每次分配内存时，从链表头部取出一个Buffer对象即可。
+- 如果发现Buffer Pool内没有Buffer，需要预先分配一大段内存再进行切分（批量创建buffer）。
+  - 相对于golang自带的sync.Pool， 好处就是批量New，而不是一个个去New。
+
+---
+
+> 📚 使用Go自带的 sync.Pool 类库，使用方便，但是不像自己编写的Buffer Pool允许精细化管理（使得性能更高！）
+
+~~~go
+// PoolSync：使用sync包编写的BufferPool
+// 优点：代码更加简洁
+// 缺点：分配方式不够高效，发现Buffer不足时，只会一个个去New
+
+// PoolSync
+// A BufferPool based on sync.Pool
+type PoolSync struct {
+	pool sync.Pool
+}
+
+func (p *PoolSync) Init(bufNum, bufSize int) *PoolSync {
+	return &PoolSync{
+		pool: sync.Pool{
+			New: func() interface{} {
+				return NewBuffer(bufSize)
+			},
+		},
+	}
+}
+~~~
+
+## 1.3 Buffer  Pool Hash
+
+> 负责池子分片，基于「哈希取余」的方式进行池子分配。
+>
+> 好处：减少单个池子的 Mutex 冲突。
+
+~~~go
+// 利用Hash算法，均摊池子的请求流量
+
+type Hash struct {
+	options *Options // 选项
+	Readers []Pool   // Reader池子
+	Writers []Pool   // Writer池子
+}
+~~~
+
+# 2. Bufio
 
 > 核心点：减少系统调用次数、减少磁盘操作次数。
 
