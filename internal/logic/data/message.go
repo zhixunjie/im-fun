@@ -44,6 +44,7 @@ func (repo *MessageRepo) TableName(id uint64) (dbName string, tbName string) {
 	// 分表规则：
 	// - 数据库前缀：message_xxx，规则：id 倒数第三位数字就是分库值
 	// - 数据表前缀：message_xxx，规则：id 的最后两位就是分表值
+	// 🔥其实后四位都可以用来取余得到分表数，所有分表数是不止2位的
 	dbName = fmt.Sprintf("messsage_%v", id%1000/100)
 	tbName = fmt.Sprintf("message_%v", id%model.TotalTableMessage)
 

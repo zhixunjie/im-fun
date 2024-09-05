@@ -34,6 +34,7 @@ func (repo *ContactRepo) TableName(ownerId uint64) (dbName string, tbName string
 	// 分表规则：
 	// - 数据库前缀：message_xxx，规则：owner_id 倒数第三位数字就是分库值
 	// - 数据表前缀：contact_xxx，规则：owner_id 的最后两位就是分表值
+	// 🔥其实后四位都可以用来取余得到分表数，所有分表数是不止2位的
 	dbName = fmt.Sprintf("messsage_%v", ownerId%1000/100)
 	tbName = fmt.Sprintf("contact_%v", ownerId%model.TotalTableContact)
 
