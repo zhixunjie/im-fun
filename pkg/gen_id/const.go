@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	RedisPrefix = "m0_"
+	RedisPrefix = "gen_id:"
 )
 
 // msg_id
