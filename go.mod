@@ -2,8 +2,6 @@ module github.com/zhixunjie/im-fun
 
 go 1.21
 
-toolchain go1.23.1
-
 require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-kratos/kratos/v2 v2.7.3
