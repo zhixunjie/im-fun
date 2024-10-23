@@ -12,8 +12,10 @@ const (
 // msg_id
 const (
 	// 计算：相对时间戳
-	baseTimeStampOffset = 1677004307      // 2023-02-22 02:31:47
-	expireMsgKey        = 2 * time.Second // 生成 msg_id 时，redis key的有效期（2秒）
+	baseTimeStampOffset = 1677004307 // 2023-02-22 02:31:47
+	// 生成 msg_id 时，redis key的有效期（5秒）
+	// 需要考虑：时间回退的问题、过期key淘汰
+	expireMsgKey = 5 * time.Second
 )
 
 // version_id
