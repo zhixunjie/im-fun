@@ -42,11 +42,12 @@ func (repo *MessageRepo) TableName(id uint64) (dbName string, tbName string) {
 		return "", "message"
 	}
 	// 分表规则：
-	// - 数据库前缀：message_xxx，规则：id 倒数第三位数字就是分库值
-	// - 数据表前缀：message_xxx，规则：id 的最后两位就是分表值
+	// - 数据库前缀：_xxx，       规则：id 倒数第四位数字就是分库值
+	// - 数据表前缀：message_xxx，规则：id 的最后4位哈希分表
 	// 🔥其实后四位都可以用来取余得到分表数，所有分表数是不止2位的
-	dbName = fmt.Sprintf("messsage_%v", id%1000/100)
-	tbName = fmt.Sprintf("message_%v", id%model.TotalTableMessage)
+	last4bit := id % 1000 // 提取最后4位出来
+	dbName = fmt.Sprintf("messsage_%v", last4bit/100)
+	tbName = fmt.Sprintf("message_%v", last4bit%model.TotalTableMessage)
 
 	return dbName, tbName
 }

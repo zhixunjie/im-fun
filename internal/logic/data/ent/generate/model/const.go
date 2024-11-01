@@ -4,8 +4,8 @@ import "github.com/zhixunjie/im-fun/pkg/gen_id"
 
 const (
 	TotalDb           = 10
-	TotalTableMessage = 100 // message表：分表个数（一共10个数据库，每个数据库100个表）
-	TotalTableContact = 100 // contact表：分表个数（一共10个数据库，每个数据库100个表）
+	TotalTableMessage = 512 // message表：分表个数（一共10个数据库，每个数据库512个表）
+	TotalTableContact = 512 // contact表：分表个数（一共10个数据库，每个数据库512个表）
 )
 
 // BigIntType 各种Id的类型（方便切换为int64、uint64）
