@@ -16,6 +16,7 @@ func InitConfig(path string) (err error) {
 	if err != nil {
 		return
 	}
+	env.InitEnv(Conf.Env, Conf.Name)
 	if !env.IsLocal() && !env.IsTest() && !env.IsProd() {
 		err = errors.New("env is invalid")
 		return

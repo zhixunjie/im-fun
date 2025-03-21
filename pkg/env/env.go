@@ -13,6 +13,12 @@ const (
 	EnvTypeProd  EnvType = "prod"
 )
 
+// InitEnv 注入变量值
+func InitEnv(e EnvType, svc string) {
+	env = e
+	svcName = svc
+}
+
 func IsLocal() bool {
 	return env == EnvTypeLocal
 }
