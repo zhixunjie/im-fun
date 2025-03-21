@@ -151,7 +151,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	peerId := gen_id.NewComponentId(req.PeerId, uint32(req.PeerType))
 	contactInfo, err := b.repoContact.Info(logHead, ownerId, peerId)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = api.ErrContactNotExists
 		}
 		logging.Error(logHead+"repoContact Info,err=%v", err)

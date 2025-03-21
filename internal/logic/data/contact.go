@@ -33,12 +33,10 @@ func (repo *ContactRepo) TableName(ownerId uint64) (dbName string, tbName string
 	}
 
 	// 分表规则：
-	// - 数据库前缀：message_xxx，规则：owner_id 倒数第四位数字就是分库值
+	// - 数据库前缀：message_xxx，规则：owner_id 的最后4位哈希分库
 	// - 数据表前缀：contact_xxx，规则：owner_id 的最后4位哈希分表
-	// 🔥其实后四位都可以用来取余得到分表数，所有分表数是不止2位的
-	last4bit := ownerId % 1000 // 提取最后4位出来
-	dbName = fmt.Sprintf("messsage_%v", last4bit/100)
-	tbName = fmt.Sprintf("contact_%v", last4bit%model.TotalTableContact)
+	dbName = fmt.Sprintf("message_%v", ownerId%gen_id.SlotBit%model.TotalDb)
+	tbName = fmt.Sprintf("contact_%v", ownerId%gen_id.SlotBit%model.TotalTableContact)
 
 	return dbName, tbName
 }
@@ -62,9 +60,6 @@ func (repo *ContactRepo) Info(logHead string, ownerId *gen_id.ComponentId, peerI
 		qModel.PeerType.Eq(peerId.Type()),
 	).Take()
 	if err != nil {
-		if err != gorm.ErrRecordNotFound {
-			logging.Errorf(logHead+"Take err=%v", err)
-		}
 		return
 	}
 	return
