@@ -16,6 +16,8 @@ const (
 	// 生成 msg_id 时，redis key的有效期（5秒）
 	// 需要考虑：时间回退的问题、过期key淘汰
 	expireMsgKey = 5 * time.Second
+
+	SlotBit = 10000
 )
 
 // version_id

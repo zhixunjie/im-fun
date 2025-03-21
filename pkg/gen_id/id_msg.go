@@ -40,7 +40,7 @@ func genMsgId(ctx context.Context, mem *redis.Client, slotId uint64) (msgId uint
 
 	// msg_id的组成部分：[ 10位：相对时间戳 | 6位：自增id | 4位：槽id ]
 	timeOffset := ts - baseTimeStampOffset
-	idStr := fmt.Sprintf("%d%06d%04d", timeOffset, afterIncr%1000000, slotId%10000)
+	idStr := fmt.Sprintf("%d%06d%04d", timeOffset, afterIncr%1000000, slotId%SlotBit)
 	//msgId = cast.ToUint64(idStr)
 	msgId, _ = strconv.ParseUint(idStr, 10, 64)
 
@@ -63,7 +63,7 @@ func genMsgId1(ctx context.Context, mem *redis.Client, slotId uint64, t time.Tim
 
 	// msg_id的组成部分：[ 10位：相对时间戳 | 6位：自增id | 4位：槽id ]
 	timeOffset := ts - baseTimeStampOffset
-	idStr := fmt.Sprintf("%d%06d%04d", timeOffset, afterIncr%1000000, slotId%10000)
+	idStr := fmt.Sprintf("%d%06d%04d", timeOffset, afterIncr%1000000, slotId%SlotBit)
 
 	switch needType {
 	case "uint64":
