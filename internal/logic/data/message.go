@@ -64,7 +64,8 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 
 	// 需要建立索引：session_id、status、version_id
 	switch params.FetchType {
-	case model.FetchTypeBackward: // 拉取历史消息，范围为：（delVersionId, pivotVersionId）
+	// 📚拉取历史消息，范围为：（delVersionId, pivotVersionId）
+	case model.FetchTypeBackward:
 		if pivotVersionId == 0 {
 			pivotVersionId = math.MaxInt64
 		}
@@ -73,7 +74,8 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 			slave.VersionID.Gt(delVersionId),
 			slave.VersionID.Lt(pivotVersionId),
 		).Limit(params.Limit).Order(slave.VersionID.Desc()).Find() // 按照version_id倒序排序
-	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
+	// 📚拉取最新消息，范围为：（pivotVersionId, 正无穷）
+	case model.FetchTypeForward:
 		// 避免：拉取最新消息时拉到已删除消息
 		if pivotVersionId < delVersionId {
 			pivotVersionId = delVersionId

@@ -3,10 +3,8 @@ package data
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/cache"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
-	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/goredis/distrib_lock"
 	k "github.com/zhixunjie/im-fun/pkg/goredis/key"
@@ -52,31 +50,31 @@ func (repo *ContactRepo) Info(logHead string, ownerId *gen_id.ComponentId, peerI
 }
 
 // Edit 插入/更新记录
-func (repo *ContactRepo) Edit(logHead string, tx *query.Query, row *model.Contact) (err error) {
-	logHead += fmt.Sprintf("Edit,row=%v|", row)
-	dbName, tbName := model.ShardingTbNameContact(row.OwnerID)
-	master := repo.Master(dbName).Contact.Table(tbName)
-
-	// insert or update ?
-	if row.ID == 0 {
-		err = master.Create(row)
-		if err != nil {
-			logging.Errorf(logHead+"Create fail,err=%v", err)
-			return
-		}
-		logging.Infof(logHead + "Create success")
-	} else {
-		var res gen.ResultInfo
-		res, err = master.Where(master.ID.Eq(row.ID)).Limit(1).Updates(row)
-		if err != nil {
-			logging.Errorf(logHead+"Updates fail,err=%v", err)
-			return
-		}
-		logging.Infof(logHead+"Updates success,RowsAffected=%v", res.RowsAffected)
-	}
-
-	return
-}
+//func (repo *ContactRepo) Edit(logHead string, tx *query.Query, row *model.Contact) (err error) {
+//	logHead += fmt.Sprintf("Edit,row=%v|", row)
+//	dbName, tbName := model.ShardingTbNameContact(row.OwnerID)
+//	master := repo.Master(dbName).Contact.Table(tbName)
+//
+//	// insert or update ?
+//	if row.ID == 0 {
+//		err = master.Create(row)
+//		if err != nil {
+//			logging.Errorf(logHead+"Create fail,err=%v", err)
+//			return
+//		}
+//		logging.Infof(logHead + "Create success")
+//	} else {
+//		var res gen.ResultInfo
+//		res, err = master.Where(master.ID.Eq(row.ID)).Limit(1).Updates(row)
+//		if err != nil {
+//			logging.Errorf(logHead+"Updates fail,err=%v", err)
+//			return
+//		}
+//		logging.Infof(logHead+"Updates success,RowsAffected=%v", res.RowsAffected)
+//	}
+//
+//	return
+//}
 
 // CreateNotExists 创建会话
 func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildContactParams) (contact *model.Contact, err error) {
