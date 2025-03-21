@@ -20,6 +20,23 @@ mysql:
     userName: "root"
     password: ""
     dbName: "im"
+mysql_cluster:
+  - name: "im"
+    master: "root:@tcp(127.0.0.1:3306)/im?charset=utf8&parseTime=true&loc=Local"
+    slaves: [ "root:@tcp(127.0.0.1:3306)/im?charset=utf8&parseTime=true&loc=Local" ]
+    is_default: true
+  - name: "im_message_0"
+    master: "root:@tcp(127.0.0.1:3306)/im_message_0?charset=utf8&parseTime=true&loc=Local"
+    slaves: [ "root:@tcp(127.0.0.1:3306)/im_message_0?charset=utf8&parseTime=true&loc=Local" ]
+  - name: "im_message_1"
+    master: "root:@tcp(127.0.0.1:3306)/im_message_1?charset=utf8&parseTime=true&loc=Local"
+    slaves: [ "root:@tcp(127.0.0.1:3306)/im_message_1?charset=utf8&parseTime=true&loc=Local" ]
+  - name: "im_message_2"
+    master: "root:@tcp(127.0.0.1:3306)/im_message_2?charset=utf8&parseTime=true&loc=Local"
+    slaves: [ "root:@tcp(127.0.0.1:3306)/im_message_2?charset=utf8&parseTime=true&loc=Local" ]
+  - name: "im_message_3"
+    master: "root:@tcp(127.0.0.1:3306)/im_message_3?charset=utf8&parseTime=true&loc=Local"
+    slaves: [ "root:@tcp(127.0.0.1:3306)/im_message_3?charset=utf8&parseTime=true&loc=Local" ]
 redis:
   - addr: "127.0.0.1:6379"
     active: 60000
@@ -50,8 +67,8 @@ backoff:
   maxDelay: 300
 
 regions:
-  bj: ["北京", "天津", "河北", "山东", "山西", "内蒙古", "辽宁", "吉林", "黑龙江", "甘肃", "宁夏", "新疆"]
-  sh: ["上海", "江苏", "浙江", "安徽", "江西", "湖北", "重庆", "陕西", "青海", "河南", "台湾"]
-  gz: ["广东", "福建", "广西", "海南", "湖南", "四川", "贵州", "云南", "西藏", "香港", "澳门"]
+  bj: [ "北京", "天津", "河北", "山东", "山西", "内蒙古", "辽宁", "吉林", "黑龙江", "甘肃", "宁夏", "新疆" ]
+  sh: [ "上海", "江苏", "浙江", "安徽", "江西", "湖北", "重庆", "陕西", "青海", "河南", "台湾" ]
+  gz: [ "广东", "福建", "广西", "海南", "湖南", "四川", "贵州", "云南", "西藏", "香港", "澳门" ]
 
 

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
-	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"gorm.io/gen"
 	"math"
@@ -20,42 +19,12 @@ func NewMessageRepo(data *Data) *MessageRepo {
 	}
 }
 
-func (repo *MessageRepo) TableNameByContactId(id1, id2 *gen_id.ComponentId) (dbName string, tbName string) {
-	switch {
-	case id1.IsGroup(): // 群聊
-		dbName, tbName = repo.TableName(id1.Id())
-	case id2.IsGroup(): // 群聊
-		dbName, tbName = repo.TableName(id2.Id())
-	default: // 单聊
-		_, largerId := gen_id.Sort(id1, id2)
-		dbName, tbName = repo.TableName(largerId.Id())
-	}
-
-	return
-}
-
-// TableName
-// 因为msgId和largerId的后4位是相同的，所以这里传入msgId或者largerId都可以
-func (repo *MessageRepo) TableName(id uint64) (dbName string, tbName string) {
-	// 临时写死
-	if true {
-		return "", "message"
-	}
-	// 分表规则：
-	// - 数据库前缀：message_xxx，规则：id 的最后4位哈希分库
-	// - 数据表前缀：message_xxx，规则：id 的最后4位哈希分表
-	dbName = fmt.Sprintf("message_%v", id%gen_id.SlotBit%model.TotalDb)
-	tbName = fmt.Sprintf("message_%v", id%gen_id.SlotBit%model.TotalTableMessage)
-
-	return dbName, tbName
-}
-
 func (repo *MessageRepo) Create(logHead string, row *model.Message) (err error) {
 	logHead += "Create|"
-	_, tbName := repo.TableName(row.MsgID)
-	qModel := repo.Db.Message.Table(tbName)
+	dbName, tbName := model.ShardingTbNameMessage(row.MsgID)
+	master := repo.Master(dbName).Message.Table(tbName)
 
-	err = qModel.Create(row)
+	err = master.Create(row)
 	if err != nil {
 		logging.Errorf(logHead+"Create fail err=%v", err)
 		return
@@ -74,10 +43,10 @@ func (repo *MessageRepo) InfoWithCache(msgId uint64) (*model.Message, error) {
 
 // Info 查询某条消息的详情
 func (repo *MessageRepo) Info(msgId uint64) (row *model.Message, err error) {
-	_, tbName := repo.TableName(msgId)
-	qModel := repo.Db.Message.Table(tbName)
+	dbName, tbName := model.ShardingTbNameMessage(msgId)
+	slave := repo.Slave(dbName).Message.Table(tbName)
 
-	row, err = qModel.Where(qModel.MsgID.Eq(msgId)).Take()
+	row, err = slave.Where(slave.MsgID.Eq(msgId)).Take()
 	if err != nil {
 		return
 	}
@@ -86,8 +55,8 @@ func (repo *MessageRepo) Info(msgId uint64) (row *model.Message, err error) {
 
 // RangeList 获取一定范围的消息列表
 func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*model.Message, err error) {
-	_, tbName := repo.TableNameByContactId(params.OwnerId, params.PeerId)
-	qModel := repo.Db.Message.Table(tbName)
+	dbName, tbName := model.ShardingTbNameMessageByComponentId(params.OwnerId, params.PeerId)
+	slave := repo.Slave(dbName).Message.Table(tbName)
 
 	// get id
 	delVersionId := params.LastDelMsgVersionId
@@ -99,20 +68,23 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 		if pivotVersionId == 0 {
 			pivotVersionId = math.MaxInt64
 		}
-		list, err = qModel.Where(
-			qModel.SessionID.Eq(params.SessionId),
-			qModel.VersionID.Gt(delVersionId),
-			qModel.VersionID.Lt(pivotVersionId),
-		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find() // 按照version_id倒序排序
+		list, err = slave.Where(
+			slave.SessionID.Eq(params.SessionId),
+			slave.VersionID.Gt(delVersionId),
+			slave.VersionID.Lt(pivotVersionId),
+		).Limit(params.Limit).Order(slave.VersionID.Desc()).Find() // 按照version_id倒序排序
 	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
 		// 避免：拉取最新消息时拉到已删除消息
 		if pivotVersionId < delVersionId {
 			pivotVersionId = delVersionId
 		}
-		list, err = qModel.Where(
-			qModel.SessionID.Eq(params.SessionId),
-			qModel.VersionID.Gt(pivotVersionId),
-		).Limit(params.Limit).Order(qModel.VersionID).Find() // 按照version_id正序排序
+		list, err = slave.Where(
+			slave.SessionID.Eq(params.SessionId),
+			slave.VersionID.Gt(pivotVersionId),
+		).Limit(params.Limit).Order(slave.VersionID).Find() // 按照version_id正序排序
+	default:
+		err = errors.New("invalid fetchType")
+		return
 	}
 
 	return
@@ -121,8 +93,8 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 // UpdateMsgVerAndStatus 修改某条消息的状态
 func (repo *MessageRepo) UpdateMsgVerAndStatus(logHead string, msgId, versionId model.BigIntType, status model.MsgStatus) (err error) {
 	logHead += fmt.Sprintf("UpdateMsgVerAndStatus,msgId=%v,versionId=%v,status=%v|", msgId, versionId, status)
-	_, tbName := repo.TableName(msgId)
-	qModel := repo.Db.Message.Table(tbName)
+	dbName, tbName := model.ShardingTbNameMessage(msgId)
+	master := repo.Master(dbName).Message.Table(tbName)
 
 	// status
 	srcStatus := uint32(model.MsgStatusNormal)
@@ -130,8 +102,8 @@ func (repo *MessageRepo) UpdateMsgVerAndStatus(logHead string, msgId, versionId 
 
 	// operation
 	var res gen.ResultInfo
-	res, err = qModel.
-		Where(qModel.MsgID.Eq(msgId), qModel.Status.Eq(srcStatus)).Limit(1).
+	res, err = master.
+		Where(master.MsgID.Eq(msgId), master.Status.Eq(srcStatus)).Limit(1).
 		Updates(&model.Message{
 			VersionID: versionId,
 			Status:    dstStatus,

@@ -1,12 +1,62 @@
 package model
 
-import "github.com/zhixunjie/im-fun/pkg/gen_id"
+import (
+	"fmt"
+	"github.com/zhixunjie/im-fun/pkg/env"
+	"github.com/zhixunjie/im-fun/pkg/gen_id"
+)
 
 const (
-	TotalDb           = 10
-	TotalTableMessage = 512 // message表：分表个数（一共10个数据库，每个数据库512个表）
-	TotalTableContact = 512 // contact表：分表个数（一共10个数据库，每个数据库512个表）
+	DbNameMessage = "im_message"
 )
+
+func DBNum() (num uint64) {
+	num = 10
+	if !env.IsProd() {
+		num = 4
+		return
+	}
+	return
+}
+
+func TbNum() (num uint64) {
+	num = 512
+	if !env.IsProd() {
+		num = 4
+		return
+	}
+	return
+}
+
+// ShardingTbNameMessage
+// 因为 msgId 和 largerId 的后4位是相同的，所以这里传入 msgId 或者 largerId 都可以
+func ShardingTbNameMessage(id uint64) (dbName string, tbName string) {
+	dbName = fmt.Sprintf("%v_%v", DbNameMessage, id%gen_id.SlotBit%DBNum())
+	tbName = fmt.Sprintf("%v_%v", TableNameMessage, id%gen_id.SlotBit%TbNum())
+
+	return dbName, tbName
+}
+
+func ShardingTbNameMessageByComponentId(id1, id2 *gen_id.ComponentId) (dbName string, tbName string) {
+	switch {
+	case id1.IsGroup(): // 群聊
+		dbName, tbName = ShardingTbNameMessage(id1.Id())
+	case id2.IsGroup(): // 群聊
+		dbName, tbName = ShardingTbNameMessage(id2.Id())
+	default: // 单聊
+		_, largerId := gen_id.Sort(id1, id2)
+		dbName, tbName = ShardingTbNameMessage(largerId.Id())
+	}
+
+	return
+}
+
+func ShardingTbNameContact(ownerId uint64) (dbName string, tbName string) {
+	dbName = fmt.Sprintf("%v_%v", DbNameMessage, ownerId%gen_id.SlotBit%DBNum())
+	tbName = fmt.Sprintf("%v_%v", TableNameContact, ownerId%gen_id.SlotBit%TbNum())
+
+	return dbName, tbName
+}
 
 // BigIntType 各种Id的类型（方便切换为int64、uint64）
 type BigIntType = uint64

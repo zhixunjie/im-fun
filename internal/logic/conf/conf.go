@@ -2,8 +2,10 @@ package conf
 
 import (
 	"errors"
+	gconf "github.com/zhixunjie/im-fun/pkg/conf"
 	"github.com/zhixunjie/im-fun/pkg/encoding/yaml"
 	"github.com/zhixunjie/im-fun/pkg/env"
+	"github.com/zhixunjie/im-fun/pkg/gomysql"
 	"github.com/zhixunjie/im-fun/pkg/kafka"
 	newtime "github.com/zhixunjie/im-fun/pkg/time"
 )
@@ -25,18 +27,19 @@ func InitConfig(path string) (err error) {
 }
 
 type Config struct {
-	Env        env.EnvType          `yaml:"env"`       // 环境名
-	Name       string               `yaml:"name"`      // 服务名
-	Debug      bool                 `yaml:"debug"`     // 是否开启debug
-	Discovery  *Discovery           `yaml:"discovery"` // etcd的配置
-	RPC        *RPC                 `yaml:"rpc"`       // RPC配置
-	HTTPServer *HTTPServer          `yaml:"http"`      // HTTP配置
-	Kafka      []kafka.ProducerConf `yaml:"kafka"`     // Kafka的配置
-	Redis      []Redis              `yaml:"redis"`     // Redis的配置
-	MySQL      []MySQL              `yaml:"mysql"`     // MySQL的配置
-	Node       *Node                `yaml:"node"`      // 节点配置（客户端获取节点配置，然后根据配置进行TCP连接）
-	Backoff    *Backoff             `yaml:"backoff"`   // GRPC Client用到的配置
-	Regions    map[string][]string  `yaml:"regions"`   // 省份与Region的映射关系
+	Env          env.EnvType            `yaml:"env"`           // 环境名
+	Name         string                 `yaml:"name"`          // 服务名
+	Debug        bool                   `yaml:"debug"`         // 是否开启debug
+	Discovery    *Discovery             `yaml:"discovery"`     // etcd的配置
+	RPC          *RPC                   `yaml:"rpc"`           // RPC配置
+	HTTPServer   *HTTPServer            `yaml:"http"`          // HTTP配置
+	Kafka        []kafka.ProducerConf   `yaml:"kafka"`         // Kafka的配置
+	Redis        []gconf.Redis          `yaml:"redis"`         // Redis的配置
+	MySQL        []gconf.MySQL          `yaml:"mysql"`         // MySQL的配置
+	MySQLCluster []gomysql.MySQLCluster `yaml:"mysql_cluster"` // MySQL的集群配置
+	Node         *Node                  `yaml:"node"`          // 节点配置（客户端获取节点配置，然后根据配置进行TCP连接）
+	Backoff      *Backoff               `yaml:"backoff"`       // GRPC Client用到的配置
+	Regions      map[string][]string    `yaml:"regions"`       // 省份与Region的映射关系
 }
 
 type Discovery struct {

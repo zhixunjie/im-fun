@@ -38,7 +38,7 @@ type Config struct {
 	Database string
 }
 
-func CreatePool(cfg *Config) (*gorm.DB, error) {
+func CreatePool(cfg *Config) (db *gorm.DB, err error) {
 	// set config
 	var config = &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
@@ -47,20 +47,11 @@ func CreatePool(cfg *Config) (*gorm.DB, error) {
 
 	// open connection
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=true&loc=Local", cfg.UserName, cfg.Password, cfg.Addr, cfg.Port, cfg.Database)
-	db, err := gorm.Open(mysql.Open(dsn), config)
+	db, err = gorm.Open(mysql.Open(dsn), config)
 	if err != nil {
 		logging.Error("failed to connect database")
-		return nil, err
+		return
 	}
 
-	return db, nil
+	return
 }
-
-//func CreateSQLiteConn() *gorm.DB {
-//	db, err := gorm.Open(sqlite.Open("test.Db"), &gorm.Config{})
-//	if err != nil {
-//		panic("failed to connect database")
-//	}
-//
-//	return db
-//}

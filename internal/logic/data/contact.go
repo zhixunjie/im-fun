@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/cache"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
@@ -26,21 +27,6 @@ func NewContactRepo(data *Data) *ContactRepo {
 	}
 }
 
-func (repo *ContactRepo) TableName(ownerId uint64) (dbName string, tbName string) {
-	// 临时写死
-	if true {
-		return "", "contact"
-	}
-
-	// 分表规则：
-	// - 数据库前缀：message_xxx，规则：owner_id 的最后4位哈希分库
-	// - 数据表前缀：contact_xxx，规则：owner_id 的最后4位哈希分表
-	dbName = fmt.Sprintf("message_%v", ownerId%gen_id.SlotBit%model.TotalDb)
-	tbName = fmt.Sprintf("contact_%v", ownerId%gen_id.SlotBit%model.TotalTableContact)
-
-	return dbName, tbName
-}
-
 // InfoWithCache 查询某个会话的信息
 func (repo *ContactRepo) InfoWithCache(ownerId *gen_id.ComponentId, peerId *gen_id.ComponentId) (*model.Contact, error) {
 	// todo 先从cache拿，拿不到再从DB拿
@@ -50,14 +36,14 @@ func (repo *ContactRepo) InfoWithCache(ownerId *gen_id.ComponentId, peerId *gen_
 
 // Info 查询某个会话的信息
 func (repo *ContactRepo) Info(logHead string, ownerId *gen_id.ComponentId, peerId *gen_id.ComponentId) (row *model.Contact, err error) {
-	_, tbName := repo.TableName(ownerId.Id())
-	qModel := repo.Db.Contact.Table(tbName)
+	dbName, tbName := model.ShardingTbNameContact(ownerId.Id())
+	slave := repo.Slave(dbName).Contact.Table(tbName)
 
-	row, err = qModel.Where(
-		qModel.OwnerID.Eq(ownerId.Id()),
-		qModel.OwnerType.Eq(ownerId.Type()),
-		qModel.PeerID.Eq(peerId.Id()),
-		qModel.PeerType.Eq(peerId.Type()),
+	row, err = slave.Where(
+		slave.OwnerID.Eq(ownerId.Id()),
+		slave.OwnerType.Eq(ownerId.Type()),
+		slave.PeerID.Eq(peerId.Id()),
+		slave.PeerType.Eq(peerId.Type()),
 	).Take()
 	if err != nil {
 		return
@@ -68,13 +54,12 @@ func (repo *ContactRepo) Info(logHead string, ownerId *gen_id.ComponentId, peerI
 // Edit 插入/更新记录
 func (repo *ContactRepo) Edit(logHead string, tx *query.Query, row *model.Contact) (err error) {
 	logHead += fmt.Sprintf("Edit,row=%v|", row)
-
-	_, tbName := repo.TableName(row.OwnerID)
-	qModel := tx.Contact.Table(tbName)
+	dbName, tbName := model.ShardingTbNameContact(row.OwnerID)
+	master := repo.Master(dbName).Contact.Table(tbName)
 
 	// insert or update ?
 	if row.ID == 0 {
-		err = qModel.Create(row)
+		err = master.Create(row)
 		if err != nil {
 			logging.Errorf(logHead+"Create fail,err=%v", err)
 			return
@@ -82,7 +67,7 @@ func (repo *ContactRepo) Edit(logHead string, tx *query.Query, row *model.Contac
 		logging.Infof(logHead + "Create success")
 	} else {
 		var res gen.ResultInfo
-		res, err = qModel.Where(qModel.ID.Eq(row.ID)).Limit(1).Updates(row)
+		res, err = master.Where(master.ID.Eq(row.ID)).Limit(1).Updates(row)
 		if err != nil {
 			logging.Errorf(logHead+"Updates fail,err=%v", err)
 			return
@@ -96,8 +81,8 @@ func (repo *ContactRepo) Edit(logHead string, tx *query.Query, row *model.Contac
 // CreateNotExists 创建会话
 func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildContactParams) (contact *model.Contact, err error) {
 	logHead += "CreateNotExists|"
-	_, tbName := repo.TableName(params.OwnerId.Id())
-	qModel := repo.Db.Contact.Table(tbName)
+	dbName, tbName := model.ShardingTbNameContact(params.OwnerId.Id())
+	master := repo.Master(dbName).Contact.Table(tbName)
 
 	// query contact
 	contact, err = repo.Info(logHead, params.OwnerId, params.PeerId)
@@ -115,7 +100,7 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 		}
 
 		// save to db
-		err = qModel.Create(contact)
+		err = master.Create(contact)
 		if err != nil {
 			logging.Errorf(logHead+"Create fail,err=%v,contact=%v", err, contact)
 			return
@@ -128,9 +113,9 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 // RangeList 获取一定范围的会话列表
 func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRangeParams) (list []*model.Contact, err error) {
 	logHead += "RangeList|"
+	dbName, tbName := model.ShardingTbNameContact(params.OwnerId.Id())
+	slave := repo.Slave(dbName).Contact.Table(tbName)
 
-	_, tbName := repo.TableName(params.OwnerId.Id())
-	qModel := repo.Db.Contact.Table(tbName)
 	pivotVersionId := params.PivotVersionId
 	ownerId := params.OwnerId
 
@@ -140,15 +125,18 @@ func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRan
 		if pivotVersionId == 0 {
 			pivotVersionId = math.MaxInt64
 		}
-		list, err = qModel.Where(
-			qModel.OwnerID.Eq(ownerId.Id()), qModel.OwnerType.Eq(ownerId.Type()),
-			qModel.VersionID.Lt(pivotVersionId),
-		).Limit(params.Limit).Order(qModel.VersionID.Desc()).Find()
+		list, err = slave.Where(
+			slave.OwnerID.Eq(ownerId.Id()), slave.OwnerType.Eq(ownerId.Type()),
+			slave.VersionID.Lt(pivotVersionId),
+		).Limit(params.Limit).Order(slave.VersionID.Desc()).Find()
 	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
-		list, err = qModel.Where(
-			qModel.OwnerID.Eq(ownerId.Id()), qModel.OwnerType.Eq(ownerId.Type()),
-			qModel.VersionID.Gt(pivotVersionId),
-		).Limit(params.Limit).Order(qModel.VersionID).Find()
+		list, err = slave.Where(
+			slave.OwnerID.Eq(ownerId.Id()), slave.OwnerType.Eq(ownerId.Type()),
+			slave.VersionID.Gt(pivotVersionId),
+		).Limit(params.Limit).Order(slave.VersionID).Find()
+	default:
+		err = errors.New("invalid fetch type")
+		return
 	}
 	if err != nil {
 		logging.Errorf(logHead+"err=%v", err)
@@ -162,8 +150,8 @@ func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRan
 func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, contactId uint64, ownerId *gen_id.ComponentId, lastMsgId uint64, peerAck model.PeerAckStatus) (err error) {
 	logHead += "UpdateLastMsgId|"
 	mem := repo.RedisClient
-	_, tbName := repo.TableName(ownerId.Id())
-	qModel := repo.Db.Contact.Table(tbName)
+	dbName, tbName := model.ShardingTbNameContact(ownerId.Id())
+	master := repo.Master(dbName).Contact.Table(tbName)
 
 	// note: 同一用户的会话timeline的版本变动，需要加锁
 	lockKey := cache.TimelineContactLock.Format(k.M{"contact_id": contactId})
@@ -194,7 +182,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 	}
 
 	// save to db（要求：数据库的最后一条消息id小于当前消息id）
-	res, err := qModel.Where(qModel.ID.Eq(contactId), qModel.LastMsgID.Lt(lastMsgId)).Limit(1).Updates(row)
+	res, err := master.Where(master.ID.Eq(contactId), master.LastMsgID.Lt(lastMsgId)).Limit(1).Updates(row)
 	if err != nil {
 		logging.Errorf(logHead+"Updates fail,err=%v,contact=%v", err, row)
 		return
@@ -206,13 +194,13 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 
 // UpdateLastDelMsg 更新contact的最后一条已删除的消息（清空聊天记录）
 func (repo *ContactRepo) UpdateLastDelMsg(logHead string, lastDelMsgId model.BigIntType, versionId uint64, ownerId *gen_id.ComponentId, peerId *gen_id.ComponentId) (affectedRow int64, err error) {
-	_, tbName := repo.TableName(ownerId.Id())
-	qModel := repo.Db.Contact.Table(tbName)
+	dbName, tbName := model.ShardingTbNameContact(ownerId.Id())
+	master := repo.Master(dbName).Contact.Table(tbName)
 
 	var res gen.ResultInfo
-	res, err = qModel.Where(
-		qModel.OwnerID.Eq(ownerId.Id()), qModel.OwnerType.Eq(ownerId.Type()),
-		qModel.PeerID.Eq(peerId.Id()), qModel.PeerType.Eq(peerId.Type()),
+	res, err = master.Where(
+		master.OwnerID.Eq(ownerId.Id()), master.OwnerType.Eq(ownerId.Type()),
+		master.PeerID.Eq(peerId.Id()), master.PeerType.Eq(peerId.Type()),
 	).Limit(1).Updates(&model.Contact{
 		LastDelMsgID: lastDelMsgId,
 		VersionID:    versionId,

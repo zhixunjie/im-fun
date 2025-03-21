@@ -1,6 +1,7 @@
 package conf
 
 import (
+	gconf "github.com/zhixunjie/im-fun/pkg/conf"
 	"github.com/zhixunjie/im-fun/pkg/env"
 	newtime "github.com/zhixunjie/im-fun/pkg/time"
 	"time"
@@ -21,9 +22,9 @@ func defaultConfig() *Config {
 			ReadTimeout:  newtime.Duration(time.Second),
 			WriteTimeout: newtime.Duration(time.Second),
 		},
-		Kafka: DefaultKafka(),
-		MySQL: DefaultMySQL(),
-		Redis: DefaultRedis(),
+		Kafka: gconf.DefaultKafka(),
+		MySQL: gconf.DefaultMySQL(),
+		Redis: gconf.DefaultRedis(),
 	}
 }
 
