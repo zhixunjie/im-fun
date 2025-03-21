@@ -1,4 +1,5 @@
 ---
+env: "local"
 name: "comet"
 debug: false
 #discovery:
@@ -6,21 +7,21 @@ debug: false
 rpc:
   server:
     network: "tcp"
-    addr: ":13003"
+    addr: ":13002"
     timeout: "1s"
   client:
     dial: "1s"
     timeout: "1s"
 connect:
   tcp:
-    bind: [ ":14003" ]
+    bind: [ ":14002" ]
     sndbuf: 4096
     rcvbuf: 4096
     keepalive: false
   websocket:
-    bind: [ ":15003" ]
+    bind: [ ":15002" ]
     tlsOpen: false
-    tlsBind: [ ":16003" ]
+    tlsBind: [ ":16002" ]
     certFile: "../../cert.pem"
     privateFile: "../../private.pem"
   bufferOptions:

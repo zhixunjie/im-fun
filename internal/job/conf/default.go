@@ -1,14 +1,16 @@
 package conf
 
 import (
+	"github.com/zhixunjie/im-fun/pkg/env"
 	newtime "github.com/zhixunjie/im-fun/pkg/time"
 	"time"
 )
 
 func defaultConfig() *Config {
 	return &Config{
-		Debug:     false,
+		Env:       env.EnvTypeLocal,
 		Name:      "job",
+		Debug:     false,
 		Discovery: &Discovery{},
 		Kafka:     DefaultKafka(),
 		CometInvoker: &CometInvoker{

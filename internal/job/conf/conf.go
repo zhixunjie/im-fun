@@ -1,7 +1,9 @@
 package conf
 
 import (
+	"errors"
 	"github.com/zhixunjie/im-fun/pkg/encoding/yaml"
+	"github.com/zhixunjie/im-fun/pkg/env"
 	"github.com/zhixunjie/im-fun/pkg/kafka"
 	newtime "github.com/zhixunjie/im-fun/pkg/time"
 )
@@ -10,10 +12,20 @@ var Conf *Config
 
 func InitConfig(path string) (err error) {
 	Conf = defaultConfig()
-	return yaml.LoadConfig(path, Conf)
+	err = yaml.LoadConfig(path, Conf)
+	if err != nil {
+		return
+	}
+	if !env.IsLocal() && !env.IsTest() && !env.IsProd() {
+		err = errors.New("env is invalid")
+		return
+	}
+
+	return
 }
 
 type Config struct {
+	Env          env.EnvType               `yaml:"env"`          // 环境名
 	Name         string                    `yaml:"name"`         // 服务名
 	Debug        bool                      `yaml:"debug"`        // 是否开启debug
 	Discovery    *Discovery                `yaml:"discovery"`    // etcd的配置

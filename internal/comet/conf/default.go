@@ -2,6 +2,7 @@ package conf
 
 import (
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
+	"github.com/zhixunjie/im-fun/pkg/env"
 	newtime "github.com/zhixunjie/im-fun/pkg/time"
 	"os"
 	"strconv"
@@ -11,7 +12,8 @@ import (
 
 func defaultConfig() *Config {
 	val := &Config{
-		Env:       DefaultEnv(),
+		//Env:       DefaultEnv(),
+		Env:       env.EnvTypeLocal,
 		Name:      "comet",
 		Debug:     false,
 		Discovery: &Discovery{},

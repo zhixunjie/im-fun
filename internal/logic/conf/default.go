@@ -1,12 +1,14 @@
 package conf
 
 import (
+	"github.com/zhixunjie/im-fun/pkg/env"
 	newtime "github.com/zhixunjie/im-fun/pkg/time"
 	"time"
 )
 
 func defaultConfig() *Config {
 	return &Config{
+		Env:   env.EnvTypeLocal,
 		Name:  "logic",
 		Debug: false,
 		Discovery: &Discovery{
