@@ -25,7 +25,7 @@ func NewContactUseCase(contactRepo *data.ContactRepo, repoMessage *data.MessageR
 
 // Fetch 拉取会话
 func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq) (resp response.ContactFetchRsp, err error) {
-	logHead := fmt.Sprintf("Fetch,req=%v", req)
+	logHead := fmt.Sprintf("Fetch|req=%v", req)
 	limit := 50
 
 	// 会话只会拉取最新的

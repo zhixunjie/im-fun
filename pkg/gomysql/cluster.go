@@ -56,7 +56,7 @@ func InitMysqlCluster(arr []MySQLCluster) (defaultDb *gorm.DB, err error) {
 }
 
 func Master(name string) *gorm.DB {
-	if _, ok := dbMap[name]; !ok {
+	if _, ok := dbMap[name]; ok {
 		return dbMap[name][master]
 	}
 
@@ -64,7 +64,7 @@ func Master(name string) *gorm.DB {
 }
 
 func Slave(name string) *gorm.DB {
-	if _, ok := dbMap[name]; !ok {
+	if _, ok := dbMap[name]; ok {
 		return dbMap[name][slave]
 	}
 

@@ -4,11 +4,13 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/google/wire"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 	"github.com/zhixunjie/im-fun/pkg/gomysql"
 	"github.com/zhixunjie/im-fun/pkg/goredis"
 	"github.com/zhixunjie/im-fun/pkg/kafka"
 	"github.com/zhixunjie/im-fun/pkg/logging"
+	"github.com/zhixunjie/im-fun/pkg/utils"
 	"gorm.io/gorm"
 )
 
@@ -56,12 +58,16 @@ func NewData(c *conf.Config) *Data {
 		// set gorm gen default db
 		query.SetDefault(defaultDb)
 	}
-	return &Data{
+	d := &Data{
 		conf:          c,
 		KafkaProducer: kafkaProducer,
 		RedisClient:   redisClient,
 		MySQLDb:       query.Q,
 	}
+	// create or drop table
+	d.CreateOrDrop()
+
+	return d
 }
 
 func (d *Data) Master(dbName string) *query.Query {
@@ -69,4 +75,15 @@ func (d *Data) Master(dbName string) *query.Query {
 }
 func (d *Data) Slave(dbName string) *query.Query {
 	return query.Use(gomysql.Master(dbName))
+}
+
+func (d *Data) CreateOrDrop() {
+	dbNames := d.conf.MySQLCluster
+	for _, item := range dbNames {
+		if item.IsDefault {
+			continue
+		}
+		utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameMessage, int64(model.DBNum()))
+		utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameContact, int64(model.DBNum()))
+	}
 }

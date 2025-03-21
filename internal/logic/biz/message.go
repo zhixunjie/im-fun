@@ -60,7 +60,7 @@ func (b *MessageUseCase) SendSimpleCustomMessage(ctx context.Context, sender, re
 func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) (rsp response.MessageSendRsp, err error) {
 	senderId := gen_id.NewComponentId(req.SenderId, uint32(req.SenderType))
 	receiverId := gen_id.NewComponentId(req.ReceiverId, uint32(req.ReceiverType))
-	logHead := fmt.Sprintf("Send,senderId=%v,receiverId=%v|", senderId, receiverId)
+	logHead := fmt.Sprintf("Send|senderId=%v,receiverId=%v|", senderId, receiverId)
 
 	// check limit
 	err = b.checkMessageSend(ctx, req)
@@ -142,7 +142,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 
 // Fetch 拉取消息
 func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq) (rsp response.MessageFetchRsp, err error) {
-	logHead := fmt.Sprintf("Fetch,req=%v", req)
+	logHead := fmt.Sprintf("Fetch|req=%v", req)
 	pivotVersionId := req.VersionId
 	limit := 50
 
