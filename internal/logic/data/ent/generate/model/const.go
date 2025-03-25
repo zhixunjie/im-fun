@@ -112,7 +112,7 @@ type FetchType = int32
 const (
 	FetchTypeBackward FetchType = iota // 拉取历史消息
 	FetchTypeForward                   // 拉取最新消息
-	FetchTypeInBg                      // 后台拉消息（不清除未读数(history)）
+	FetchTypeInBg                      // 后台拉消息：不清除未读数(history)
 )
 
 // =========================
