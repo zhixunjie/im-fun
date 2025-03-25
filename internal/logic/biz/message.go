@@ -70,7 +70,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 
 	// 1. create contact if not exists（sender's contact）
 	var senderContact, peerContact *model.Contact
-	if !lo.Contains(req.InvisibleList, req.SenderId) && b.canCreateContact(logHead, senderId) {
+	if !lo.Contains(req.InvisibleList, req.SenderId) && b.needCreateContact(logHead, senderId) {
 		senderContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
 			OwnerId: senderId,
 			PeerId:  receiverId,
@@ -85,7 +85,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	}
 
 	// 2. create contact if not exists（receiver's contact）
-	if !lo.Contains(req.InvisibleList, req.ReceiverId) && b.canCreateContact(logHead, receiverId) {
+	if !lo.Contains(req.InvisibleList, req.ReceiverId) && b.needCreateContact(logHead, receiverId) {
 		peerContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
 			OwnerId: receiverId,
 			PeerId:  senderId,
@@ -140,7 +140,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	return
 }
 
-// Fetch 拉取消息
+// Fetch 拉取消息列表
 func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq) (rsp response.MessageFetchRsp, err error) {
 	logHead := fmt.Sprintf("Fetch|req=%v", req)
 	pivotVersionId := req.VersionId
@@ -412,7 +412,7 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 }
 
 // 双方通信时，判断是否需要创建对方的Contact
-func (b *MessageUseCase) canCreateContact(logHead string, contactId *gen_id.ComponentId) bool {
+func (b *MessageUseCase) needCreateContact(logHead string, contactId *gen_id.ComponentId) bool {
 	logHead += fmt.Sprintf("doNotNeedCreateContact,contactId=%v|", contactId)
 
 	typeArr := []uint32{

@@ -74,7 +74,7 @@ func (d *Data) Master(dbName string) *query.Query {
 	return query.Use(gomysql.Master(dbName))
 }
 func (d *Data) Slave(dbName string) *query.Query {
-	return query.Use(gomysql.Master(dbName))
+	return query.Use(gomysql.Slave(dbName))
 }
 
 func (d *Data) CreateOrDrop() {

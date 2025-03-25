@@ -84,13 +84,13 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 
 	// query contact
 	contact, err = repo.Info(logHead, params.OwnerId, params.PeerId)
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		logging.Errorf(logHead+"Info error=%v", err)
 		return
 	}
 
 	// insert if not exists
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		contact = &model.Contact{
 			OwnerID: params.OwnerId.Id(), OwnerType: params.OwnerId.Type(),
 			PeerID: params.PeerId.Id(), PeerType: params.PeerId.Type(),

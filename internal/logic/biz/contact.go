@@ -23,7 +23,7 @@ func NewContactUseCase(contactRepo *data.ContactRepo, repoMessage *data.MessageR
 	return &ContactUseCase{contactRepo: contactRepo, repoMessage: repoMessage}
 }
 
-// Fetch 拉取会话
+// Fetch 拉取会话列表
 func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq) (resp response.ContactFetchRsp, err error) {
 	logHead := fmt.Sprintf("Fetch|req=%v", req)
 	limit := 50
@@ -37,6 +37,9 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 		Limit:          limit,
 	})
 	if err != nil {
+		return
+	}
+	if len(list) == 0 {
 		return
 	}
 
