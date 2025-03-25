@@ -24,7 +24,7 @@ func (c *ComponentId) Type() ContactIdType {
 }
 
 func (c *ComponentId) IsGroup() bool {
-	typeArr := []ContactIdType{ContactIdTypeGroup}
+	typeArr := []ContactIdType{TypeGroup}
 
 	return lo.Contains(typeArr, c.idType)
 }
@@ -56,20 +56,20 @@ func Sort(a, b *ComponentId) (*ComponentId, *ComponentId) {
 
 // NewUserComponentId 用户ID
 func NewUserComponentId(id uint64) *ComponentId {
-	return NewComponentId(id, ContactIdTypeUser)
+	return NewComponentId(id, TypeUser)
 }
 
 // NewRobotComponentId 机器人ID
 func NewRobotComponentId(id uint64) *ComponentId {
-	return NewComponentId(id, ContactIdTypeRobot)
+	return NewComponentId(id, TypeRobot)
 }
 
 // NewSystemComponentId 系统ID
 func NewSystemComponentId(id uint64) *ComponentId {
-	return NewComponentId(id, ContactIdTypeSystem)
+	return NewComponentId(id, TypeSystem)
 }
 
 // NewGroupComponentId 群组ID
 func NewGroupComponentId(id uint64) *ComponentId {
-	return NewComponentId(id, ContactIdTypeGroup)
+	return NewComponentId(id, TypeGroup)
 }

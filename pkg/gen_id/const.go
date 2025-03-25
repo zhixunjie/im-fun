@@ -47,8 +47,8 @@ func keyMsgGroupVersion(groupUniId string, verIdTimeKey int64) string {
 type ContactIdType uint32
 
 const (
-	ContactIdTypeUser   ContactIdType = 1   // 对方是普通用户
-	ContactIdTypeRobot  ContactIdType = 2   // 对方是机器人
-	ContactIdTypeSystem ContactIdType = 100 // 对方是系统用户
-	ContactIdTypeGroup  ContactIdType = 101 // 对方是群组
+	TypeUser   ContactIdType = 1   // 对方是普通用户
+	TypeRobot  ContactIdType = 2   // 对方是机器人
+	TypeSystem ContactIdType = 100 // 对方是系统用户
+	TypeGroup  ContactIdType = 101 // 对方是群组
 )

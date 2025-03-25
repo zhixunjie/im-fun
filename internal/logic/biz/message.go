@@ -418,8 +418,8 @@ func (b *MessageUseCase) needCreateContact(logHead string, contactId *gen_id.Com
 	logHead += fmt.Sprintf("doNotNeedCreateContact,contactId=%v|", contactId)
 
 	typeArr := []gen_id.ContactIdType{
-		gen_id.ContactIdTypeRobot,
-		gen_id.ContactIdTypeSystem,
+		gen_id.TypeRobot,
+		gen_id.TypeSystem,
 	}
 
 	// 如果用户是指定类型，那么不需要创建他的contact信息（比如：机器人）
@@ -434,15 +434,15 @@ func (b *MessageUseCase) needCreateContact(logHead string, contactId *gen_id.Com
 // 限制：发送者和接受者的类型
 func (b *MessageUseCase) checkMessageSend(ctx context.Context, req *request.MessageSendReq) error {
 	allowSenderType := []gen_id.ContactIdType{
-		gen_id.ContactIdTypeUser,
-		gen_id.ContactIdTypeRobot,
-		gen_id.ContactIdTypeSystem,
+		gen_id.TypeUser,
+		gen_id.TypeRobot,
+		gen_id.TypeSystem,
 	}
 
 	allowReceiverType := []gen_id.ContactIdType{
-		gen_id.ContactIdTypeUser,
-		gen_id.ContactIdTypeRobot,
-		gen_id.ContactIdTypeGroup,
+		gen_id.TypeUser,
+		gen_id.TypeRobot,
+		gen_id.TypeGroup,
 	}
 
 	if !lo.Contains(allowSenderType, req.Sender.Type()) {
