@@ -123,21 +123,21 @@ type FetchMsgRangeParams struct {
 	SessionId                           string
 	LastDelMsgVersionId, PivotVersionId BigIntType // 确定消息的允许获取范围
 	Limit                               int
-	OwnerId, PeerId                     *gen_id.ComponentId
+	Owner, Peer                         *gen_id.ComponentId
 }
 
 // FetchContactRangeParams 拉取会话列表
 type FetchContactRangeParams struct {
 	FetchType      FetchType
-	OwnerId        *gen_id.ComponentId
+	Owner          *gen_id.ComponentId
 	PivotVersionId BigIntType
 	Limit          int
 }
 
 // BuildContactParams 构建参数
 type BuildContactParams struct {
-	OwnerId *gen_id.ComponentId
-	PeerId  *gen_id.ComponentId
+	Owner *gen_id.ComponentId
+	Peer  *gen_id.ComponentId
 }
 
 // UpdateLastMsgId 更新最后一条消息

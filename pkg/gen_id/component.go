@@ -8,7 +8,7 @@ import (
 // ComponentId 组合ID
 type ComponentId struct {
 	id     uint64
-	idType uint32
+	idType ContactIdType
 }
 
 func (c *ComponentId) ToString() string {
@@ -19,12 +19,12 @@ func (c *ComponentId) Id() uint64 {
 	return c.id
 }
 
-func (c *ComponentId) Type() uint32 {
+func (c *ComponentId) Type() ContactIdType {
 	return c.idType
 }
 
 func (c *ComponentId) IsGroup() bool {
-	typeArr := []uint32{uint32(ContactIdTypeGroup)}
+	typeArr := []ContactIdType{ContactIdTypeGroup}
 
 	return lo.Contains(typeArr, c.idType)
 }
@@ -36,7 +36,7 @@ func (c *ComponentId) Equal(b *ComponentId) bool {
 	return false
 }
 
-func NewComponentId(id uint64, idType uint32) *ComponentId {
+func NewComponentId(id uint64, idType ContactIdType) *ComponentId {
 	return &ComponentId{
 		id:     id,
 		idType: idType,
@@ -56,20 +56,20 @@ func Sort(a, b *ComponentId) (*ComponentId, *ComponentId) {
 
 // NewUserComponentId 用户ID
 func NewUserComponentId(id uint64) *ComponentId {
-	return NewComponentId(id, uint32(ContactIdTypeUser))
+	return NewComponentId(id, ContactIdTypeUser)
 }
 
 // NewRobotComponentId 机器人ID
 func NewRobotComponentId(id uint64) *ComponentId {
-	return NewComponentId(id, uint32(ContactIdTypeRobot))
+	return NewComponentId(id, ContactIdTypeRobot)
 }
 
 // NewSystemComponentId 系统ID
 func NewSystemComponentId(id uint64) *ComponentId {
-	return NewComponentId(id, uint32(ContactIdTypeSystem))
+	return NewComponentId(id, ContactIdTypeSystem)
 }
 
 // NewGroupComponentId 群组ID
 func NewGroupComponentId(id uint64) *ComponentId {
-	return NewComponentId(id, uint32(ContactIdTypeGroup))
+	return NewComponentId(id, ContactIdTypeGroup)
 }

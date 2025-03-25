@@ -16,7 +16,7 @@ func (s *Server) MessageSend(ctx *gin.Context) {
 		return
 	}
 
-	if req.SenderId == 0 || req.ReceiverId == 0 {
+	if req.Sender.Id() == 0 || req.Receiver.Id() == 0 {
 		response.JsonError(ctx, errors.New("id not allow"))
 		return
 	}

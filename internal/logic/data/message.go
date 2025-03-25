@@ -55,7 +55,7 @@ func (repo *MessageRepo) Info(msgId uint64) (row *model.Message, err error) {
 
 // RangeList 获取一定范围的消息列表
 func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*model.Message, err error) {
-	dbName, tbName := model.ShardingTbNameMessageByComponentId(params.OwnerId, params.PeerId)
+	dbName, tbName := model.ShardingTbNameMessageByComponentId(params.Owner, params.Peer)
 	slave := repo.Slave(dbName).Message.Table(tbName)
 
 	// get id

@@ -40,11 +40,9 @@ func NewMessageUseCase(repoMessage *data.MessageRepo, repoContact *data.ContactR
 // SendSimpleCustomMessage 简化接口：发送自定义消息
 func (b *MessageUseCase) SendSimpleCustomMessage(ctx context.Context, sender, receiver *gen_id.ComponentId, d string) (rsp response.MessageSendRsp, err error) {
 	return b.Send(ctx, &request.MessageSendReq{
-		SeqId:        uint64(gen_id.SeqId()),
-		SenderId:     sender.Id(),
-		SenderType:   gen_id.ContactIdType(sender.Type()),
-		ReceiverId:   receiver.Id(),
-		ReceiverType: gen_id.ContactIdType(receiver.Type()),
+		SeqId:    uint64(gen_id.SeqId()),
+		Sender:   sender,
+		Receiver: receiver,
 		MsgBody: format.MsgBody{
 			MsgType: format.MsgTypeCustom,
 			MsgContent: &format.MsgContent{
@@ -58,9 +56,9 @@ func (b *MessageUseCase) SendSimpleCustomMessage(ctx context.Context, sender, re
 
 // Send 发送消息
 func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) (rsp response.MessageSendRsp, err error) {
-	senderId := gen_id.NewComponentId(req.SenderId, uint32(req.SenderType))
-	receiverId := gen_id.NewComponentId(req.ReceiverId, uint32(req.ReceiverType))
-	logHead := fmt.Sprintf("Send|senderId=%v,receiverId=%v|", senderId, receiverId)
+	sender := req.Sender
+	receiver := req.Receiver
+	logHead := fmt.Sprintf("Send|sender=%v,receiver=%v|", sender, receiver)
 
 	// check limit
 	err = b.checkMessageSend(ctx, req)
@@ -70,52 +68,56 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 
 	// 1. create contact if not exists（sender's contact）
 	var senderContact, peerContact *model.Contact
-	if !lo.Contains(req.InvisibleList, req.SenderId) && b.needCreateContact(logHead, senderId) {
-		senderContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
-			OwnerId: senderId,
-			PeerId:  receiverId,
-		})
-		if err != nil {
-			return
+	if b.needCreateContact(logHead, sender) {
+		if !lo.Contains(req.InvisibleList, req.Sender.Id()) {
+			senderContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
+				Owner: sender,
+				Peer:  receiver,
+			})
+			if err != nil {
+				return
+			}
 		}
 	}
 	var needIncrUnreadCount bool
-	if !lo.Contains(req.InvisibleList, req.ReceiverId) {
+	if !lo.Contains(req.InvisibleList, req.Receiver.Id()) {
 		needIncrUnreadCount = true
 	}
 
 	// 2. create contact if not exists（receiver's contact）
-	if !lo.Contains(req.InvisibleList, req.ReceiverId) && b.needCreateContact(logHead, receiverId) {
-		peerContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
-			OwnerId: receiverId,
-			PeerId:  senderId,
-		})
-		if err != nil {
-			return
+	if b.needCreateContact(logHead, receiver) {
+		if !lo.Contains(req.InvisibleList, req.Receiver.Id()) {
+			peerContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
+				Owner: receiver,
+				Peer:  sender,
+			})
+			if err != nil {
+				return
+			}
 		}
 	}
 
 	// 3. build && create message（无扩散）
-	msg, err := b.build(ctx, logHead, req, senderId, receiverId)
+	msg, err := b.build(ctx, logHead, req, sender, receiver)
 	if err != nil {
 		return
 	}
 	currMsgId := msg.MsgID
 	// 增加未读数（先save db，再incr cache，保证尽快执行）
 	if needIncrUnreadCount {
-		_ = b.repoMessage.IncrUnreadAfterSend(ctx, logHead, receiverId, senderId, 1)
+		_ = b.repoMessage.IncrUnreadAfterSend(ctx, logHead, receiver, sender, 1)
 	}
 
 	// 4. update contact's info（写扩散）
 	routine.Go(ctx, func() {
 		if senderContact != nil {
-			err = b.repoContact.UpdateLastMsgId(ctx, logHead, senderContact.ID, senderId, currMsgId, model.PeerNotAck)
+			err = b.repoContact.UpdateLastMsgId(ctx, logHead, senderContact.ID, sender, currMsgId, model.PeerNotAck)
 			if err != nil {
 				return
 			}
 		}
 		if peerContact != nil {
-			err = b.repoContact.UpdateLastMsgId(ctx, logHead, peerContact.ID, receiverId, currMsgId, model.PeerAcked)
+			err = b.repoContact.UpdateLastMsgId(ctx, logHead, peerContact.ID, receiver, currMsgId, model.PeerAcked)
 			if err != nil {
 				return
 			}
@@ -147,9 +149,9 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	limit := 50
 
 	// get: contact info
-	ownerId := gen_id.NewComponentId(req.OwnerId, uint32(req.OwnerType))
-	peerId := gen_id.NewComponentId(req.PeerId, uint32(req.PeerType))
-	contactInfo, err := b.repoContact.Info(logHead, ownerId, peerId)
+	owner := req.Owner
+	peer := req.Peer
+	contactInfo, err := b.repoContact.Info(logHead, owner, peer)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = api.ErrContactNotExists
@@ -170,15 +172,15 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	}
 
 	// get: message list
-	sessionId := gen_id.SessionId(ownerId, peerId)
+	sessionId := gen_id.SessionId(owner, peer)
 	list, err := b.repoMessage.RangeList(&model.FetchMsgRangeParams{
 		FetchType:           req.FetchType,
 		SessionId:           sessionId,
 		LastDelMsgVersionId: lastDelMsgVersionId,
 		PivotVersionId:      pivotVersionId,
 		Limit:               limit,
-		OwnerId:             ownerId,
-		PeerId:              peerId,
+		Owner:               owner,
+		Peer:                peer,
 	})
 	if err != nil {
 		return
@@ -200,7 +202,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 				continue
 			}
 
-			if lo.Contains(tmpList, req.OwnerId) {
+			if lo.Contains(tmpList, req.Owner.Id()) {
 				continue
 			}
 		}
@@ -237,7 +239,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 
 	// 异步协程：减少未读数（先read db，再decr cache）
 	routine.Go(ctx, func() {
-		_ = b.repoMessage.DecrUnreadAfterFetch(ctx, logHead, ownerId, peerId, int64(len(retList)))
+		_ = b.repoMessage.DecrUnreadAfterFetch(ctx, logHead, owner, peer, int64(len(retList)))
 	})
 
 	// sort: 返回之前进行重新排序
@@ -252,11 +254,11 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	return
 }
 
-// OpWithdraw 某条消息撤回（两边的聊天记录都需要撤回）
+// Recall 某条消息撤回（两边的聊天记录都需要撤回）
 // 核心：更新status和version_id（需要通知对方，所以需要更新version_id）
-func (b *MessageUseCase) OpWithdraw(ctx context.Context, req *request.MessageWithdrawReq) (rsp response.MessageWithdrawRsp, err error) {
-	logHead := "OpWithdraw|"
-	senderId := gen_id.NewComponentId(req.SenderId, uint32(req.SenderType))
+func (b *MessageUseCase) Recall(ctx context.Context, req *request.MessageRecallReq) (rsp response.MessageWithdrawRsp, err error) {
+	logHead := "Recall|"
+	senderId := req.Sender
 
 	// invoke common method
 	err = b.updateMsgIdStatus(ctx, logHead, req.MsgId, model.MsgStatusWithdraw, senderId)
@@ -266,11 +268,11 @@ func (b *MessageUseCase) OpWithdraw(ctx context.Context, req *request.MessageWit
 	return
 }
 
-// OpDelBothSide 某条消息删除（两边的聊天记录都需要删除）
+// DelBothSide 某条消息删除（两边的聊天记录都需要删除）
 // 核心：更新status和version_id（需要通知对方，所以需要更新version_id）
-func (b *MessageUseCase) OpDelBothSide(ctx context.Context, req *request.DelBothSideReq) (rsp response.DelBothSideRsp, err error) {
-	logHead := "OpDelBothSide|"
-	senderId := gen_id.NewComponentId(req.SenderId, uint32(req.SenderType))
+func (b *MessageUseCase) DelBothSide(ctx context.Context, req *request.MessageDelBothSideReq) (rsp response.DelBothSideRsp, err error) {
+	logHead := "DelBothSide|"
+	senderId := req.Sender
 
 	// invoke common method
 	err = b.updateMsgIdStatus(ctx, logHead, req.MsgId, model.MsgStatusDeleted, senderId)
@@ -280,19 +282,19 @@ func (b *MessageUseCase) OpDelBothSide(ctx context.Context, req *request.DelBoth
 	return
 }
 
-// OpDelOneSide 某条消息删除（只有一边的聊天记录是不可见，另外一边可见）
+// DelOneSide 某条消息删除（只有一边的聊天记录是不可见，另外一边可见）
 // 核心：更新 invisible_list
-func (b *MessageUseCase) OpDelOneSide(ctx context.Context, req *request.DelOneSideReq) (rsp response.DelOneSideRsp, err error) {
+func (b *MessageUseCase) DelOneSide(ctx context.Context, req *request.MessageDelOneSideReq) (rsp response.DelOneSideRsp, err error) {
 	return
 }
 
-// OpClearHistory 清空聊天记录（批量清空）
+// ClearHistory 清空聊天记录（批量清空）
 // 核心：更新Contact的 last_del_msg_id 为 last_msg_id
-func (b *MessageUseCase) OpClearHistory(ctx context.Context, req *request.ClearHistoryReq) (rsp response.ClearHistoryRsp, err error) {
-	logHead := fmt.Sprintf("OpClearHistory|")
+func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.ClearHistoryReq) (rsp response.ClearHistoryRsp, err error) {
+	logHead := fmt.Sprintf("ClearHistory|")
 	lastDelMsgId := req.MsgId
-	ownerId := gen_id.NewComponentId(req.OwnerId, uint32(req.OwnerType))
-	peerId := gen_id.NewComponentId(req.PeerId, uint32(req.PeerType))
+	owner := req.Owner
+	peer := req.Peer
 	mem := b.repoMessage.RedisClient
 
 	// 聊天记录的清空：
@@ -301,7 +303,7 @@ func (b *MessageUseCase) OpClearHistory(ctx context.Context, req *request.ClearH
 	if lastDelMsgId == 0 {
 		// get: contact info
 		var contactInfo *model.Contact
-		contactInfo, err = b.repoContact.Info(logHead, ownerId, peerId)
+		contactInfo, err = b.repoContact.Info(logHead, owner, peer)
 		if err != nil {
 			logging.Error(logHead+"repoContact Info,err=%v", err)
 			return
@@ -312,7 +314,7 @@ func (b *MessageUseCase) OpClearHistory(ctx context.Context, req *request.ClearH
 	// contact: gen version_id
 	versionId, err := gen_id.ContactVersionId(ctx, &gen_id.ContactVerParams{
 		Mem:     mem,
-		OwnerId: ownerId,
+		OwnerId: owner,
 	})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionId error=%v", err)
@@ -320,7 +322,7 @@ func (b *MessageUseCase) OpClearHistory(ctx context.Context, req *request.ClearH
 	}
 
 	// update to db
-	affectedRow, err := b.repoContact.UpdateLastDelMsg(logHead, lastDelMsgId, versionId, ownerId, peerId)
+	affectedRow, err := b.repoContact.UpdateLastDelMsg(logHead, lastDelMsgId, versionId, owner, peer)
 	if err != nil {
 		logging.Errorf(logHead+"UpdateLastDelMsg error=%v", err)
 		return
@@ -335,7 +337,7 @@ func (b *MessageUseCase) OpClearHistory(ctx context.Context, req *request.ClearH
 }
 
 // build 构建消息体
-func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request.MessageSendReq, senderId, receiverId *gen_id.ComponentId) (msg *model.Message, err error) {
+func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request.MessageSendReq, sender, receiver *gen_id.ComponentId) (msg *model.Message, err error) {
 	logHead += "build|"
 	mem := b.repoMessage.RedisClient
 
@@ -357,7 +359,7 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 	}
 
 	// message: gen session id
-	sessionId := gen_id.SessionId(senderId, receiverId)
+	sessionId := gen_id.SessionId(sender, receiver)
 
 	// note: 同一个消息timeline的版本变动，需要加锁
 	// 保证数据库记录中的 msg_id 与 session_id 是递增的
@@ -371,7 +373,7 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
 
 	// message: gen msg_id
-	msgId, err := gen_id.MsgId(ctx, mem, senderId, receiverId)
+	msgId, err := gen_id.MsgId(ctx, mem, sender, receiver)
 	if err != nil {
 		logging.Errorf(logHead+"gen MsgId error=%v", err)
 		return
@@ -380,8 +382,8 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 	// message: gen version_id
 	versionId, err := gen_id.MsgVersionId(ctx, &gen_id.MsgVerParams{
 		Mem: mem,
-		Id1: senderId,
-		Id2: receiverId,
+		Id1: sender,
+		Id2: receiver,
 	})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionId error=%v", err)
@@ -395,8 +397,8 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 		MsgType:       uint32(req.MsgBody.MsgType),   // 消息类型
 		Content:       string(bContent),              // 消息内容
 		SessionID:     sessionId,                     // 会话ID
-		SenderID:      req.SenderId,                  // 发送者ID
-		SenderType:    uint32(req.SenderType),        // 发送者的用户类型
+		SenderID:      req.Sender.Id(),               // 发送者ID
+		SenderType:    uint32(req.Sender.Type()),     // 发送者的用户类型
 		VersionID:     versionId,                     // 版本ID
 		SortKey:       versionId,                     // sort_key的值等同于version_id
 		Status:        uint32(model.MsgStatusNormal), // 状态正常
@@ -415,9 +417,9 @@ func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request
 func (b *MessageUseCase) needCreateContact(logHead string, contactId *gen_id.ComponentId) bool {
 	logHead += fmt.Sprintf("doNotNeedCreateContact,contactId=%v|", contactId)
 
-	typeArr := []uint32{
-		uint32(gen_id.ContactIdTypeRobot),
-		uint32(gen_id.ContactIdTypeSystem),
+	typeArr := []gen_id.ContactIdType{
+		gen_id.ContactIdTypeRobot,
+		gen_id.ContactIdTypeSystem,
 	}
 
 	// 如果用户是指定类型，那么不需要创建他的contact信息（比如：机器人）
@@ -443,10 +445,10 @@ func (b *MessageUseCase) checkMessageSend(ctx context.Context, req *request.Mess
 		gen_id.ContactIdTypeGroup,
 	}
 
-	if !lo.Contains(allowSenderType, req.SenderType) {
+	if !lo.Contains(allowSenderType, req.Sender.Type()) {
 		return api.ErrSenderTypeNotAllow
 	}
-	if !lo.Contains(allowReceiverType, req.ReceiverType) {
+	if !lo.Contains(allowReceiverType, req.Receiver.Type()) {
 		return api.ErrReceiverTypeNotAllow
 	}
 
@@ -485,7 +487,7 @@ func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, 
 type Fn func(versionId uint64) (err error)
 
 // updateMsgVersion 加锁 => 生成 version_id => 执行回调函数
-func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, sessionId string, senderId *gen_id.ComponentId, fn Fn) (err error) {
+func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, sessionId string, sender *gen_id.ComponentId, fn Fn) (err error) {
 	mem := b.repoMessage.RedisClient
 
 	// get: 接收者的信息
@@ -494,9 +496,9 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 	switch parseResult.Prefix {
 	case gen_id.PrefixPair: // 1对1的timeline
 		switch {
-		case parseResult.IdArr[0].Equal(senderId):
+		case parseResult.IdArr[0].Equal(sender):
 			receiverId = parseResult.IdArr[1]
-		case parseResult.IdArr[1].Equal(senderId):
+		case parseResult.IdArr[1].Equal(sender):
 			receiverId = parseResult.IdArr[0]
 		default:
 			err = errors.New("can not find peer")
@@ -522,7 +524,7 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 	// message: gen version_id
 	versionId, err := gen_id.MsgVersionId(ctx, &gen_id.MsgVerParams{
 		Mem: mem,
-		Id1: senderId,
+		Id1: sender,
 		Id2: receiverId,
 	})
 	if err != nil {

@@ -57,15 +57,15 @@ func (repo *MessageRepo) IncrUnreadAfterSend(ctx context.Context, logHead string
 }
 
 // DecrUnreadAfterFetch 获取消息后，清空未读数
-func (repo *MessageRepo) DecrUnreadAfterFetch(ctx context.Context, logHead string, ownerId, peerId *gen_id.ComponentId, decr int64) (err error) {
+func (repo *MessageRepo) DecrUnreadAfterFetch(ctx context.Context, logHead string, owner, peer *gen_id.ComponentId, decr int64) (err error) {
 	// 减少：会话未读数
-	_, err = repo.incrSessionUnread(ctx, logHead, ownerId, peerId, -decr)
+	_, err = repo.incrSessionUnread(ctx, logHead, owner, peer, -decr)
 	if err != nil {
 		return
 	}
 
 	// 减少：总未读数
-	_, err = repo.incrTotalUnread(ctx, logHead, ownerId, -decr)
+	_, err = repo.incrTotalUnread(ctx, logHead, owner, -decr)
 	if err != nil {
 		return
 	}

@@ -39,9 +39,9 @@ func (repo *ContactRepo) Info(logHead string, ownerId *gen_id.ComponentId, peerI
 
 	row, err = slave.Where(
 		slave.OwnerID.Eq(ownerId.Id()),
-		slave.OwnerType.Eq(ownerId.Type()),
+		slave.OwnerType.Eq(uint32(ownerId.Type())),
 		slave.PeerID.Eq(peerId.Id()),
-		slave.PeerType.Eq(peerId.Type()),
+		slave.PeerType.Eq(uint32(peerId.Type())),
 	).Take()
 	if err != nil {
 		return
@@ -79,11 +79,11 @@ func (repo *ContactRepo) Info(logHead string, ownerId *gen_id.ComponentId, peerI
 // CreateNotExists 创建会话
 func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildContactParams) (contact *model.Contact, err error) {
 	logHead += "CreateNotExists|"
-	dbName, tbName := model.ShardingTbNameContact(params.OwnerId.Id())
+	dbName, tbName := model.ShardingTbNameContact(params.Owner.Id())
 	master := repo.Master(dbName).Contact.Table(tbName)
 
 	// query contact
-	contact, tmpErr := repo.Info(logHead, params.OwnerId, params.PeerId)
+	contact, tmpErr := repo.Info(logHead, params.Owner, params.Peer)
 	if tmpErr != nil && !errors.Is(tmpErr, gorm.ErrRecordNotFound) {
 		err = tmpErr
 		logging.Errorf(logHead+"Info error=%v", err)
@@ -93,9 +93,11 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 	// insert if not exists
 	if errors.Is(tmpErr, gorm.ErrRecordNotFound) {
 		contact = &model.Contact{
-			OwnerID: params.OwnerId.Id(), OwnerType: params.OwnerId.Type(),
-			PeerID: params.PeerId.Id(), PeerType: params.PeerId.Type(),
-			Status: model.ContactStatusNormal,
+			OwnerID:   params.Owner.Id(),
+			OwnerType: uint32(params.Owner.Type()),
+			PeerID:    params.Peer.Id(),
+			PeerType:  uint32(params.Peer.Type()),
+			Status:    model.ContactStatusNormal,
 		}
 
 		// save to db
@@ -112,11 +114,11 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 // RangeList 获取一定范围的会话列表
 func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRangeParams) (list []*model.Contact, err error) {
 	logHead += "RangeList|"
-	dbName, tbName := model.ShardingTbNameContact(params.OwnerId.Id())
+	dbName, tbName := model.ShardingTbNameContact(params.Owner.Id())
 	slave := repo.Slave(dbName).Contact.Table(tbName)
 
 	pivotVersionId := params.PivotVersionId
-	ownerId := params.OwnerId
+	ownerId := params.Owner
 
 	// 需要建立索引：owner_id、status、version_id
 	switch params.FetchType {
@@ -125,12 +127,14 @@ func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRan
 			pivotVersionId = math.MaxInt64
 		}
 		list, err = slave.Where(
-			slave.OwnerID.Eq(ownerId.Id()), slave.OwnerType.Eq(ownerId.Type()),
+			slave.OwnerID.Eq(ownerId.Id()),
+			slave.OwnerType.Eq(uint32(ownerId.Type())),
 			slave.VersionID.Lt(pivotVersionId),
 		).Limit(params.Limit).Order(slave.VersionID.Desc()).Find()
 	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
 		list, err = slave.Where(
-			slave.OwnerID.Eq(ownerId.Id()), slave.OwnerType.Eq(ownerId.Type()),
+			slave.OwnerID.Eq(ownerId.Id()),
+			slave.OwnerType.Eq(uint32(ownerId.Type())),
 			slave.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(slave.VersionID).Find()
 	default:
@@ -198,8 +202,10 @@ func (repo *ContactRepo) UpdateLastDelMsg(logHead string, lastDelMsgId model.Big
 
 	var res gen.ResultInfo
 	res, err = master.Where(
-		master.OwnerID.Eq(ownerId.Id()), master.OwnerType.Eq(ownerId.Type()),
-		master.PeerID.Eq(peerId.Id()), master.PeerType.Eq(peerId.Type()),
+		master.OwnerID.Eq(ownerId.Id()),
+		master.OwnerType.Eq(uint32(ownerId.Type())),
+		master.PeerID.Eq(peerId.Id()),
+		master.PeerType.Eq(uint32(peerId.Type())),
 	).Limit(1).Updates(&model.Contact{
 		LastDelMsgID: lastDelMsgId,
 		VersionID:    versionId,

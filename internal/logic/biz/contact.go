@@ -29,10 +29,10 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	limit := 50
 
 	// 会话只会拉取最新的
-	ownerId := gen_id.NewComponentId(req.OwnerId, uint32(req.OwnerType))
+	ownerId := gen_id.NewComponentId(req.OwnerId, req.OwnerType)
 	list, err := b.contactRepo.RangeList(logHead, &model.FetchContactRangeParams{
 		FetchType:      model.FetchTypeForward,
-		OwnerId:        ownerId,
+		Owner:          ownerId,
 		PivotVersionId: req.VersionId,
 		Limit:          limit,
 	})

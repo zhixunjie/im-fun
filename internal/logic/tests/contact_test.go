@@ -22,12 +22,9 @@ func TestQueryContactLogic(t *testing.T) {
 func TestContactFetch(t *testing.T) {
 	ctx := context.Background()
 
-	var ownerId *gen_id.ComponentId
-	ownerId = gen_id.NewUserComponentId(1005)
 	rsp, err := contactUseCase.Fetch(ctx, &request.ContactFetchReq{
 		VersionId: 0,
-		OwnerId:   ownerId.Id(),
-		OwnerType: gen_id.ContactIdType(ownerId.Type()),
+		Owner:     gen_id.NewUserComponentId(1005),
 	})
 
 	if err != nil {

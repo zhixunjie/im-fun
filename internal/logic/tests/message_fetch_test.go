@@ -16,17 +16,11 @@ import (
 func TestMessageFetchBetweenUser(t *testing.T) {
 	ctx := context.Background()
 
-	var ownerId, peerId *gen_id.ComponentId
-	ownerId = gen_id.NewUserComponentId(1001)
-	peerId = gen_id.NewUserComponentId(10001)
-
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
 		FetchType: model.FetchTypeForward,
 		VersionId: 0,
-		OwnerId:   ownerId.Id(),
-		OwnerType: gen_id.ContactIdType(ownerId.Type()),
-		PeerId:    peerId.Id(),
-		PeerType:  gen_id.ContactIdType(peerId.Type()),
+		Owner:     gen_id.NewUserComponentId(1001),
+		Peer:      gen_id.NewGroupComponentId(10001),
 	})
 
 	if err != nil {
@@ -45,10 +39,6 @@ func TestMessageFetchBetweenUser(t *testing.T) {
 func TestFetchBetweenUserAndRobot(t *testing.T) {
 	ctx := context.Background()
 
-	var ownerId, peerId *gen_id.ComponentId
-	ownerId = gen_id.NewUserComponentId(1003)
-	peerId = gen_id.NewRobotComponentId(10003)
-
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
 		//FetchType: model.FetchTypeBackward,
 		//VersionId: 1705766012000002,
@@ -56,10 +46,8 @@ func TestFetchBetweenUserAndRobot(t *testing.T) {
 		//VersionId: 1705766012000002,
 		FetchType: model.FetchTypeForward,
 		VersionId: 0,
-		OwnerId:   ownerId.Id(),
-		OwnerType: gen_id.ContactIdType(ownerId.Type()),
-		PeerId:    peerId.Id(),
-		PeerType:  gen_id.ContactIdType(peerId.Type()),
+		Owner:     gen_id.NewUserComponentId(1003),
+		Peer:      gen_id.NewGroupComponentId(10003),
 	})
 
 	if err != nil {
@@ -78,17 +66,11 @@ func TestFetchBetweenUserAndRobot(t *testing.T) {
 func TestFetchBetweenUserAndGroup(t *testing.T) {
 	ctx := context.Background()
 
-	var ownerId, peerId *gen_id.ComponentId
-	ownerId = gen_id.NewUserComponentId(1001)
-	peerId = gen_id.NewGroupComponentId(100000001)
-
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
 		FetchType: model.FetchTypeForward,
 		VersionId: 0,
-		OwnerId:   ownerId.Id(),
-		OwnerType: gen_id.ContactIdType(ownerId.Type()),
-		PeerId:    peerId.Id(),
-		PeerType:  gen_id.ContactIdType(peerId.Type()),
+		Owner:     gen_id.NewUserComponentId(1001),
+		Peer:      gen_id.NewGroupComponentId(100000001),
 	})
 
 	if err != nil {
