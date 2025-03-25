@@ -63,7 +63,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 			sessionUnreadCount = v
 		}
 
-		// build message list
+		// createMessage message list
 		retList = append(retList, &response.ContactEntity{
 			OwnerID:      item.OwnerID,
 			OwnerType:    gen_id.ContactIdType(item.OwnerType),

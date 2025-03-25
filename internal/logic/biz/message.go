@@ -91,8 +91,8 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			}
 		}
 	}
-	// 3. build && create message（无扩散）
-	msg, err := b.build(ctx, logHead, req, sender, receiver)
+	// 3. create message（无扩散）
+	msg, err := b.createMessage(ctx, logHead, req, sender, receiver)
 	if err != nil {
 		return
 	}
@@ -331,9 +331,9 @@ func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.ClearHis
 	return
 }
 
-// build 构建消息体
-func (b *MessageUseCase) build(ctx context.Context, logHead string, req *request.MessageSendReq, sender, receiver *gen_id.ComponentId) (msg *model.Message, err error) {
-	logHead += "build|"
+// createMessage 构建消息体
+func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req *request.MessageSendReq, sender, receiver *gen_id.ComponentId) (msg *model.Message, err error) {
+	logHead += "createMessage|"
 	mem := b.repoMessage.RedisClient
 
 	// exchange：InvisibleList
