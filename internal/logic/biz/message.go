@@ -177,6 +177,9 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	if err != nil {
 		return
 	}
+	if len(list) == 0 {
+		return
+	}
 
 	// rebuild list
 	var retList []*response.MsgEntity
