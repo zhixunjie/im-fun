@@ -10,7 +10,6 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/response"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/utils"
-	"math"
 	"sort"
 )
 
@@ -54,10 +53,8 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 
 	// rebuild list
 	var retList []*response.ContactEntity
-	minVersionId := uint64(math.MaxUint64)
 	maxVersionId := uint64(0)
 	for _, item := range list {
-		minVersionId = utils.Min(minVersionId, item.VersionID)
 		maxVersionId = utils.Max(maxVersionId, item.VersionID)
 		peerId := gen_id.NewComponentId(item.PeerID, gen_id.ContactIdType(item.PeerType))
 
