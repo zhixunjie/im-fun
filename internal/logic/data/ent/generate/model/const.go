@@ -99,9 +99,9 @@ const (
 type MsgStatus uint32
 
 const (
-	MsgStatusNormal   MsgStatus = iota // 正常
-	MsgStatusWithdraw                  // 已撤回（双方都展示为撤回）
-	MsgStatusDeleted                   // 已删除（双方都展示为删除）
+	MsgStatusNormal  MsgStatus = iota // 正常
+	MsgStatusRecall                   // 已撤回（双方都展示为撤回）
+	MsgStatusDeleted                  // 已删除（双方都展示为删除）
 )
 
 // =========================

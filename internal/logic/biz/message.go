@@ -256,7 +256,7 @@ func (b *MessageUseCase) Recall(ctx context.Context, req *request.MessageRecallR
 	senderId := req.Sender
 
 	// invoke common method
-	err = b.updateMsgIdStatus(ctx, logHead, req.MsgId, model.MsgStatusWithdraw, senderId)
+	err = b.updateMsgIdStatus(ctx, logHead, req.MsgId, model.MsgStatusRecall, senderId)
 	if err != nil {
 		return
 	}
