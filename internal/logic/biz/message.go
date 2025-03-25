@@ -367,7 +367,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 	defer func() { _ = redisSpinLock.Release() }()
 	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
 
-	// a) generate msg_id
+	// a) generate message's msg_id
 	msgId, err := gen_id.MsgId(ctx, mem, sender, receiver)
 	if err != nil {
 		logging.Errorf(logHead+"gen MsgId error=%v", err)
