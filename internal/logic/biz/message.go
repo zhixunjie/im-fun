@@ -66,7 +66,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		return
 	}
 
-	// 1. create contact if not exists（sender's contact）
+	// 1. create sender's contact if not exists
 	var senderContact, peerContact *model.Contact
 	if b.needCreateContact(logHead, sender) {
 		if !lo.Contains(req.InvisibleList, req.Sender.Id()) {
@@ -79,7 +79,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			}
 		}
 	}
-	// 2. create contact if not exists（receiver's contact）
+	// 2. create receiver's contact if not exists
 	if b.needCreateContact(logHead, receiver) {
 		if !lo.Contains(req.InvisibleList, req.Receiver.Id()) {
 			peerContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
