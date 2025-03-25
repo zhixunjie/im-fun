@@ -374,7 +374,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 		return
 	}
 
-	// b) generate version_id
+	// b) generate message's version_id
 	versionId, err := gen_id.MsgVersionId(ctx, &gen_id.MsgVerParams{
 		Mem: mem,
 		Id1: sender,
@@ -516,7 +516,7 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 	defer func() { _ = redisSpinLock.Release() }()
 	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
 
-	// message: gen version_id
+	// generate message's version_id
 	versionId, err := gen_id.MsgVersionId(ctx, &gen_id.MsgVerParams{
 		Mem: mem,
 		Id1: sender,

@@ -166,7 +166,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 	defer func() { _ = redisSpinLock.Release() }()
 	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
 
-	// contact: get version_id
+	// generate contact's version_id
 	versionId, err := gen_id.ContactVersionId(ctx, &gen_id.ContactVerParams{Mem: mem, Owner: owner})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionId error=%v", err)
