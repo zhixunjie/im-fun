@@ -79,11 +79,6 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			}
 		}
 	}
-	var needIncrUnreadCount bool
-	if !lo.Contains(req.InvisibleList, req.Receiver.Id()) {
-		needIncrUnreadCount = true
-	}
-
 	// 2. create contact if not exists（receiver's contact）
 	if b.needCreateContact(logHead, receiver) {
 		if !lo.Contains(req.InvisibleList, req.Receiver.Id()) {
@@ -96,26 +91,26 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			}
 		}
 	}
-
 	// 3. build && create message（无扩散）
 	msg, err := b.build(ctx, logHead, req, sender, receiver)
 	if err != nil {
 		return
 	}
 	currMsgId := msg.MsgID
-	// 增加未读数（先save db，再incr cache，保证尽快执行）
-	if needIncrUnreadCount {
-		_ = b.repoMessage.IncrUnreadAfterSend(ctx, logHead, receiver, sender, 1)
-	}
 
-	// 4. update contact's info（写扩散）
 	routine.Go(ctx, func() {
+		// 增加未读数（先save db，再incr cache，保证尽快执行）
+		if !lo.Contains(req.InvisibleList, req.Receiver.Id()) {
+			_ = b.repoMessage.IncrUnreadAfterSend(ctx, logHead, receiver, sender, 1)
+		}
+		// update contact's info（写扩散）
 		if senderContact != nil {
 			err = b.repoContact.UpdateLastMsgId(ctx, logHead, senderContact.ID, sender, currMsgId, model.PeerNotAck)
 			if err != nil {
 				return
 			}
 		}
+		// update contact's info（写扩散）
 		if peerContact != nil {
 			err = b.repoContact.UpdateLastMsgId(ctx, logHead, peerContact.ID, receiver, currMsgId, model.PeerAcked)
 			if err != nil {
@@ -127,8 +122,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		}
 	})
 
-	// 5. build response
-	rsp = response.MessageSendRsp{
+	return response.MessageSendRsp{
 		Data: response.SendMsgRespData{
 			MsgId:       msg.MsgID,
 			SeqId:       msg.SeqID,
@@ -137,9 +131,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			SessionId:   msg.SessionID,
 			UnreadCount: 0,
 		},
-	}
-
-	return
+	}, nil
 }
 
 // Fetch 拉取消息列表
