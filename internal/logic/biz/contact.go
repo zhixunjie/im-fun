@@ -29,7 +29,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	limit := 50
 
 	// 会话只会拉取最新的
-	ownerId := gen_id.NewComponentId(req.OwnerId, req.OwnerType)
+	ownerId := req.Owner
 	list, err := b.contactRepo.RangeList(logHead, &model.FetchContactRangeParams{
 		FetchType:      model.FetchTypeForward,
 		Owner:          ownerId,
@@ -45,7 +45,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 
 	// extract: all peer ids
 	peerIds := lo.Map(list, func(item *model.Contact, index int) *gen_id.ComponentId {
-		return gen_id.NewComponentId(item.PeerID, item.PeerType)
+		return gen_id.NewComponentId(item.PeerID, gen_id.ContactIdType(item.PeerType))
 	})
 	retMap, err := b.repoMessage.MGetSessionUnread(ctx, logHead, ownerId, peerIds)
 	if err != nil {
@@ -59,7 +59,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	for _, item := range list {
 		minVersionId = utils.Min(minVersionId, item.VersionID)
 		maxVersionId = utils.Max(maxVersionId, item.VersionID)
-		peerId := gen_id.NewComponentId(item.PeerID, item.PeerType)
+		peerId := gen_id.NewComponentId(item.PeerID, gen_id.ContactIdType(item.PeerType))
 
 		var sessionUnreadCount int64
 		if v, ok := retMap[peerId.ToString()]; ok {
@@ -82,7 +82,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 		})
 	}
 
-	// sort: 返回之前进行重新排序
+	// 返回之前进行重新排序
 	sort.Sort(response.ContactSortBySortKey(retList))
 
 	resp.Data = response.FetchContactData{

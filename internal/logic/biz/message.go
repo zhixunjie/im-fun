@@ -305,8 +305,8 @@ func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.ClearHis
 
 	// contact: gen version_id
 	versionId, err := gen_id.ContactVersionId(ctx, &gen_id.ContactVerParams{
-		Mem:     mem,
-		OwnerId: owner,
+		Mem:   mem,
+		Owner: owner,
 	})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionId error=%v", err)

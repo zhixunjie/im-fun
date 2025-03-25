@@ -14,8 +14,8 @@ type MsgVerParams struct {
 }
 
 type ContactVerParams struct {
-	Mem     *redis.Client
-	OwnerId *ComponentId
+	Mem   *redis.Client
+	Owner *ComponentId
 }
 
 // MsgVersionId 专门为message表生成version_id
@@ -53,7 +53,7 @@ func ContactVersionId(ctx context.Context, params *ContactVerParams) (versionId 
 	ts := time.Now().Unix()
 	verIdTimeKey := ts >> shiftVersionKey
 
-	key := keyContactVersion(params.OwnerId.ToString(), verIdTimeKey)
+	key := keyContactVersion(params.Owner.ToString(), verIdTimeKey)
 
 	// incr
 	afterIncr, err := incNum(ctx, params.Mem, key, expireVersionKey)

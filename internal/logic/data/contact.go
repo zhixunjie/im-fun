@@ -150,10 +150,10 @@ func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRan
 }
 
 // UpdateLastMsgId 更新contact的最后一条消息（发消息）
-func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, contactId uint64, ownerId *gen_id.ComponentId, lastMsgId uint64, peerAck model.PeerAckStatus) (err error) {
+func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, contactId uint64, owner *gen_id.ComponentId, lastMsgId uint64, peerAck model.PeerAckStatus) (err error) {
 	logHead += "UpdateLastMsgId|"
 	mem := repo.RedisClient
-	dbName, tbName := model.ShardingTbNameContact(ownerId.Id())
+	dbName, tbName := model.ShardingTbNameContact(owner.Id())
 	master := repo.Master(dbName).Contact.Table(tbName)
 
 	// note: 同一用户的会话timeline的版本变动，需要加锁
@@ -167,7 +167,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
 
 	// contact: get version_id
-	versionId, err := gen_id.ContactVersionId(ctx, &gen_id.ContactVerParams{Mem: mem, OwnerId: ownerId})
+	versionId, err := gen_id.ContactVersionId(ctx, &gen_id.ContactVerParams{Mem: mem, Owner: owner})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionId error=%v", err)
 		return

@@ -11,8 +11,8 @@ func TestVersionIdContact(t *testing.T) {
 
 	for i := 0; i < 10; i++ {
 		fmt.Println(ContactVersionId(ctx, &ContactVerParams{
-			Mem:     client,
-			OwnerId: NewUserComponentId(1001),
+			Mem:   client,
+			Owner: NewUserComponentId(1001),
 		}))
 	}
 }
