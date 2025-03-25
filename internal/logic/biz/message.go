@@ -99,7 +99,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	currMsgId := msg.MsgID
 
 	routine.Go(ctx, func() {
-		// 增加未读数（先save db，再incr cache，保证尽快执行）
+		// 增加未读数: 先save db，再incr cache，保证尽快执行
 		if !lo.Contains(req.InvisibleList, req.Receiver.Id()) {
 			_ = b.repoMessage.IncrUnreadAfterSend(ctx, logHead, receiver, sender, 1)
 		}
@@ -232,8 +232,8 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 		return
 	}
 
-	// 异步协程：减少未读数（先read db，再decr cache）
 	routine.Go(ctx, func() {
+		// 减少未读数: 先read db，再decr cache
 		_ = b.repoMessage.DecrUnreadAfterFetch(ctx, logHead, owner, peer, int64(len(retList)))
 	})
 
