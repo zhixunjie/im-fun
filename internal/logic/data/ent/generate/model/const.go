@@ -13,7 +13,7 @@ const (
 func DBNum() (num uint64) {
 	num = 10
 	if !env.IsProd() {
-		num = 4
+		num = 2
 		return
 	}
 	return
