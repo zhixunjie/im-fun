@@ -33,7 +33,7 @@ func genMsgId(ctx context.Context, mem *redis.Client, slotId uint64) (msgId uint
 	key := keyMsgId(ts)
 
 	// incr
-	afterIncr, err := incNum(ctx, mem, key, expireMsgKey)
+	afterIncr, err := incNumExpire(ctx, mem, key, 1, expireMsgKey)
 	if err != nil {
 		return
 	}
@@ -56,7 +56,7 @@ func genMsgId1(ctx context.Context, mem *redis.Client, slotId uint64, t time.Tim
 	key := keyMsgId(ts)
 
 	// incr
-	afterIncr, err := incNum(ctx, mem, key, expireMsgKey)
+	afterIncr, err := incNumExpire(ctx, mem, key, 1, expireMsgKey)
 	if err != nil {
 		return
 	}
@@ -80,7 +80,31 @@ func genMsgId1(ctx context.Context, mem *redis.Client, slotId uint64, t time.Tim
 	return
 }
 
+// 解决：incr 和 expire 的原子性问题
+// lua脚本: https://gitee.com/jasonzxj/LearnGo/blob/master/use/pkg/redis/goredis/lua/atomic/incry_expire.go
+// pexpire: https://redis.io/docs/latest/commands/pexpire/
+func incNumExpire(ctx context.Context, mem *redis.Client, key string, incr int64, expire time.Duration) (afterIncr int64, err error) {
+	script := redis.NewScript(`
+local incr = tonumber(ARGV[1])
+local current = redis.call("INCRBY", KEYS[1], ARGV[1])
+-- 只有第一次的incry操作才会设置过期时间
+if current == incr then 
+	redis.call("PEXPIRE", KEYS[1], ARGV[2])
+end
+
+return current
+`)
+
+	afterIncr, err = script.Run(ctx, mem, []string{key}, []any{incr, expire.Milliseconds()}).Int64()
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 // incNum 每秒一个Key，进行累加
+// DEPRECATED
 func incNum(ctx context.Context, mem *redis.Client, key string, expire time.Duration) (value int64, err error) {
 	value, err = mem.IncrBy(ctx, key, 1).Result()
 	if err != nil {

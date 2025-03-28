@@ -36,7 +36,7 @@ func MsgVersionId(ctx context.Context, params *MsgVerParams) (versionId uint64, 
 	}
 
 	// incr
-	afterIncr, err := incNum(ctx, params.Mem, key, expireVersionKey)
+	afterIncr, err := incNumExpire(ctx, params.Mem, key, 1, expireVersionKey)
 	if err != nil {
 		return
 	}
@@ -56,7 +56,7 @@ func ContactVersionId(ctx context.Context, params *ContactVerParams) (versionId 
 	key := keyContactVersion(params.Owner.ToString(), verIdTimeKey)
 
 	// incr
-	afterIncr, err := incNum(ctx, params.Mem, key, expireVersionKey)
+	afterIncr, err := incNumExpire(ctx, params.Mem, key, 1, expireVersionKey)
 	if err != nil {
 		return
 	}
