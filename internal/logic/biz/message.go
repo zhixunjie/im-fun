@@ -67,13 +67,10 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	}
 
 	// 1. create sender's contact if not exists
-	var senderContact, peerContact *model.Contact
+	var senderContact, receiverContact *model.Contact
 	if b.needCreateContact(logHead, sender) {
 		if !lo.Contains(req.InvisibleList, req.Sender.Id()) {
-			senderContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
-				Owner: sender,
-				Peer:  receiver,
-			})
+			senderContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{Owner: sender, Peer: receiver})
 			if err != nil {
 				return
 			}
@@ -82,10 +79,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	// 2. create receiver's contact if not exists
 	if b.needCreateContact(logHead, receiver) {
 		if !lo.Contains(req.InvisibleList, req.Receiver.Id()) {
-			peerContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{
-				Owner: receiver,
-				Peer:  sender,
-			})
+			receiverContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{Owner: receiver, Peer: sender})
 			if err != nil {
 				return
 			}
@@ -111,8 +105,8 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			}
 		}
 		// update contact's info（写扩散）
-		if peerContact != nil {
-			err = b.repoContact.UpdateLastMsgId(ctx, logHead, peerContact.ID, receiver, currMsgId, model.PeerAcked)
+		if receiverContact != nil {
+			err = b.repoContact.UpdateLastMsgId(ctx, logHead, receiverContact.ID, receiver, currMsgId, model.PeerAcked)
 			if err != nil {
 				return
 			}
@@ -122,7 +116,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		}
 	})
 
-	return response.MessageSendRsp{
+	rsp = response.MessageSendRsp{
 		Data: response.SendMsgRespData{
 			MsgId:       msg.MsgID,
 			SeqId:       msg.SeqID,
@@ -131,7 +125,8 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			SessionId:   msg.SessionID,
 			UnreadCount: 0,
 		},
-	}, nil
+	}
+	return
 }
 
 // Fetch 拉取消息列表
