@@ -209,6 +209,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 			},
 			SessionID: item.SessionID,
 			SenderID:  item.SenderID,
+			SendType:  gen_id.ContactIdType(item.SenderType),
 			VersionID: item.VersionID,
 			SortKey:   item.SortKey,
 			Status:    model.MsgStatus(item.Status),
