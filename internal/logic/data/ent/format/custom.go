@@ -22,11 +22,11 @@ const (
 )
 
 type ImJsonLevel struct {
-	Uid       uint64 // 谁升级了？
+	UID       uint64 // 谁升级了？
 	CurrLevel int    // 当前等级是？
 }
 
 type ImJsonDrop struct {
-	Uid     uint64 // 掉落给谁？
+	UID     uint64 // 掉落给谁？
 	GoodsId int    // 物品id
 }
