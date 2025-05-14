@@ -41,9 +41,9 @@ func TestFetchBetweenUserAndRobot(t *testing.T) {
 
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
 		//FetchType: model.FetchTypeBackward,
-		//VersionId: 1705766012000002,
+		//VersionID: 1705766012000002,
 		//FetchType: model.FetchTypeForward,
-		//VersionId: 1705766012000002,
+		//VersionID: 1705766012000002,
 		FetchType: model.FetchTypeForward,
 		VersionId: 0,
 		Owner:     gen_id.NewUserComponentId(1003),

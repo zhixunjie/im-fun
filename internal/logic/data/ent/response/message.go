@@ -13,9 +13,9 @@ type MessageSendRsp struct {
 }
 
 type SendMsgRespData struct {
-	MsgId       uint64 `json:"msg_id,string"`
-	SeqId       uint64 `json:"seq_id,string"`
-	VersionId   uint64 `json:"version_id"`
+	MsgID       uint64 `json:"msg_id,string"`
+	SeqID       uint64 `json:"seq_id,string"`
+	VersionID   uint64 `json:"version_id"`
 	SortKey     uint64 `json:"sort_key"`
 	SessionId   string `json:"session_id"`
 	UnreadCount int64  `json:"unread_count"`

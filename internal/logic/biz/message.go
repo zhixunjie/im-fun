@@ -118,9 +118,9 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 
 	rsp = response.MessageSendRsp{
 		Data: response.SendMsgRespData{
-			MsgId:       msg.MsgID,
-			SeqId:       msg.SeqID,
-			VersionId:   msg.VersionID,
+			MsgID:       msg.MsgID,
+			SeqID:       msg.SeqID,
+			VersionID:   msg.VersionID,
 			SortKey:     msg.SortKey,
 			SessionId:   msg.SessionID,
 			UnreadCount: 0,
@@ -251,7 +251,7 @@ func (b *MessageUseCase) Recall(ctx context.Context, req *request.MessageRecallR
 	senderId := req.Sender
 
 	// invoke common method
-	err = b.updateMsgIdStatus(ctx, logHead, req.MsgId, model.MsgStatusRecall, senderId)
+	err = b.updateMsgIdStatus(ctx, logHead, req.MsgID, model.MsgStatusRecall, senderId)
 	if err != nil {
 		return
 	}
@@ -265,7 +265,7 @@ func (b *MessageUseCase) DelBothSide(ctx context.Context, req *request.MessageDe
 	senderId := req.Sender
 
 	// invoke common method
-	err = b.updateMsgIdStatus(ctx, logHead, req.MsgId, model.MsgStatusDeleted, senderId)
+	err = b.updateMsgIdStatus(ctx, logHead, req.MsgID, model.MsgStatusDeleted, senderId)
 	if err != nil {
 		return
 	}
@@ -282,7 +282,7 @@ func (b *MessageUseCase) DelOneSide(ctx context.Context, req *request.MessageDel
 // 核心：更新Contact的 last_del_msg_id 为 last_msg_id
 func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.ClearHistoryReq) (rsp response.ClearHistoryRsp, err error) {
 	logHead := fmt.Sprintf("ClearHistory|")
-	lastDelMsgId := req.MsgId
+	lastDelMsgId := req.MsgID
 	owner := req.Owner
 	peer := req.Peer
 	mem := b.repoMessage.RedisClient
@@ -307,7 +307,7 @@ func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.ClearHis
 		Owner: owner,
 	})
 	if err != nil {
-		logging.Errorf(logHead+"gen VersionId error=%v", err)
+		logging.Errorf(logHead+"gen VersionID error=%v", err)
 		return
 	}
 
@@ -367,7 +367,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 	// a) generate message's msg_id
 	msgId, err := gen_id.MsgId(ctx, mem, sender, receiver)
 	if err != nil {
-		logging.Errorf(logHead+"gen MsgId error=%v", err)
+		logging.Errorf(logHead+"gen MsgID error=%v", err)
 		return
 	}
 
@@ -378,7 +378,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 		Id2: receiver,
 	})
 	if err != nil {
-		logging.Errorf(logHead+"gen VersionId error=%v", err)
+		logging.Errorf(logHead+"gen VersionID error=%v", err)
 		return
 	}
 
@@ -520,7 +520,7 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 		Id2: receiverId,
 	})
 	if err != nil {
-		logging.Errorf(logHead+"gen VersionId error=%v", err)
+		logging.Errorf(logHead+"gen VersionID error=%v", err)
 		return
 	}
 
