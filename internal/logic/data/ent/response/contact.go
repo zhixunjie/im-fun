@@ -24,7 +24,7 @@ type ContactEntity struct {
 	PeerType     gen_id.ContactIdType `json:"peer_type"`
 	PeerAck      model.PeerAckStatus  `json:"peer_ack"`
 	VersionID    model.BigIntType     `json:"version_id,string"`
-	SortKey      model.BigIntType     `json:"sort_key"`
+	SortKey      model.BigIntType     `json:"sort_key,string"`
 	Status       model.ContactStatus  `json:"status"`
 	Labels       string               `json:"labels"`
 	LastMsg      *MsgEntity           `json:"last_msg"`
