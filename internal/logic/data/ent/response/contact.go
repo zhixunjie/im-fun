@@ -12,8 +12,8 @@ type ContactFetchRsp struct {
 }
 
 type FetchContactData struct {
-	ContactList   []*ContactEntity `json:"contact_list"`    // 联系人列表
-	NextVersionId model.BigIntType `json:"next_version_id"` // 最大的版本ID
+	ContactList   []*ContactEntity `json:"contact_list"`           // 联系人列表
+	NextVersionId model.BigIntType `json:"next_version_id,string"` // 最大的版本ID
 	HasMore       bool             `json:"has_more"`
 }
 
@@ -23,7 +23,7 @@ type ContactEntity struct {
 	PeerID       model.BigIntType     `json:"peer_id"`
 	PeerType     gen_id.ContactIdType `json:"peer_type"`
 	PeerAck      model.PeerAckStatus  `json:"peer_ack"`
-	VersionID    model.BigIntType     `json:"version_id"`
+	VersionID    model.BigIntType     `json:"version_id,string"`
 	SortKey      model.BigIntType     `json:"sort_key"`
 	Status       model.ContactStatus  `json:"status"`
 	Labels       string               `json:"labels"`

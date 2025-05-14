@@ -15,8 +15,8 @@ type MessageSendRsp struct {
 type SendMsgRespData struct {
 	MsgID       uint64 `json:"msg_id,string"`
 	SeqID       uint64 `json:"seq_id,string"`
-	VersionID   uint64 `json:"version_id"`
-	SortKey     uint64 `json:"sort_key"`
+	VersionID   uint64 `json:"version_id,string"`
+	SortKey     uint64 `json:"sort_key,string"`
 	SessionId   string `json:"session_id"`
 	UnreadCount int64  `json:"unread_count"`
 }
@@ -28,8 +28,8 @@ type MessageFetchRsp struct {
 }
 
 type FetchMsgData struct {
-	MsgList       []*MsgEntity `json:"msg_list"`        // 消息列表
-	NextVersionId uint64       `json:"next_version_id"` // 最大的版本id
+	MsgList       []*MsgEntity `json:"msg_list"`               // 消息列表
+	NextVersionId uint64       `json:"next_version_id,string"` // 最大的版本id
 	HasMore       bool         `json:"has_more"`
 }
 
@@ -40,8 +40,8 @@ type MsgEntity struct {
 	SessionID string               `json:"session_id"`
 	SenderID  uint64               `json:"sender_id"`
 	SendType  gen_id.ContactIdType `json:"send_type"`
-	VersionID uint64               `json:"version_id"`
-	SortKey   uint64               `json:"sort_key"`
+	VersionID uint64               `json:"version_id,string"`
+	SortKey   uint64               `json:"sort_key,string"`
 	Status    model.MsgStatus      `json:"status"`
 	HasRead   model.MsgReadStatus  `json:"has_read"`
 }

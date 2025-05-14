@@ -18,9 +18,9 @@ type MessageSendReq struct {
 // MessageFetchReq 拉取消息列表（by version_id）
 type MessageFetchReq struct {
 	FetchType model.FetchType     `json:"fetch_type"`
-	VersionId model.BigIntType    `json:"version_id"` // 版本id
-	Owner     *gen_id.ComponentId `json:"owner"`      // 会话拥有者
-	Peer      *gen_id.ComponentId `json:"peer"`       // 会话联系人（对方）
+	VersionId model.BigIntType    `json:"version_id,string"` // 版本id
+	Owner     *gen_id.ComponentId `json:"owner"`             // 会话拥有者
+	Peer      *gen_id.ComponentId `json:"peer"`              // 会话联系人（对方）
 }
 
 // MessageRecallReq 撤回消息
