@@ -86,7 +86,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		}
 	}
 	// 3. create message（无扩散）
-	msg, err := b.createMessage(ctx, logHead, req, sender, receiver)
+	msg, err := b.createMessage(ctx, logHead, req)
 	if err != nil {
 		return
 	}
@@ -327,9 +327,11 @@ func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.ClearHis
 }
 
 // createMessage 构建消息体
-func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req *request.MessageSendReq, sender, receiver *gen_id.ComponentId) (msg *model.Message, err error) {
+func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req *request.MessageSendReq) (msg *model.Message, err error) {
 	logHead += "createMessage|"
 	mem := b.repoMessage.RedisClient
+	sender := req.Sender
+	receiver := req.Receiver
 
 	// exchange：InvisibleList
 	var bInvisibleList []byte
