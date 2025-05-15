@@ -110,7 +110,7 @@ func TestAudio(t *testing.T) {
 		MsgContent: &AudioContent{
 			Url:    "https://xxxx.mp3",
 			Second: 15,
-			Uuid:   uuid.NewV1().String(),
+			UUID:   uuid.NewV1().String(),
 			Text:   "我是音频",
 		},
 	}
