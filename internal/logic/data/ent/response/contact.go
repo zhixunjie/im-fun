@@ -27,6 +27,6 @@ type ContactEntity struct {
 	SortKey      model.BigIntType     `json:"sort_key,string"`
 	Status       model.ContactStatus  `json:"status"`
 	Labels       string               `json:"labels"`
-	LastMsg      *MsgEntity           `json:"last_msg"`
 	UnreadMsgNum int64                `json:"unread_msg_num"` // 当前会话框的未读信息数
+	LastMsg      *MsgEntity           `json:"last_msg"`       // 最后一条消息
 }
