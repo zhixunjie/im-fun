@@ -408,7 +408,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 
 // 双方通信时，判断是否需要创建对方的Contact
 func (b *MessageUseCase) needCreateContact(logHead string, contactId *gen_id.ComponentId) bool {
-	logHead += fmt.Sprintf("doNotNeedCreateContact,contactId=%v|", contactId)
+	logHead += fmt.Sprintf("needCreateContact|contactId=%v|", contactId)
 
 	typeArr := []gen_id.ContactIdType{
 		gen_id.TypeRobot,

@@ -48,7 +48,7 @@ func (repo *MessageRepo) IncrUnreadAfterSend(ctx context.Context, logHead string
 		return
 	}
 
-	// 增加：总未读数
+	// 增加：总未读数（全部会话）
 	_, err = repo.incrTotalUnread(ctx, logHead, receiverId, incr)
 	if err != nil {
 		return

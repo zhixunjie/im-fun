@@ -82,6 +82,8 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 	dbName, tbName := model.ShardingTbNameContact(params.Owner.Id())
 	master := repo.Master(dbName).Contact.Table(tbName)
 
+	// TODO: 使用 redis hash/string 进行优化（支持同时查两个contact）
+	// TODO：使用 local cache 的 bitmap 进行优化
 	// query contact
 	contact, tmpErr := repo.Info(logHead, params.Owner, params.Peer)
 	if tmpErr != nil && !errors.Is(tmpErr, gorm.ErrRecordNotFound) {
