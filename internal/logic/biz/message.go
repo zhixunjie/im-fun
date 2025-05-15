@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/samber/lo"
+	"github.com/spf13/cast"
 	"github.com/zhixunjie/im-fun/internal/logic/api"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
 	"github.com/zhixunjie/im-fun/internal/logic/data/cache"
@@ -68,7 +69,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	// 1. create sender's contact if not exists
 	var senderContact, receiverContact *model.Contact
 	if b.needCreateContact(logHead, sender) {
-		if !lo.Contains(req.InvisibleList, req.Sender.Id()) {
+		if !lo.Contains(req.InvisibleList, cast.ToString(req.Sender.Id())) {
 			senderContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{Owner: sender, Peer: receiver})
 			if err != nil {
 				return
@@ -77,7 +78,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	}
 	// 2. create receiver's contact if not exists
 	if b.needCreateContact(logHead, receiver) {
-		if !lo.Contains(req.InvisibleList, req.Receiver.Id()) {
+		if !lo.Contains(req.InvisibleList, cast.ToString(req.Receiver.Id())) {
 			receiverContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{Owner: receiver, Peer: sender})
 			if err != nil {
 				return
@@ -93,7 +94,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 
 	routine.Go(ctx, func() {
 		// 增加未读数: 先save db，再incr cache，保证尽快执行
-		if !lo.Contains(req.InvisibleList, req.Receiver.Id()) {
+		if !lo.Contains(req.InvisibleList, cast.ToString(req.Receiver.Id())) {
 			_ = b.repoMessage.IncrUnreadAfterSend(ctx, logHead, receiver, sender, 1)
 		}
 		// update contact's info（写扩散）

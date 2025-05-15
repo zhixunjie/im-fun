@@ -12,7 +12,7 @@ type MessageSendReq struct {
 	Sender        *gen_id.ComponentId `json:"sender"`         // 消息发送者
 	Receiver      *gen_id.ComponentId `json:"receiver"`       // 消息接收者
 	MsgBody       *format.MsgBody     `json:"msg_body"`       // 消息体
-	InvisibleList []uint64            `json:"invisible_list"` // 不可见的列表
+	InvisibleList []string            `json:"invisible_list"` // 不可见的列表
 }
 
 // MessageFetchReq 拉取消息列表（by version_id）
