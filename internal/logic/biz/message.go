@@ -23,6 +23,7 @@ import (
 	"math"
 	"sort"
 	"time"
+	"unicode/utf8"
 )
 
 type MessageUseCase struct {
@@ -43,12 +44,10 @@ func (b *MessageUseCase) SendSimpleCustomMessage(ctx context.Context, sender, re
 		SeqId:    uint64(gen_id.SeqId()),
 		Sender:   sender,
 		Receiver: receiver,
-		MsgBody: format.MsgBody{
+		MsgBody: &format.MsgBody{
 			MsgType: format.MsgTypeCustom,
-			MsgContent: &format.MsgContent{
-				CustomContent: &format.CustomContent{
-					Data: d,
-				},
+			MsgContent: &format.CustomContent{
+				Data: d,
 			},
 		},
 	})
@@ -61,7 +60,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	logHead := fmt.Sprintf("Send|sender=%v,receiver=%v|", sender, receiver)
 
 	// check limit
-	err = b.checkMessageSend(ctx, req)
+	err = b.checkParamsSend(ctx, req)
 	if err != nil {
 		return
 	}
@@ -198,15 +197,15 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 		}
 
 		// build message list
-		msgContent := new(format.MsgContent)
-		_ = json.Unmarshal([]byte(item.Content), msgContent)
+		body := new(format.MsgBody)
+		tmpErr := json.Unmarshal([]byte(item.Content), body)
+		if tmpErr != nil {
+			continue
+		}
 		retList = append(retList, &response.MsgEntity{
-			MsgID: item.MsgID,
-			SeqID: item.SeqID,
-			MsgBody: format.MsgBody{
-				MsgType:    format.MsgType(item.MsgType),
-				MsgContent: msgContent,
-			},
+			MsgID:     item.MsgID,
+			SeqID:     item.SeqID,
+			MsgBody:   body,
 			SessionID: item.SessionID,
 			SenderID:  item.SenderID,
 			SendType:  gen_id.ContactIdType(item.SenderType),
@@ -345,7 +344,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 	}
 
 	// exchange：MsgContent
-	bContent, err := json.Marshal(req.MsgBody.MsgContent)
+	content, err := json.Marshal(req.MsgBody)
 	if err != nil {
 		logging.Errorf(logHead+"Marshal error=%v", err)
 		return
@@ -388,7 +387,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 		MsgID:         msgId,                         // 唯一id（服务端）
 		SeqID:         req.SeqId,                     // 唯一id（客户端）
 		MsgType:       uint32(req.MsgBody.MsgType),   // 消息类型
-		Content:       string(bContent),              // 消息内容
+		Content:       string(content),               // 消息内容
 		SessionID:     sessionId,                     // 会话ID
 		SenderID:      req.Sender.Id(),               // 发送者ID
 		SenderType:    uint32(req.Sender.Type()),     // 发送者的用户类型
@@ -425,7 +424,15 @@ func (b *MessageUseCase) needCreateContact(logHead string, contactId *gen_id.Com
 }
 
 // 限制：发送者和接受者的类型
-func (b *MessageUseCase) checkMessageSend(ctx context.Context, req *request.MessageSendReq) error {
+func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.MessageSendReq) error {
+	// check: sender
+	if req.Sender == nil || req.Receiver == nil {
+		return api.ErrSenderOrReceiverNotAllow
+	}
+	if req.Sender.Id() == 0 || req.Receiver.Id() == 0 {
+		return api.ErrSenderOrReceiverNotAllow
+	}
+
 	allowSenderType := []gen_id.ContactIdType{
 		gen_id.TypeUser,
 		gen_id.TypeRobot,
@@ -438,12 +445,64 @@ func (b *MessageUseCase) checkMessageSend(ctx context.Context, req *request.Mess
 		gen_id.TypeGroup,
 	}
 
+	// check: sender type
 	if !lo.Contains(allowSenderType, req.Sender.Type()) {
 		return api.ErrSenderTypeNotAllow
 	}
 	if !lo.Contains(allowReceiverType, req.Receiver.Type()) {
 		return api.ErrReceiverTypeNotAllow
 	}
+
+	// check: message body
+	if req.MsgBody == nil {
+		return api.ErrMessageBodyNotAllow
+	}
+
+	// check: message length
+	content, err := json.Marshal(req.MsgBody)
+	if utf8.RuneCount(content) > 2048 {
+		return fmt.Errorf("%v(content is too long)", api.ErrMessageContentNotAllowed)
+	}
+
+	// check: message type
+	typeLimit := []format.MsgType{
+		format.MsgTypeText,
+		format.MsgTypeImage,
+		format.MsgTypeVideo,
+		format.MsgTypeTips,
+	}
+	if !lo.Contains(typeLimit, req.MsgBody.MsgType) {
+		return api.ErrMessageTypeNotAllowed
+	}
+
+	// check: message content
+	msgContent, err := format.Decode(req.MsgBody)
+	if err != nil {
+		return api.ErrMessageBodyDecodedFailed
+	}
+	switch v := msgContent.(type) {
+	case *format.TextContent:
+		if v.Text == "" {
+			return fmt.Errorf("%v(text is empty)", api.ErrMessageContentNotAllowed)
+		}
+	case *format.ImageContent:
+		if len(v.ImageInfos) == 0 {
+			return fmt.Errorf("%v(image array is empty)", api.ErrMessageContentNotAllowed)
+		}
+	case *format.VideoContent:
+		if v.VideoUrl == "" {
+			return fmt.Errorf("%v(video url is empty)", api.ErrMessageContentNotAllowed)
+		}
+		if v.VideoSecond == 0 {
+			return fmt.Errorf("%v(video second is zero)", api.ErrMessageContentNotAllowed)
+		}
+	case *format.TipsContent:
+		if v.Text == "" {
+			return fmt.Errorf("%v(tip's text is empty)", api.ErrMessageContentNotAllowed)
+		}
+	}
+
+	// TODO: 频率控制、敏感词控制
 
 	return nil
 }

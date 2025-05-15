@@ -11,7 +11,7 @@ type MessageSendReq struct {
 	SeqId         model.BigIntType    `json:"seq_id,string"`  // 消息唯一id（客户端）
 	Sender        *gen_id.ComponentId `json:"sender"`         // 消息发送者
 	Receiver      *gen_id.ComponentId `json:"receiver"`       // 消息接收者
-	MsgBody       format.MsgBody      `json:"msg_body"`       // 消息体
+	MsgBody       *format.MsgBody     `json:"msg_body"`       // 消息体
 	InvisibleList []uint64            `json:"invisible_list"` // 不可见的列表
 }
 

@@ -1,5 +1,7 @@
 package format
 
+import "encoding/json"
+
 type ImageContent struct {
 	ImageInfos []Image `json:"image_infos,omitempty"` // 图片列表
 
@@ -7,6 +9,10 @@ type ImageContent struct {
 
 func (c ImageContent) GetType() MsgType {
 	return MsgTypeImage
+}
+
+func (c ImageContent) Decode(buf []byte) error {
+	return json.Unmarshal(buf, &c)
 }
 
 type Image struct {

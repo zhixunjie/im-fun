@@ -36,7 +36,7 @@ type FetchMsgData struct {
 type MsgEntity struct {
 	MsgID     uint64               `json:"msg_id,string"`
 	SeqID     uint64               `json:"seq_id,string"`
-	MsgBody   format.MsgBody       `json:"msg_body"`
+	MsgBody   *format.MsgBody      `json:"msg_body"`
 	SessionID string               `json:"session_id"`
 	SenderID  uint64               `json:"sender_id"`
 	SendType  gen_id.ContactIdType `json:"send_type"`

@@ -1,14 +1,24 @@
 package format
 
+import "encoding/json"
+
 // 自定义消息
 
 type CustomContent struct {
-	EventType EventType `json:"event_type"`
-	Data      string    `json:"data,omitempty"` // 自定义消息（一般会采用JSON格式）
+	Data string `json:"data,omitempty"` // 自定义消息（一般会采用JSON格式）
 }
 
 func (c CustomContent) GetType() MsgType {
 	return MsgTypeCustom
+}
+
+func (c CustomContent) Decode(buf []byte) error {
+	return json.Unmarshal(buf, &c)
+}
+
+type CustomEvent struct {
+	Type EventType `json:"event_type"` // 事件类型
+	Data string    `json:"data"`       // JSON字符串
 }
 
 //......
@@ -19,16 +29,16 @@ type EventType int
 
 const (
 	EventNONE    EventType = 0
-	EventLevelUp EventType = 1 // 人物升级（对应结构体: ImJsonLevel）
-	EventDrop    EventType = 2 // 物品掉落（对应结构体: ImJsonDrop）
+	EventLevelUp EventType = 1 // 人物升级 (EventJsonLevelUp)
+	EventDropSth EventType = 2 // 物品掉落 (EventJsonDropSth)
 )
 
-type ImJsonLevel struct {
+type EventJsonLevelUp struct {
 	UID       uint64 // 谁升级了？
 	CurrLevel int    // 当前等级是？
 }
 
-type ImJsonDrop struct {
+type EventJsonDropSth struct {
 	UID     uint64 // 掉落给谁？
 	GoodsId int    // 物品id
 }

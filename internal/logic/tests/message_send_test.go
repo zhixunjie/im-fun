@@ -17,12 +17,10 @@ func TestSendSimple(t *testing.T) {
 		SeqId:    uint64(gen_id.SeqId()),
 		Sender:   gen_id.NewUserComponentId(1001),
 		Receiver: gen_id.NewUserComponentId(1005),
-		MsgBody: format.MsgBody{
+		MsgBody: &format.MsgBody{
 			MsgType: format.MsgTypeText,
-			MsgContent: &format.MsgContent{
-				TextContent: &format.TextContent{
-					Text: "哈哈哈",
-				},
+			MsgContent: &format.TextContent{
+				Text: "哈哈哈",
 			},
 		},
 	})

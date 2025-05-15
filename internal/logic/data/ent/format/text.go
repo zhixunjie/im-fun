@@ -1,5 +1,7 @@
 package format
 
+import "encoding/json"
+
 type TextContent struct {
 	Text       string      `json:"text,omitempty"` // 文本内容
 	HighLights []HighLight `json:"highLights"`     // 高亮文本（支持多段高亮）
@@ -7,4 +9,8 @@ type TextContent struct {
 
 func (c TextContent) GetType() MsgType {
 	return MsgTypeText
+}
+
+func (c TextContent) Decode(buf []byte) error {
+	return json.Unmarshal(buf, &c)
 }

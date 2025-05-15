@@ -1,5 +1,7 @@
 package format
 
+import "encoding/json"
+
 type VideoContent struct {
 	VideoUrl    string `json:"video_url,omitempty"`    // 视频：链接
 	VideoSecond int32  `json:"video_second,omitempty"` // 视频：时长（秒）
@@ -14,4 +16,8 @@ type VideoContent struct {
 
 func (c VideoContent) GetType() MsgType {
 	return MsgTypeVideo
+}
+
+func (c VideoContent) Decode(buf []byte) error {
+	return json.Unmarshal(buf, &c)
 }
