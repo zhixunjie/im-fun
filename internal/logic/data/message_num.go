@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-redis/redis/v8"
 	"github.com/spf13/cast"
@@ -146,13 +147,13 @@ func (repo *MessageRepo) MGetSessionUnread(ctx context.Context, logHead string, 
 	retMap = make(map[string]int64, len(id2Arr))
 	for _, id2 := range id2Arr {
 		// HGet
-		res := mem.HGet(ctx, key, id2.ToString())
-		if tErr := res.Err(); tErr != nil && tErr != redis.Nil {
+		res, tErr := mem.HGet(ctx, key, id2.ToString()).Result()
+		if tErr != nil && !errors.Is(tErr, redis.Nil) {
 			err = tErr
 			logging.Errorf(logHead+"HGet error=%v", err)
 			return
 		}
-		retMap[id2.ToString()] = cast.ToInt64(res.Val())
+		retMap[id2.ToString()] = cast.ToInt64(res)
 	}
 
 	return
