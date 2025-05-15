@@ -1,7 +1,7 @@
 package format
 
 type ImageContent struct {
-	Images []Image `json:"images,omitempty"` // 图片列表
+	ImageInfos []Image `json:"image_infos,omitempty"` // 图片列表
 
 }
 
