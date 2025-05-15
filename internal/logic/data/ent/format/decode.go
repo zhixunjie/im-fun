@@ -24,7 +24,6 @@ func Decode(base *MsgBody) (msgContent MsgContent, err error) {
 		return
 	}
 
-	// 解析：Data
 	if err = json.Unmarshal(buf, msgContent); err != nil {
 		err = fmt.Errorf("unmarshal json(data): %w", err)
 		return
