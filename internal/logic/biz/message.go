@@ -466,6 +466,7 @@ func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.Messa
 
 	// check: message type
 	typeLimit := []format.MsgType{
+		format.MsgTypeCustom,
 		format.MsgTypeText,
 		format.MsgTypeImage,
 		format.MsgTypeVideo,
@@ -481,6 +482,10 @@ func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.Messa
 		return api.ErrMessageBodyDecodedFailed
 	}
 	switch v := msgContent.(type) {
+	case *format.CustomContent:
+		if v.Data == "" {
+			return fmt.Errorf("%v(text is empty)", api.ErrMessageContentNotAllowed)
+		}
 	case *format.TextContent:
 		if v.Text == "" {
 			return fmt.Errorf("%v(text is empty)", api.ErrMessageContentNotAllowed)
