@@ -11,9 +11,9 @@ import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 )
 
-// OpFromClient 专门处理客户端上行的TCP消息
-func (s *TcpServer) OpFromClient(ctx context.Context, logHead string, proto *protocol.Proto, ch *channel.Channel, bucket *Bucket) (err error) {
-	logHead += "OpFromClient|"
+// handleClientMsg 专门处理客户端上行的TCP消息
+func (s *TcpServer) handleClientMsg(ctx context.Context, logHead string, proto *protocol.Proto, ch *channel.Channel, bucket *Bucket) (err error) {
+	logHead += "handleClientMsg|"
 
 	switch protocol.Operation(proto.Op) {
 	case protocol.OpHeartbeat: // 心跳上报

@@ -156,9 +156,9 @@ func (s *TcpServer) readLoop(ctx context.Context, logHead string, ch *channel.Ch
 			goto fail
 		}
 
-		// deal with the msg
-		if err = s.OpFromClient(ctx, logHead, proto, ch, bucket); err != nil {
-			logging.Errorf(logHead+"DealClientMsg err=%v", err)
+		// handle msg
+		if err = s.handleClientMsg(ctx, logHead, proto, ch, bucket); err != nil {
+			logging.Errorf(logHead+"handleClientMsg err=%v", err)
 			goto fail
 		}
 
