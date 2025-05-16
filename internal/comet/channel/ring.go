@@ -10,9 +10,13 @@ var (
 	ErrRingFull  = errors.New("ring buffer full")
 )
 
-// 设计哲学：
-// - 当Ring中的增加一个Proto，wp的值需要+1（写入一个Proto了）
-// - 当Ring中的减少一个Proto，rp的值需要+1（Proto被读取了）
+/*
+
+设计哲学：
+- 当Ring中的增加一个Proto，wp的值需要+1（写入一个Proto了）
+- 当Ring中的减少一个Proto，rp的值需要+1（Proto被读取了）
+
+*/
 
 // Ring use to get proto，reduce GC
 // Every User Has A Channel and Every Channel Has a Ring
