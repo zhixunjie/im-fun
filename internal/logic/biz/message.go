@@ -279,7 +279,8 @@ func (b *MessageUseCase) DelOneSide(ctx context.Context, req *request.MessageDel
 	return
 }
 
-// ClearHistory 清空聊天记录（批量清空）
+// ClearHistory
+// 清空聊天记录（批量清空），比如：删除联系人后，通信双方都无法看到对方的聊天记录了
 // 核心：更新Contact的 last_del_msg_id 为 last_msg_id
 func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.ClearHistoryReq) (rsp response.ClearHistoryRsp, err error) {
 	logHead := fmt.Sprintf("ClearHistory|")
@@ -395,7 +396,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 		VersionID:     versionId,                     // 版本ID
 		SortKey:       versionId,                     // sort_key的值等同于version_id
 		Status:        uint32(model.MsgStatusNormal), // 状态正常
-		HasRead:       uint32(model.MsgRead),         // 已读（功能还没做好）
+		HasRead:       uint32(model.MsgRead),         // TODO: 已读（功能还没做好）
 		InvisibleList: string(bInvisibleList),        // 不可见的列表
 	}
 	err = b.repoMessage.Create(logHead, msg)
