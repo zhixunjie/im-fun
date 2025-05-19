@@ -514,7 +514,7 @@ func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.Messa
 }
 
 // updateMsgIdStatus 通用的方法，用于更新消息的状态和版本ID
-func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, msgId model.BigIntType, status model.MsgStatus, senderId *gen_id.ComponentId) (err error) {
+func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, msgId model.BigIntType, status model.MsgStatus, sender *gen_id.ComponentId) (err error) {
 	logHead += fmt.Sprintf("updateMsgIdStatus,msgId=%v,status=%v|", msgId, status)
 
 	// get: message
@@ -534,7 +534,8 @@ func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, 
 		}
 		return
 	}
-	err = b.updateMsgVersion(ctx, logHead, sessionId, senderId, fn)
+	// 加锁生成 version_id，然后执行回调函数
+	err = b.updateMsgVersion(ctx, logHead, sessionId, sender, fn)
 	if err != nil {
 		return
 	}
