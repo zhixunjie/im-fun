@@ -407,16 +407,16 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 }
 
 // 双方通信时，判断是否需要创建对方的Contact
-func (b *MessageUseCase) needCreateContact(logHead string, contactId *gen_id.ComponentId) bool {
-	logHead += fmt.Sprintf("needCreateContact|contactId=%v|", contactId)
+func (b *MessageUseCase) needCreateContact(logHead string, id *gen_id.ComponentId) bool {
+	logHead += fmt.Sprintf("needCreateContact|id=%v|", id)
 
-	typeArr := []gen_id.ContactIdType{
+	noNeedCreate := []gen_id.ContactIdType{
 		gen_id.TypeRobot,
 		gen_id.TypeSystem,
 	}
 
 	// 如果用户是指定类型，那么不需要创建他的contact信息（比如：机器人）
-	if lo.Contains(typeArr, contactId.Type()) || contactId.IsGroup() {
+	if lo.Contains(noNeedCreate, id.Type()) || id.IsGroup() {
 		logging.Info(logHead + "do not need create contact")
 		return false
 	}
@@ -434,25 +434,25 @@ func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.Messa
 		return api.ErrSenderOrReceiverNotAllow
 	}
 
-	allowSenderType := []gen_id.ContactIdType{
-		gen_id.TypeUser,
-		gen_id.TypeRobot,
-		gen_id.TypeSystem,
-	}
-
-	allowReceiverType := []gen_id.ContactIdType{
-		gen_id.TypeUser,
-		gen_id.TypeRobot,
-		gen_id.TypeGroup,
-	}
-
-	// check: sender type
-	if !lo.Contains(allowSenderType, req.Sender.Type()) {
-		return api.ErrSenderTypeNotAllow
-	}
-	if !lo.Contains(allowReceiverType, req.Receiver.Type()) {
-		return api.ErrReceiverTypeNotAllow
-	}
+	//allowSenderType := []gen_id.ContactIdType{
+	//	gen_id.TypeUser,
+	//	gen_id.TypeRobot,
+	//	gen_id.TypeSystem,
+	//}
+	//
+	//allowReceiverType := []gen_id.ContactIdType{
+	//	gen_id.TypeUser,
+	//	gen_id.TypeRobot,
+	//	gen_id.TypeGroup,
+	//}
+	//
+	//// check: sender type
+	//if !lo.Contains(allowSenderType, req.Sender.Type()) {
+	//	return api.ErrSenderTypeNotAllow
+	//}
+	//if !lo.Contains(allowReceiverType, req.Receiver.Type()) {
+	//	return api.ErrReceiverTypeNotAllow
+	//}
 
 	// check: message body
 	if req.MsgBody == nil {
