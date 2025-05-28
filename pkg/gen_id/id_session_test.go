@@ -27,7 +27,7 @@ func TestSort(t *testing.T) {
 		id:     1004,
 		idType: 1,
 	}
-	fmt.Println(Sort(id1, id2))
+	fmt.Println(id1.Sort(id2))
 }
 
 func TestParseSessionId(t *testing.T) {

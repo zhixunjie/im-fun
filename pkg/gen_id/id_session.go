@@ -27,7 +27,7 @@ func SessionId(id1, id2 *ComponentId) (sessionId string) {
 
 // userSessionId 标识单聊timeline（使用双方id，小的id在前，大的id在后）
 func userSessionId(id1, id2 *ComponentId) string {
-	smallerId, largerId := Sort(id1, id2)
+	smallerId, largerId := id1.Sort(id2)
 
 	// session_id的组成部分：[ smallerId ":" largerId]
 	return fmt.Sprintf(PrefixPair+":%s:%s", smallerId.ToString(), largerId.ToString())

@@ -17,7 +17,7 @@ func MsgId(ctx context.Context, mem *redis.Client, id1, id2 *ComponentId) (msgId
 	case id2.IsGroup(): // 群聊
 		msgId, err = genMsgId(ctx, mem, id2.Id())
 	default: // 单聊
-		_, largerId := Sort(id1, id2)
+		_, largerId := id1.Sort(id2)
 		msgId, err = genMsgId(ctx, mem, largerId.Id())
 	}
 

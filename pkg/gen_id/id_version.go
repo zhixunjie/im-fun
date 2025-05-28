@@ -31,7 +31,7 @@ func MsgVersionId(ctx context.Context, params *MsgVerParams) (versionId uint64, 
 	case params.Id2.IsGroup(): // 群聊（群组id固定放在后面）
 		key = keyMsgGroupVersion(params.Id2.ToString(), verIdTimeKey)
 	default: // 单聊
-		smallerId, largerId := Sort(params.Id1, params.Id2)
+		smallerId, largerId := params.Id1.Sort(params.Id2)
 		key = keyMsgVersion(smallerId.ToString(), largerId.ToString(), verIdTimeKey)
 	}
 

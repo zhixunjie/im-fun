@@ -49,20 +49,20 @@ func (c *ComponentId) Equal(b *ComponentId) bool {
 	return false
 }
 
+// Sort 小的id在前，大的id在后
+func (c *ComponentId) Sort(b *ComponentId) (*ComponentId, *ComponentId) {
+	if c.id < b.id {
+		return c, b
+	}
+
+	return b, c
+}
+
 func NewComponentId(id uint64, idType ContactIdType) *ComponentId {
 	return &ComponentId{
 		id:     id,
 		idType: idType,
 	}
-}
-
-// Sort 小的id在前，大的id在后
-func Sort(a, b *ComponentId) (*ComponentId, *ComponentId) {
-	if a.id < b.id {
-		return a, b
-	}
-
-	return b, a
 }
 
 // 预定义的组合ID
