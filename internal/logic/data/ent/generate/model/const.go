@@ -28,34 +28,34 @@ func TbNum() (num uint64) {
 	return
 }
 
-// ShardingTbNameMessage
+// TbNameMessage
 // 因为 msgId 和 largerId 的后4位是相同的，所以这里传入 msgId 或者 largerId 都可以
-func ShardingTbNameMessage(id uint64) (dbName string, tbName string) {
+func TbNameMessage(id uint64) (dbName string, tbName string) {
 	dbName = fmt.Sprintf("%v_%v", DbNameMessage, id%gen_id.SlotBit%DBNum())
 	tbName = fmt.Sprintf("%v_%v", TableNameMessage, id%gen_id.SlotBit%TbNum())
 
 	return dbName, tbName
 }
 
-func ShardingTbNameMessageByComponentId(id1, id2 *gen_id.ComponentId) (dbName string, tbName string) {
-	switch {
-	case id1.IsGroup(): // 群聊
-		dbName, tbName = ShardingTbNameMessage(id1.Id())
-	case id2.IsGroup(): // 群聊
-		dbName, tbName = ShardingTbNameMessage(id2.Id())
-	default: // 单聊
-		_, largerId := id1.Sort(id2)
-		dbName, tbName = ShardingTbNameMessage(largerId.Id())
-	}
-
-	return
-}
-
-func ShardingTbNameContact(ownerId uint64) (dbName string, tbName string) {
+func TbNameContact(ownerId uint64) (dbName string, tbName string) {
 	dbName = fmt.Sprintf("%v_%v", DbNameMessage, ownerId%gen_id.SlotBit%DBNum())
 	tbName = fmt.Sprintf("%v_%v", TableNameContact, ownerId%gen_id.SlotBit%TbNum())
 
 	return dbName, tbName
+}
+
+func TbNameMessageByCId(id1, id2 *gen_id.ComponentId) (dbName string, tbName string) {
+	switch {
+	case id1.IsGroup(): // 群聊
+		dbName, tbName = TbNameMessage(id1.Id())
+	case id2.IsGroup(): // 群聊
+		dbName, tbName = TbNameMessage(id2.Id())
+	default: // 单聊
+		_, largerId := id1.Sort(id2)
+		dbName, tbName = TbNameMessage(largerId.Id())
+	}
+
+	return
 }
 
 // BigIntType 各种Id的类型（方便切换为int64、uint64）

@@ -21,7 +21,7 @@ func NewMessageRepo(data *Data) *MessageRepo {
 
 func (repo *MessageRepo) Create(logHead string, row *model.Message) (err error) {
 	logHead += "Create|"
-	dbName, tbName := model.ShardingTbNameMessage(row.MsgID)
+	dbName, tbName := model.TbNameMessage(row.MsgID)
 	master := repo.Master(dbName).Message.Table(tbName)
 
 	err = master.Create(row)
@@ -43,7 +43,7 @@ func (repo *MessageRepo) InfoWithCache(msgId uint64) (*model.Message, error) {
 
 // Info 查询某条消息的详情
 func (repo *MessageRepo) Info(msgId uint64) (row *model.Message, err error) {
-	dbName, tbName := model.ShardingTbNameMessage(msgId)
+	dbName, tbName := model.TbNameMessage(msgId)
 	slave := repo.Slave(dbName).Message.Table(tbName)
 
 	row, err = slave.Where(slave.MsgID.Eq(msgId)).Take()
@@ -55,7 +55,7 @@ func (repo *MessageRepo) Info(msgId uint64) (row *model.Message, err error) {
 
 // RangeList 获取一定范围的消息列表
 func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*model.Message, err error) {
-	dbName, tbName := model.ShardingTbNameMessageByComponentId(params.Owner, params.Peer)
+	dbName, tbName := model.TbNameMessageByCId(params.Owner, params.Peer)
 	slave := repo.Slave(dbName).Message.Table(tbName)
 
 	// get id
@@ -95,7 +95,7 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 // UpdateMsgVerAndStatus 修改某条消息的状态
 func (repo *MessageRepo) UpdateMsgVerAndStatus(logHead string, msgId, versionId model.BigIntType, status model.MsgStatus) (err error) {
 	logHead += fmt.Sprintf("UpdateMsgVerAndStatus,msgId=%v,versionId=%v,status=%v|", msgId, versionId, status)
-	dbName, tbName := model.ShardingTbNameMessage(msgId)
+	dbName, tbName := model.TbNameMessage(msgId)
 	master := repo.Master(dbName).Message.Table(tbName)
 
 	// status

@@ -26,15 +26,15 @@ func NewContactRepo(data *Data) *ContactRepo {
 }
 
 // InfoWithCache 查询某个会话的信息
-func (repo *ContactRepo) InfoWithCache(ownerId *gen_id.ComponentId, peerId *gen_id.ComponentId) (*model.Contact, error) {
+func (repo *ContactRepo) InfoWithCache(ownerId, peerId *gen_id.ComponentId) (*model.Contact, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
-	return repo.Info("InfoWithCache|", ownerId, peerId)
+	return repo.Info(ownerId, peerId)
 }
 
 // Info 查询某个会话的信息
-func (repo *ContactRepo) Info(logHead string, ownerId *gen_id.ComponentId, peerId *gen_id.ComponentId) (row *model.Contact, err error) {
-	dbName, tbName := model.ShardingTbNameContact(ownerId.Id())
+func (repo *ContactRepo) Info(ownerId, peerId *gen_id.ComponentId) (row *model.Contact, err error) {
+	dbName, tbName := model.TbNameContact(ownerId.Id())
 	slave := repo.Slave(dbName).Contact.Table(tbName)
 
 	row, err = slave.Where(
@@ -50,9 +50,9 @@ func (repo *ContactRepo) Info(logHead string, ownerId *gen_id.ComponentId, peerI
 }
 
 // Edit 插入/更新记录
-//func (repo *ContactRepo) Edit(logHead string, tx *query.Query, row *model.Contact) (err error) {
+//func (repo *ContactRepo) Edit( tx *query.Query, row *model.Contact) (err error) {
 //	logHead += fmt.Sprintf("Edit,row=%v|", row)
-//	dbName, tbName := model.ShardingTbNameContact(row.OwnerID)
+//	dbName, tbName := model.TbNameContact(row.OwnerID)
 //	master := repo.Master(dbName).Contact.Table(tbName)
 //
 //	// insert or update ?
@@ -79,13 +79,13 @@ func (repo *ContactRepo) Info(logHead string, ownerId *gen_id.ComponentId, peerI
 // CreateNotExists 创建会话
 func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildContactParams) (contact *model.Contact, err error) {
 	logHead += "CreateNotExists|"
-	dbName, tbName := model.ShardingTbNameContact(params.Owner.Id())
+	dbName, tbName := model.TbNameContact(params.Owner.Id())
 	master := repo.Master(dbName).Contact.Table(tbName)
 
 	// TODO: 使用 redis hash/string 进行优化（支持同时查两个contact）
 	// TODO：使用 local cache 的 bitmap 进行优化
 	// query contact
-	contact, tmpErr := repo.Info(logHead, params.Owner, params.Peer)
+	contact, tmpErr := repo.Info(params.Owner, params.Peer)
 	if tmpErr != nil && !errors.Is(tmpErr, gorm.ErrRecordNotFound) {
 		err = tmpErr
 		logging.Errorf(logHead+"Info error=%v", err)
@@ -117,7 +117,7 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 // RangeList 获取一定范围的会话列表
 func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRangeParams) (list []*model.Contact, err error) {
 	logHead += "RangeList|"
-	dbName, tbName := model.ShardingTbNameContact(params.Owner.Id())
+	dbName, tbName := model.TbNameContact(params.Owner.Id())
 	slave := repo.Slave(dbName).Contact.Table(tbName)
 
 	pivotVersionId := params.PivotVersionId
@@ -156,7 +156,7 @@ func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRan
 func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, contactId uint64, owner *gen_id.ComponentId, lastMsgId uint64, peerAck model.PeerAckStatus) (err error) {
 	logHead += "UpdateLastMsgId|"
 	mem := repo.RedisClient
-	dbName, tbName := model.ShardingTbNameContact(owner.Id())
+	dbName, tbName := model.TbNameContact(owner.Id())
 	master := repo.Master(dbName).Contact.Table(tbName)
 
 	// note: 同一用户的会话timeline的版本变动，需要加锁
@@ -200,7 +200,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 
 // UpdateLastDelMsg 更新contact的最后一条已删除的消息（清空聊天记录）
 func (repo *ContactRepo) UpdateLastDelMsg(logHead string, lastDelMsgId model.BigIntType, versionId uint64, ownerId *gen_id.ComponentId, peerId *gen_id.ComponentId) (affectedRow int64, err error) {
-	dbName, tbName := model.ShardingTbNameContact(ownerId.Id())
+	dbName, tbName := model.TbNameContact(ownerId.Id())
 	master := repo.Master(dbName).Contact.Table(tbName)
 
 	var res gen.ResultInfo
