@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/cache"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
@@ -115,8 +116,7 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 }
 
 // RangeList 获取一定范围的会话列表
-func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRangeParams) (list []*model.Contact, err error) {
-	logHead += "RangeList|"
+func (repo *ContactRepo) RangeList(params *model.FetchContactRangeParams) (list []*model.Contact, err error) {
 	dbName, tbName := model.TbNameContact(params.Owner.Id())
 	slave := repo.Slave(dbName).Contact.Table(tbName)
 
@@ -134,18 +134,22 @@ func (repo *ContactRepo) RangeList(logHead string, params *model.FetchContactRan
 			slave.OwnerType.Eq(uint32(ownerId.Type())),
 			slave.VersionID.Lt(pivotVersionId),
 		).Limit(params.Limit).Order(slave.VersionID.Desc()).Find()
+		if err != nil {
+			err = fmt.Errorf("FetchTypeBackward err=%v", err)
+			return
+		}
 	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
 		list, err = slave.Where(
 			slave.OwnerID.Eq(ownerId.Id()),
 			slave.OwnerType.Eq(uint32(ownerId.Type())),
 			slave.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(slave.VersionID).Find()
+		if err != nil {
+			err = fmt.Errorf("FetchTypeForward err=%v", err)
+			return
+		}
 	default:
 		err = errors.New("invalid fetch type")
-		return
-	}
-	if err != nil {
-		logging.Errorf(logHead+"err=%v", err)
 		return
 	}
 

@@ -9,6 +9,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/response"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/utils"
 	"sort"
 )
@@ -29,13 +30,14 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 
 	// 会话只会拉取最新的
 	ownerId := req.Owner
-	list, err := b.contactRepo.RangeList(logHead, &model.FetchContactRangeParams{
+	list, err := b.contactRepo.RangeList(&model.FetchContactRangeParams{
 		FetchType:      model.FetchTypeForward,
 		Owner:          ownerId,
 		PivotVersionId: req.VersionId,
 		Limit:          limit,
 	})
 	if err != nil {
+		logging.Errorf(logHead+"RangeList err=%v", err)
 		return
 	}
 	if len(list) == 0 {
