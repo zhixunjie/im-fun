@@ -5,6 +5,8 @@ import (
 	"unicode/utf8"
 )
 
+// HighLight 高亮文本
+// 注意：高亮文本的位置是基于源字符串的偏移量，而不是基于字节的偏移量
 type HighLight struct {
 	Text   string `json:"text,omitempty"`   // 高亮：文本
 	Link   string `json:"link,omitempty"`   // 高亮：跳转链接

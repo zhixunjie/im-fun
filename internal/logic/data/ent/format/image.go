@@ -2,17 +2,10 @@ package format
 
 import "encoding/json"
 
+// ImageContent 图片消息
 type ImageContent struct {
 	ImageInfos []Image `json:"image_infos,omitempty"` // 图片列表
 
-}
-
-func (c ImageContent) GetType() MsgType {
-	return MsgTypeImage
-}
-
-func (c ImageContent) Decode(buf []byte) error {
-	return json.Unmarshal(buf, &c)
 }
 
 type Image struct {
@@ -22,4 +15,12 @@ type Image struct {
 	Height int32  `json:"height,omitempty"` // 图片：高
 	Size   int32  `json:"size,omitempty"`   // 图片：大小
 	Uuid   string `json:"uuid,omitempty"`   // 资源标识
+}
+
+func (c ImageContent) GetType() MsgType {
+	return MsgTypeImage
+}
+
+func (c ImageContent) Decode(buf []byte) error {
+	return json.Unmarshal(buf, &c)
 }

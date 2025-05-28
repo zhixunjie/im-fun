@@ -2,6 +2,7 @@ package format
 
 import "encoding/json"
 
+// AudioContent 音频消息
 type AudioContent struct {
 	Url    string `json:"url,omitempty"`    // 音频：链接
 	Second int32  `json:"second,omitempty"` // 音频：时长（秒）

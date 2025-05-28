@@ -2,6 +2,7 @@ package format
 
 import "encoding/json"
 
+// VideoContent 视频消息
 type VideoContent struct {
 	VideoUrl    string `json:"video_url,omitempty"`    // 视频：链接
 	VideoSecond int32  `json:"video_second,omitempty"` // 视频：时长（秒）

@@ -2,8 +2,7 @@ package format
 
 import "encoding/json"
 
-// 自定义消息
-
+// CustomContent 自定义消息
 type CustomContent struct {
 	Data string `json:"data,omitempty"` // 自定义消息（一般会采用JSON格式）
 }
