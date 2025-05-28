@@ -135,14 +135,15 @@ type BuildContactParams struct {
 }
 
 // UpdateLastMsgId 更新最后一条消息
-type UpdateLastMsgId struct {
-	SessionId string
-	LastMsgId uint64
-	Peer1     UpdateLastMsgIdItem `json:"peer_1"`
-	Peer2     UpdateLastMsgIdItem `json:"peer_2"`
-}
-
-type UpdateLastMsgIdItem struct {
-	ContactId uint64
-	OwnerId   *gen_id.ComponentId
-}
+//type (
+//	UpdateLastMsgId struct {
+//		SessionId string
+//		LastMsgId uint64
+//		Peer1     UpdateLastMsgIdItem `json:"peer_1"`
+//		Peer2     UpdateLastMsgIdItem `json:"peer_2"`
+//	}
+//	UpdateLastMsgIdItem struct {
+//		ContactId uint64
+//		OwnerId   *gen_id.ComponentId
+//	}
+//)
