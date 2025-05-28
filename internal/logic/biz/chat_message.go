@@ -138,7 +138,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	// get: contact info
 	owner := req.Owner
 	peer := req.Peer
-	contactInfo, err := b.repoContact.Info(logHead, owner, peer)
+	contactInfo, err := b.repoContact.Info(owner, peer)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			err = api.ErrContactNotExists
@@ -298,7 +298,7 @@ func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.ClearHis
 	if lastDelMsgId == 0 {
 		// get: contact info
 		var contactInfo *model.Contact
-		contactInfo, err = b.repoContact.Info(logHead, owner, peer)
+		contactInfo, err = b.repoContact.Info(owner, peer)
 		if err != nil {
 			logging.Error(logHead+"repoContact Info,err=%v", err)
 			return
@@ -317,7 +317,7 @@ func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.ClearHis
 	}
 
 	// update to db
-	affectedRow, err := b.repoContact.UpdateLastDelMsg(logHead, lastDelMsgId, versionId, owner, peer)
+	affectedRow, err := b.repoContact.UpdateLastDelMsg(lastDelMsgId, versionId, owner, peer)
 	if err != nil {
 		logging.Errorf(logHead+"UpdateLastDelMsg error=%v", err)
 		return
