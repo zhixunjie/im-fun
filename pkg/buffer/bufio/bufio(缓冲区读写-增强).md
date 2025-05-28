@@ -115,7 +115,7 @@ func (b *Writer) SetFdAndResetBuffer(w io.Writer, buf []byte) {
 }
 ~~~
 
-**3）Reader.Pop()**：把Reader 的用户缓冲区的n个字节直接返回给用户。
+**3）Reader.Pop()**：把Reader 的用户缓冲区的n个字节直接返回给用户（没有copy到新的byte数组，复用Reader自身的缓冲区）。
 
 - 如果用户调用Reader.Read()执行读取操作时，需要先make一个byte数组，然后传入Read()函数进行读取操作。
 - 但是，如果用户调用Reader.Pop()执行读取操作时，就不再需要传入一个byte数组，直接复用Reader本身的缓冲区内存即可。
@@ -136,7 +136,7 @@ func (b *Reader) Pop(n int) ([]byte, error) {
 }
 ~~~
 
-**4）Writer.Peek()**：原理跟Reader.Pop()一样。
+**4）Writer.Peek()**：原理跟Reader.Pop()一样（没有copy到新的byte数组，复用Writer自身的缓冲区）。
 
 ~~~go
 // Peek 直接返回Writer的用户缓冲区的n个字节
