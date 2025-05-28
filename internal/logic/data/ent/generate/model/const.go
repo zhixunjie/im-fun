@@ -44,7 +44,7 @@ func ShardingTbNameMessageByComponentId(id1, id2 *gen_id.ComponentId) (dbName st
 	case id2.IsGroup(): // 群聊
 		dbName, tbName = ShardingTbNameMessage(id2.Id())
 	default: // 单聊
-		_, largerId := gen_id.Sort(id1, id2)
+		_, largerId := id1.Sort(id2)
 		dbName, tbName = ShardingTbNameMessage(largerId.Id())
 	}
 
@@ -67,8 +67,8 @@ type BigIntType = uint64
 type ContactStatus uint32
 
 const (
-	ContactStatusNormal  = 0 // 正常
-	ContactStatusDeleted = 1 // 已删除
+	ContactStatusNormal  ContactStatus = 1 // 正常
+	ContactStatusDeleted ContactStatus = 2 // 已删除
 )
 
 // =========================
@@ -77,42 +77,36 @@ const (
 type PeerAckStatus uint32
 
 const (
-	PeerNotAck PeerAckStatus = 0 // 未发过
-	PeerAcked                = 1 // 发过
+	PeerNotAck PeerAckStatus = 1 // 未回答过消息
+	PeerAcked  PeerAckStatus = 2 // 回答过消息
 )
 
 // ================================ Message ================================
-
-// =========================
 
 // MsgReadStatus 消息读取状态
 type MsgReadStatus uint32
 
 const (
-	MsgNotRead MsgReadStatus = 0 // 未读
-	MsgRead                  = 1 // 已读
+	MsgNotRead MsgReadStatus = 1 // 未读
+	MsgRead    MsgReadStatus = 2 // 已读
 )
-
-// =========================
 
 // MsgStatus 消息状态
 type MsgStatus uint32
 
 const (
-	MsgStatusNormal  MsgStatus = iota // 正常
-	MsgStatusRecall                   // 已撤回（双方都展示为撤回）
-	MsgStatusDeleted                  // 已删除（双方都展示为删除）
+	MsgStatusNormal  MsgStatus = 1 // 正常
+	MsgStatusDeleted MsgStatus = 2 // 已删除（双方都展示为删除）
+	MsgStatusRecall  MsgStatus = 3 // 已撤回（双方都展示为撤回）
 )
-
-// =========================
 
 // FetchType 消息拉取方式
 type FetchType = int32
 
 const (
-	FetchTypeBackward FetchType = iota // 拉取历史消息
-	FetchTypeForward                   // 拉取最新消息
-	FetchTypeInBg                      // 后台拉消息：不清除未读数(history)
+	FetchTypeBackward FetchType = 1 // 拉取历史消息
+	FetchTypeForward  FetchType = 2 // 拉取最新消息
+	FetchTypeInBg     FetchType = 3 // 后台拉消息：不清除未读数(history)
 )
 
 // =========================

@@ -99,7 +99,8 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 			OwnerType: uint32(params.Owner.Type()),
 			PeerID:    params.Peer.Id(),
 			PeerType:  uint32(params.Peer.Type()),
-			Status:    model.ContactStatusNormal,
+			PeerAck:   uint32(model.PeerNotAck),
+			Status:    uint32(model.ContactStatusNormal),
 		}
 
 		// save to db
