@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"github.com/zhixunjie/im-fun/pkg/logging"
+	"time"
 )
 
 // CreatePool 创建Redis连接池
@@ -25,6 +26,8 @@ func CreatePool(addr, password string, db int) (*redis.Client, error) {
 		// IdleCheckFrequency: 60 * time.Second, // 闲置连接检查的周期，默认为1分钟，-1表示不做周期性检查，只在客户端获取连接时对闲置连接进行处理。
 		// IdleTimeout:        5 * time.Minute,  // 闲置超时，默认5分钟，-1表示取消闲置超时检查
 		// MaxConnAge:         0 * time.Second,  // 连接存活时长，从创建开始计时，超过指定时长则关闭连接，默认为0，即不关闭存活时长较长的连接
+		ConnMaxIdleTime: 5 * time.Minute, // 连接最大空闲时间，达到此时间则将连接关闭（等同于v8的 IdleTimeout）
+		ConnMaxLifetime: 0 * time.Second, // 连接存活时长，从创建开始计时，超过指定时长则关闭连接，默认为0，即不关闭存活时长较长的连接（等同于v8的 MaxConnAge）
 
 		// 重试策略：命令执行失败时的重试策略
 		// MaxRetries:      0,                      // 命令执行失败时，最多重试多少次，默认为0即不重试
@@ -77,9 +80,9 @@ func printRedisOption(opt *redis.Options) {
 	fmt.Printf("WriteTimeout=%v\n", opt.WriteTimeout)
 	fmt.Printf("PoolSize=%v\n", opt.PoolSize)
 	fmt.Printf("MinIdleConns=%v\n", opt.MinIdleConns)
-	fmt.Printf("MaxConnAge=%v\n", opt.MaxConnAge)
+	//fmt.Printf("MaxConnAge=%v\n", opt.MaxConnAge)
 	fmt.Printf("PoolTimeout=%v\n", opt.PoolTimeout)
-	fmt.Printf("IdleTimeout=%v\n", opt.IdleTimeout)
-	fmt.Printf("IdleCheckFrequency=%v\n", opt.IdleCheckFrequency)
+	//fmt.Printf("IdleTimeout=%v\n", opt.IdleTimeout)
+	//fmt.Printf("IdleCheckFrequency=%v\n", opt.IdleCheckFrequency)
 	fmt.Printf("TLSConfig=%v\n", opt.TLSConfig)
 }
