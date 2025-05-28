@@ -21,8 +21,8 @@ func (pool *Pool) Init(bufSize, batchNum int) {
 	pool.batchNew()
 }
 
-// batchNew Buffer
-// free LinkList:  free buffer 1 ->  free buffer 2 -> free buffer 3
+// 批量创建一批 Buffer，并将其链接起来
+// - free LinkList:  free buffer 1 ->  free buffer 2 -> free buffer 3
 func (pool *Pool) batchNew() {
 	bufSize := pool.bufSize
 	batchNum := pool.batchNum
