@@ -10,8 +10,8 @@ import (
 type Pool struct {
 	lock     sync.Mutex
 	free     *Buffer // check this detail in batchNew
-	bufSize  int     // each Buffer Size
-	batchNum int     // create Buffer continuously
+	bufSize  int     // 每个 Buffer 的大小
+	batchNum int     // 连续创建一批数量的 Buffer
 }
 
 // Init init Pool
