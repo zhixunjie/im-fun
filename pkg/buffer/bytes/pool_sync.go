@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-// PoolSync：使用sync包编写的BufferPool
+// 另一种用法，直接使用 sync 包的 BufferPool
 // 优点：代码更加简洁
 // 缺点：分配方式不够高效，发现Buffer不足时，只会一个个去New
 
