@@ -117,7 +117,7 @@ type Hash struct {
 
 Bufio：为某个 fd 添加用户缓冲区的读写操作，[改造版的Bufio](./bufio/bufio(缓冲区读写-增强).md)。
 
-- **Bufio 的内存复用了 [Buffer Pool](#Buffer Pool)的内存，从而减少每个TCP的IO读写带来的Buffer GC。**
+- **Bufio 的内存复用了 [Buffer Pool](# 1.2 Buffer Pool)的内存，从而减少每个TCP的IO读写带来的Buffer GC。**
     - 由于每个TCP连接（conn fd）都需要附带上 Bufio 的用户缓冲区，频繁进行内存的创建和销毁，对于申请内存和GC都是要消耗性能的。
     - 所以，用户缓冲区的内存交由Buffer Pool去管理。
 - Bufio 为底层的 read 和 write 操作附上用户缓冲区（从而减少系统调用 read/write 的次数）。
