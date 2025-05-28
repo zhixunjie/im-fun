@@ -80,7 +80,10 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	}
 
 	// 返回之前进行重新排序
-	sort.Sort(response.ContactSortBySortKey(retList))
+	//sort.Sort(response.ContactSortBySortKey(retList))
+	sort.Slice(retList, func(i, j int) bool {
+		return retList[i].VersionID < retList[j].VersionID
+	})
 
 	resp.Data = response.FetchContactData{
 		ContactList:   retList,

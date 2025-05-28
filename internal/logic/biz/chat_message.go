@@ -234,7 +234,10 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	})
 
 	// sort: 返回之前进行重新排序
-	sort.Sort(response.MessageSortByVersion(retList))
+	//sort.Sort(response.MessageSortByVersion(retList))
+	sort.Slice(retList, func(i, j int) bool {
+		return retList[i].VersionID < retList[j].VersionID
+	})
 
 	rsp.Data = response.FetchMsgData{
 		MsgList:       retList,
