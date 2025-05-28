@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/spf13/cast"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/logging"

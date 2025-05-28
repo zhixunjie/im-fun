@@ -3,7 +3,7 @@ package gen_id
 import (
 	"context"
 	"fmt"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/spf13/cast"
 	"time"
 )

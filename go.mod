@@ -5,7 +5,6 @@ go 1.21
 require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-kratos/kratos/v2 v2.7.3
-	github.com/go-redis/redis/v8 v8.11.5
 	github.com/spf13/cast v1.8.0
 	gorm.io/driver/mysql v1.5.2
 	gorm.io/gorm v1.25.2
@@ -19,6 +18,7 @@ require (
 	github.com/google/wire v0.5.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/prometheus/client_golang v1.16.0
+	github.com/redis/go-redis/v9 v9.9.0
 	github.com/samber/lo v1.39.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.6.0
@@ -38,7 +38,7 @@ require (
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.8.0 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect

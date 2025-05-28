@@ -1,8 +1,8 @@
 package data
 
 import (
-	"github.com/go-redis/redis/v8"
 	"github.com/google/wire"
+	"github.com/redis/go-redis/v9"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"

@@ -3,7 +3,7 @@ package distrib_lock
 import (
 	"context"
 	"errors"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/spf13/cast"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"math/rand"

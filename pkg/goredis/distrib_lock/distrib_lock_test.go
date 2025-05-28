@@ -2,7 +2,7 @@ package distrib_lock
 
 import (
 	"fmt"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"sync"
 	"testing"
