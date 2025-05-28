@@ -33,7 +33,7 @@ func (pool *Pool) batchNew() {
 	pool.free = &bfArr[0]
 	p := &bfArr[0]
 	for i := 1; i < batchNum; i++ {
-		p.buf = byArr[(i-1)*bufSize : i*bufSize]
+		p.buf = byArr[(i-1)*bufSize : i*bufSize] // 切分内存块
 		p.next = &bfArr[i]
 		p = p.next
 	}
