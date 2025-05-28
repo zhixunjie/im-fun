@@ -57,7 +57,7 @@ var (
 	ProtoFinish = &Proto{Op: int32(OpProtoFinish)}
 )
 
-type ProtoPack struct {
+type DecodeProtoHeader struct {
 	PackLen   int32 // 整个数据包的长度
 	HeaderLen int16 // 头部的长度
 	BodyLen   int32 // 请求体的长度
@@ -73,8 +73,8 @@ func encodeHeaderFromProtoToBuf(packLen int32, proto *Proto, buf []byte) {
 }
 
 // header解码：把buf的头信息，解码到proto的头
-func decodeHeaderFromBufToProto(buf []byte, proto *Proto) (ProtoPack, error) {
-	var header ProtoPack
+func decodeHeaderFromBufToProto(buf []byte, proto *Proto) (DecodeProtoHeader, error) {
+	var header DecodeProtoHeader
 	if len(buf) < _rawHeaderSize {
 		return header, ErrProtoHeaderLen
 	}

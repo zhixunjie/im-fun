@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"fmt"
+	"log"
 	"testing"
 )
 
@@ -17,6 +18,9 @@ func TestHeaderEncodeAndDecode(t *testing.T) {
 	encodeHeaderFromProtoToBuf(packLen, proto, buf)
 
 	var proto1 Proto
-	r1, r2 := decodeHeaderFromBufToProto(buf, &proto1)
-	fmt.Printf("%+v,err=%v\n", r1, r2)
+	result, err := decodeHeaderFromBufToProto(buf, &proto1)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Printf("result=%+v\n", result)
 }
