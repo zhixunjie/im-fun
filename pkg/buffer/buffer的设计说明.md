@@ -115,19 +115,22 @@ type Hash struct {
 
 > 核心点：减少系统调用次数、减少磁盘操作次数。
 
-Bufio：为某个 fd 添加用户缓冲区的读写操作，[改造版的Bufio](./bufio/bufio(缓冲区读写-增强).md)。
+Bufio：为某个 fd 添加用户缓冲区的读写操作。
 
-- **Bufio 的内存复用了 [Buffer Pool](# 1.2 Buffer Pool)的内存，从而减少每个TCP的IO读写带来的Buffer GC。**
-    - 由于每个TCP连接（conn fd）都需要附带上 Bufio 的用户缓冲区，频繁进行内存的创建和销毁，对于申请内存和GC都是要消耗性能的。
-    - 所以，用户缓冲区的内存交由Buffer Pool去管理。
-- Bufio 为底层的 read 和 write 操作附上用户缓冲区（从而减少系统调用 read/write 的次数）。
-    - 相当于让TCP Reader(conn)的读写带上了用户缓冲区（相当于C语言的标准IO函数的用户缓冲区），从而减少conn的系统调用 read/write 的次数。
+- **Bufio 本身的实现就会为底层的 read/write 操作附上用户缓冲区（从而减少系统调用 read/write 的次数）。**
+    - 相当于让 TCP Reader(conn) 的读写带上了用户缓冲区（相当于C语言的标准IO函数的用户缓冲区），从而减少conn的系统调用 read/write 的次数。
+
+- [增强版的Bufio](./bufio/bufio(缓冲区读写-增强).md)**：搭配 [Buffer Pool](# 1.2 Buffer Pool) 一起使用，使得Bufio的用户缓冲区变得可复用；大大减少了每个 TCP 连接的IO读写带来的 Buffer GC。**
+  - 由于每个TCP连接（conn fd）都需要附带上 Bufio 的用户缓冲区，频繁进行内存的创建和销毁，对于申请内存和GC都是要消耗性能的；
+  - 所以，基于 [Buffer Pool](# 1.2 Buffer Pool) ，把用户缓冲区的内存交由 Buffer Pool 去管理；
 
 > **备注：如何减少磁盘操作次数？** 指定Socket的读写缓冲区大小，当缓冲区满后才会真正执行磁盘的操作。
 >
-> - **具体见：延迟写.md**  
+> - **具体见：低级IO-缓冲区(fsync、延迟写、预读).md、TCP和UDP的缓冲区(read,write,close,shutdown).md**  
 > - SetReadBuffer：sets the size of the operating system's receive buffer associated with the connection.
 > - SetWriteBuffer：sets the size of the operating system's transmit buffer associated with the connection.
+>
+> 如下，设置 conn 的系统调用 read/write 的缓冲区大小（预读/延迟写的缓冲区大小）；
 
 ~~~go
 if err = conn.SetReadBuffer(server.conf.Connect.TCP.Rcvbuf); err != nil {

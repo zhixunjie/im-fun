@@ -84,6 +84,7 @@ func decodeHeaderFromBufToProto(buf []byte, proto *Proto) (*DecodeProtoHeader, e
 	proto.Ver = int32(binary.BigEndian.Int16(buf[_verOffset:_opOffset]))
 	proto.Op = binary.BigEndian.Int32(buf[_opOffset:_seqOffset])
 	proto.Seq = binary.BigEndian.Int32(buf[_seqOffset:])
+
 	header.PackLen = packLen
 	header.HeaderLen = headerLen
 	header.BodyLen = packLen - int32(headerLen)
