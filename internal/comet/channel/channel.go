@@ -62,12 +62,11 @@ func NewChannel(conf *conf.Config, conn *net.TCPConn, traceId int64, connType Co
 	// set user ip
 	ch.UserInfo.IP, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
 
-	// set reader & writer
-	reader := new(bufio.Reader)
-	writer := new(bufio.Writer)
 	// set buffer
 	// 底层执行IO操作的是conn，缓冲区为ch.readBuf.Bytes()
+	reader := new(bufio.Reader)
 	reader.SetFdAndResetBuffer(conn, ch.readBuf.Bytes())
+	writer := new(bufio.Writer)
 	writer.SetFdAndResetBuffer(conn, ch.writeBuf.Bytes())
 	// set connection's reader and writer
 	ch.Reader = reader
