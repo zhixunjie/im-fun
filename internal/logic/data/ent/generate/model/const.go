@@ -83,14 +83,6 @@ const (
 
 // ================================ Message ================================
 
-// MsgReadStatus 消息读取状态
-type MsgReadStatus uint32
-
-const (
-	MsgNotRead MsgReadStatus = 1 // 未读
-	MsgRead    MsgReadStatus = 2 // 已读
-)
-
 // MsgStatus 消息状态
 type MsgStatus uint32
 
@@ -98,6 +90,14 @@ const (
 	MsgStatusNormal  MsgStatus = 1 // 正常
 	MsgStatusDeleted MsgStatus = 2 // 已删除（双方都展示为删除）
 	MsgStatusRecall  MsgStatus = 3 // 已撤回（双方都展示为撤回）
+)
+
+// MsgReadStatus 消息读取状态
+type MsgReadStatus uint32
+
+const (
+	MsgNotRead MsgReadStatus = 1 // 未读
+	MsgRead    MsgReadStatus = 2 // 已读
 )
 
 // FetchType 消息拉取方式
