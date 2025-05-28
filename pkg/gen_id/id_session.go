@@ -46,8 +46,9 @@ type ParseResult struct {
 }
 
 // ParseSessionId 解析SessionId
-func ParseSessionId(sessionId string) (result ParseResult) {
+func ParseSessionId(sessionId string) (result *ParseResult) {
 	slice := strings.Split(sessionId, ":")
+	result = new(ParseResult)
 
 	if len(slice) > 0 {
 		result.Prefix = slice[0]
