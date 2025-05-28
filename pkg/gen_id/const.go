@@ -41,14 +41,3 @@ func keyMsgVersion(smallerUniId, largerUniId string, verIdTimeKey int64) string 
 func keyMsgGroupVersion(groupUniId string, verIdTimeKey int64) string {
 	return fmt.Sprintf(RedisPrefix+"mvid:g:%v:%v", groupUniId, verIdTimeKey)
 }
-
-// ContactIdType 联系人类型
-// 1-99业务自己扩展，100之后保留
-type ContactIdType uint32
-
-const (
-	TypeUser   ContactIdType = 1   // 对方是普通用户
-	TypeRobot  ContactIdType = 2   // 对方是机器人
-	TypeSystem ContactIdType = 100 // 对方是系统用户
-	TypeGroup  ContactIdType = 101 // 对方是群组
-)
