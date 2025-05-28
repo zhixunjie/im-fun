@@ -13,7 +13,7 @@ import (
 func defaultConfig() *Config {
 	val := &Config{
 		//Env:       DefaultEnv(),
-		Env:       env.EnvTypeLocal,
+		Env:       env.TypeLocal,
 		Name:      "comet",
 		Debug:     false,
 		Discovery: &Discovery{},

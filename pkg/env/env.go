@@ -1,32 +1,32 @@
 package env
 
 var (
-	env     EnvType
+	env     Type
 	svcName string
 )
 
-type EnvType string
+type Type string
 
 const (
-	EnvTypeLocal EnvType = "local"
-	EnvTypeTest  EnvType = "test"
-	EnvTypeProd  EnvType = "prod"
+	TypeLocal Type = "local"
+	TypeTest  Type = "test"
+	TypeProd  Type = "prod"
 )
 
 // InitEnv 注入变量值
-func InitEnv(e EnvType, svc string) {
+func InitEnv(e Type, svc string) {
 	env = e
 	svcName = svc
 }
 
 func IsLocal() bool {
-	return env == EnvTypeLocal
+	return env == TypeLocal
 }
 
 func IsTest() bool {
-	return env == EnvTypeTest
+	return env == TypeTest
 }
 
 func IsProd() bool {
-	return env == EnvTypeProd
+	return env == TypeProd
 }

@@ -26,14 +26,14 @@ func InitConfig(path string) (err error) {
 
 // Config is comet config.
 type Config struct {
-	Env       env.EnvType `yaml:"env"`       // 环境名
-	Name      string      `yaml:"name"`      // 服务名
-	Debug     bool        `yaml:"debug"`     // 是否开启debug
-	Discovery *Discovery  `yaml:"discovery"` // etcd的配置
-	Connect   *Connect    `yaml:"connect"`   // 长连接配置
-	RPC       *RPC        `yaml:"rpc"`       // RPC配置
-	Protocol  *Protocol   `yaml:"protocol"`  // 协议配置
-	Bucket    *Bucket     `yaml:"bucket"`    // 桶配置
+	Env       env.Type   `yaml:"env"`       // 环境名
+	Name      string     `yaml:"name"`      // 服务名
+	Debug     bool       `yaml:"debug"`     // 是否开启debug
+	Discovery *Discovery `yaml:"discovery"` // etcd的配置
+	Connect   *Connect   `yaml:"connect"`   // 长连接配置
+	RPC       *RPC       `yaml:"rpc"`       // RPC配置
+	Protocol  *Protocol  `yaml:"protocol"`  // 协议配置
+	Bucket    *Bucket    `yaml:"bucket"`    // 桶配置
 }
 
 type Discovery struct {

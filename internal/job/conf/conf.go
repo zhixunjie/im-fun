@@ -26,7 +26,7 @@ func InitConfig(path string) (err error) {
 }
 
 type Config struct {
-	Env          env.EnvType               `yaml:"env"`          // 环境名
+	Env          env.Type                  `yaml:"env"`          // 环境名
 	Name         string                    `yaml:"name"`         // 服务名
 	Debug        bool                      `yaml:"debug"`        // 是否开启debug
 	Discovery    *Discovery                `yaml:"discovery"`    // etcd的配置

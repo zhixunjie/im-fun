@@ -8,7 +8,7 @@ import (
 
 func defaultConfig() *Config {
 	return &Config{
-		Env:       env.EnvTypeLocal,
+		Env:       env.TypeLocal,
 		Name:      "job",
 		Debug:     false,
 		Discovery: &Discovery{},

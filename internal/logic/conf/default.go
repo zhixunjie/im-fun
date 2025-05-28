@@ -9,7 +9,7 @@ import (
 
 func defaultConfig() *Config {
 	return &Config{
-		Env:   env.EnvTypeLocal,
+		Env:   env.TypeLocal,
 		Name:  "logic",
 		Debug: false,
 		Discovery: &Discovery{
