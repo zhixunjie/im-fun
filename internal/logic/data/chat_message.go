@@ -64,8 +64,7 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 
 	// 需要建立索引：session_id、status、version_id
 	switch params.FetchType {
-	// 📚拉取历史消息，范围为：（delVersionId, pivotVersionId）
-	case model.FetchTypeBackward:
+	case model.FetchTypeBackward: // 📚拉取历史消息，范围为：（delVersionId, pivotVersionId）
 		if pivotVersionId == 0 {
 			pivotVersionId = math.MaxInt64
 		}
@@ -74,8 +73,11 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 			slave.VersionID.Gt(delVersionId),
 			slave.VersionID.Lt(pivotVersionId),
 		).Limit(params.Limit).Order(slave.VersionID.Desc()).Find() // 按照version_id倒序排序
-	// 📚拉取最新消息，范围为：（pivotVersionId, 正无穷）
-	case model.FetchTypeForward:
+		if err != nil {
+			err = fmt.Errorf("FetchTypeBackward err=%v", err)
+			return
+		}
+	case model.FetchTypeForward: // 📚拉取最新消息，范围为：（pivotVersionId, 正无穷）
 		// 避免：拉取最新消息时拉到已删除消息
 		if pivotVersionId < delVersionId {
 			pivotVersionId = delVersionId
@@ -84,6 +86,10 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 			slave.SessionID.Eq(params.SessionId),
 			slave.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(slave.VersionID).Find() // 按照version_id正序排序
+		if err != nil {
+			err = fmt.Errorf("FetchTypeForward err=%v", err)
+			return
+		}
 	default:
 		err = errors.New("invalid fetchType")
 		return
