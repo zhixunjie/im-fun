@@ -192,7 +192,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 		row.PeerAck = uint32(peerAck) // 对方是否回应Owner
 	}
 
-	// save to db（要求：数据库的最后一条消息id小于当前消息id）
+	// 要求：数据库的 last_msg_id 小于当前的 last_msg_id
 	res, err := master.Where(master.ID.Eq(contactId), master.LastMsgID.Lt(lastMsgId)).Limit(1).Updates(row)
 	if err != nil {
 		logging.Errorf(logHead+"Updates fail,err=%v,contact=%v", err, row)
