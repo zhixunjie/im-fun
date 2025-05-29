@@ -41,7 +41,7 @@ func NewMessageUseCase(repoMessage *data.MessageRepo, repoContact *data.ContactR
 }
 
 // SendSimpleCustomMessage 简化接口：发送自定义消息
-func (b *MessageUseCase) SendSimpleCustomMessage(ctx context.Context, sender, receiver *gmodel.ComponentId, d string) (rsp response.MessageSendRsp, err error) {
+func (b *MessageUseCase) SendSimpleCustomMessage(ctx context.Context, sender, receiver *gmodel.ComponentId, d string) (rsp *response.MessageSendRsp, err error) {
 	return b.Send(ctx, &request.MessageSendReq{
 		SeqId:    uint64(gmodel.NewSeqId()),
 		Sender:   sender,
@@ -56,7 +56,8 @@ func (b *MessageUseCase) SendSimpleCustomMessage(ctx context.Context, sender, re
 }
 
 // Send 发送消息
-func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) (rsp response.MessageSendRsp, err error) {
+func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) (rsp *response.MessageSendRsp, err error) {
+	rsp = new(response.MessageSendRsp)
 	sender := req.Sender
 	receiver := req.Receiver
 	logHead := fmt.Sprintf("Send|sender=%v,receiver=%v|", sender, receiver)
@@ -117,21 +118,20 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		}
 	})
 
-	rsp = response.MessageSendRsp{
-		Data: response.SendMsgRespData{
-			MsgID:       msg.MsgID,
-			SeqID:       msg.SeqID,
-			VersionID:   msg.VersionID,
-			SortKey:     msg.SortKey,
-			SessionId:   msg.SessionID,
-			UnreadCount: 0,
-		},
+	rsp.Data = &response.SendMsgRespData{
+		MsgID:       msg.MsgID,
+		SeqID:       msg.SeqID,
+		VersionID:   msg.VersionID,
+		SortKey:     msg.SortKey,
+		SessionId:   msg.SessionID,
+		UnreadCount: 0,
 	}
 	return
 }
 
 // Fetch 拉取消息列表
-func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq) (rsp response.MessageFetchRsp, err error) {
+func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq) (rsp *response.MessageFetchRsp, err error) {
+	rsp = new(response.MessageFetchRsp)
 	logHead := fmt.Sprintf("Fetch|req=%v", req)
 	pivotVersionId := req.VersionId
 	limit := 50
@@ -246,7 +246,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 		return retList[i].VersionID < retList[j].VersionID
 	})
 
-	rsp.Data = response.FetchMsgData{
+	rsp.Data = &response.FetchMsgData{
 		MsgList:       retList,
 		NextVersionId: nextVersionId,
 		HasMore:       len(list) == limit,

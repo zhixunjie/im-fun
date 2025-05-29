@@ -25,7 +25,8 @@ func NewContactUseCase(contactRepo *data.ContactRepo, repoMessage *data.MessageR
 }
 
 // Fetch 拉取会话列表
-func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq) (resp response.ContactFetchRsp, err error) {
+func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq) (rsp *response.ContactFetchRsp, err error) {
+	rsp = new(response.ContactFetchRsp)
 	logHead := fmt.Sprintf("Fetch|req=%v", req)
 	limit := 50
 
@@ -93,7 +94,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 		return retList[i].VersionID < retList[j].VersionID
 	})
 
-	resp.Data = response.FetchContactData{
+	rsp.Data = &response.FetchContactData{
 		ContactList:   retList,
 		NextVersionId: maxVersionId,
 		HasMore:       len(list) == limit,

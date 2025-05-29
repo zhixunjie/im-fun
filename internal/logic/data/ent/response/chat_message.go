@@ -8,7 +8,7 @@ import (
 // MessageSendRsp 发送消息给某个用户
 type MessageSendRsp struct {
 	Base
-	Data SendMsgRespData `json:"data"`
+	Data *SendMsgRespData `json:"data"`
 }
 
 type SendMsgRespData struct {
@@ -23,7 +23,7 @@ type SendMsgRespData struct {
 // MessageFetchRsp 拉取消息列表（by version_id）
 type MessageFetchRsp struct {
 	Base
-	Data FetchMsgData `json:"data"`
+	Data *FetchMsgData `json:"data"`
 }
 
 type FetchMsgData struct {
