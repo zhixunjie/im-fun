@@ -7,6 +7,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/cache"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/goredis/distrib_lock"
 	k "github.com/zhixunjie/im-fun/pkg/goredis/key"
 	"github.com/zhixunjie/im-fun/pkg/logging"
@@ -27,14 +28,14 @@ func NewContactRepo(data *Data) *ContactRepo {
 }
 
 // InfoWithCache 查询某个会话的信息
-func (repo *ContactRepo) InfoWithCache(ownerId, peerId *gen_id.ComponentId) (*model.Contact, error) {
+func (repo *ContactRepo) InfoWithCache(ownerId, peerId *gmodel.ComponentId) (*model.Contact, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
 	return repo.Info(ownerId, peerId)
 }
 
 // Info 查询某个会话的信息
-func (repo *ContactRepo) Info(ownerId, peerId *gen_id.ComponentId) (row *model.Contact, err error) {
+func (repo *ContactRepo) Info(ownerId, peerId *gmodel.ComponentId) (row *model.Contact, err error) {
 	dbName, tbName := model.TbNameContact(ownerId.Id())
 	slave := repo.Slave(dbName).Contact.Table(tbName)
 
@@ -100,8 +101,8 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 			OwnerType: uint32(params.Owner.Type()),
 			PeerID:    params.Peer.Id(),
 			PeerType:  uint32(params.Peer.Type()),
-			PeerAck:   uint32(model.PeerNotAck),
-			Status:    uint32(model.ContactStatusNormal),
+			PeerAck:   uint32(gmodel.PeerNotAck),
+			Status:    uint32(gmodel.ContactStatusNormal),
 		}
 
 		// save to db
@@ -157,7 +158,7 @@ func (repo *ContactRepo) RangeList(params *model.FetchContactRangeParams) (list 
 }
 
 // UpdateLastMsgId 更新contact的最后一条消息（发消息）
-func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, contactId uint64, owner *gen_id.ComponentId, lastMsgId uint64, peerAck model.PeerAckStatus) (err error) {
+func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, contactId uint64, owner *gmodel.ComponentId, lastMsgId uint64, peerAck gmodel.PeerAckStatus) (err error) {
 	logHead += "UpdateLastMsgId|"
 	mem := repo.RedisClient
 	dbName, tbName := model.TbNameContact(owner.Id())
@@ -187,7 +188,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 		SortKey:   versionId, // 3. sort_key的值等同于version_id
 	}
 
-	if peerAck == model.PeerAcked {
+	if peerAck == gmodel.PeerAcked {
 		row.PeerAck = uint32(peerAck) // 对方是否回应Owner
 	}
 
@@ -203,7 +204,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 }
 
 // UpdateLastDelMsg 更新contact的最后一条已删除的消息（清空聊天记录）
-func (repo *ContactRepo) UpdateLastDelMsg(lastDelMsgId model.BigIntType, versionId uint64, ownerId, peerId *gen_id.ComponentId) (affectedRow int64, err error) {
+func (repo *ContactRepo) UpdateLastDelMsg(lastDelMsgId model.BigIntType, versionId uint64, ownerId, peerId *gmodel.ComponentId) (affectedRow int64, err error) {
 	dbName, tbName := model.TbNameContact(ownerId.Id())
 	master := repo.Master(dbName).Contact.Table(tbName)
 

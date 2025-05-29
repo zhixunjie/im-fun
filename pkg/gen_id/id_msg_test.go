@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"math"
 	"testing"
 	"time"
@@ -18,9 +19,9 @@ var client = redis.NewClient(&redis.Options{
 func TestIdMsg(t *testing.T) {
 	ctx := context.Background()
 
-	id1 := NewUserComponentId(1001)
-	id2 := NewUserComponentId(1002)
-	id3 := NewGroupComponentId(10)
+	id1 := gmodel.NewUserComponentId(1001)
+	id2 := gmodel.NewUserComponentId(1002)
+	id3 := gmodel.NewGroupComponentId(10)
 
 	// test1
 	msgId, err := MsgId(ctx, client, id1, id2)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/zhixunjie/im-fun/pkg/env"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 )
 
 const (
@@ -44,7 +45,7 @@ func TbNameContact(ownerId uint64) (dbName string, tbName string) {
 	return dbName, tbName
 }
 
-func TbNameMessageByCId(id1, id2 *gen_id.ComponentId) (dbName string, tbName string) {
+func TbNameMessageByCId(id1, id2 *gmodel.ComponentId) (dbName string, tbName string) {
 	switch {
 	case id1.IsGroup(): // 群聊
 		dbName, tbName = TbNameMessage(id1.Id())
@@ -61,77 +62,29 @@ func TbNameMessageByCId(id1, id2 *gen_id.ComponentId) (dbName string, tbName str
 // BigIntType 各种Id的类型（方便切换为int64、uint64）
 type BigIntType = uint64
 
-// ================================ Contact ================================
-
-// ContactStatus 联系人状态
-type ContactStatus uint32
-
-const (
-	ContactStatusNormal  ContactStatus = 1 // 正常
-	ContactStatusDeleted ContactStatus = 2 // 已删除
-)
-
-// =========================
-
-// PeerAckStatus 是否给owner发过消息
-type PeerAckStatus uint32
-
-const (
-	PeerNotAck PeerAckStatus = 1 // 未回答过消息
-	PeerAcked  PeerAckStatus = 2 // 回答过消息
-)
-
-// ================================ Message ================================
-
-// MsgStatus 消息状态
-type MsgStatus uint32
-
-const (
-	MsgStatusNormal  MsgStatus = 1 // 正常
-	MsgStatusDeleted MsgStatus = 2 // 已删除（双方都展示为删除）
-	MsgStatusRecall  MsgStatus = 3 // 已撤回（双方都展示为撤回）
-)
-
-// MsgReadStatus 消息读取状态
-type MsgReadStatus uint32
-
-const (
-	MsgNotRead MsgReadStatus = 1 // 未读
-	MsgRead    MsgReadStatus = 2 // 已读
-)
-
-// FetchType 消息拉取方式
-type FetchType = int32
-
-const (
-	FetchTypeBackward FetchType = 1 // 拉取历史消息
-	FetchTypeForward  FetchType = 2 // 拉取最新消息
-	FetchTypeInBg     FetchType = 3 // 后台拉消息：不清除未读数(history)
-)
-
 // =========================
 
 // FetchMsgRangeParams 拉取消息列表
 type FetchMsgRangeParams struct {
-	FetchType                           FetchType
+	FetchType                           gmodel.FetchType
 	SessionId                           string
 	LastDelMsgVersionId, PivotVersionId BigIntType // 确定消息的允许获取范围
 	Limit                               int
-	Owner, Peer                         *gen_id.ComponentId
+	Owner, Peer                         *gmodel.ComponentId
 }
 
 // FetchContactRangeParams 拉取会话列表
 type FetchContactRangeParams struct {
-	FetchType      FetchType
-	Owner          *gen_id.ComponentId
+	FetchType      gmodel.FetchType
+	Owner          *gmodel.ComponentId
 	PivotVersionId BigIntType
 	Limit          int
 }
 
 // BuildContactParams 构建参数
 type BuildContactParams struct {
-	Owner *gen_id.ComponentId
-	Peer  *gen_id.ComponentId
+	Owner *gmodel.ComponentId
+	Peer  *gmodel.ComponentId
 }
 
 // UpdateLastMsgId 更新最后一条消息

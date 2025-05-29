@@ -5,18 +5,9 @@ import (
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/cast"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"time"
 )
-
-type MsgVerParams struct {
-	Mem      *redis.Client
-	Id1, Id2 *ComponentId
-}
-
-type ContactVerParams struct {
-	Mem   *redis.Client
-	Owner *ComponentId
-}
 
 // MsgVersionId 专门为message表生成version_id
 func MsgVersionId(ctx context.Context, params *MsgVerParams) (versionId uint64, err error) {
@@ -65,4 +56,14 @@ func ContactVersionId(ctx context.Context, params *ContactVerParams) (versionId 
 	versionId = cast.ToUint64(fmt.Sprintf("%d%06d", ts, afterIncr%1000000))
 
 	return
+}
+
+type MsgVerParams struct {
+	Mem      *redis.Client
+	Id1, Id2 *gmodel.ComponentId
+}
+
+type ContactVerParams struct {
+	Mem   *redis.Client
+	Owner *gmodel.ComponentId
 }

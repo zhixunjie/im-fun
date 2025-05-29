@@ -15,6 +15,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/response"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/goredis/distrib_lock"
 	k "github.com/zhixunjie/im-fun/pkg/goredis/key"
 	"github.com/zhixunjie/im-fun/pkg/logging"
@@ -40,7 +41,7 @@ func NewMessageUseCase(repoMessage *data.MessageRepo, repoContact *data.ContactR
 }
 
 // SendSimpleCustomMessage 简化接口：发送自定义消息
-func (b *MessageUseCase) SendSimpleCustomMessage(ctx context.Context, sender, receiver *gen_id.ComponentId, d string) (rsp response.MessageSendRsp, err error) {
+func (b *MessageUseCase) SendSimpleCustomMessage(ctx context.Context, sender, receiver *gmodel.ComponentId, d string) (rsp response.MessageSendRsp, err error) {
 	return b.Send(ctx, &request.MessageSendReq{
 		SeqId:    uint64(gen_id.SeqId()),
 		Sender:   sender,
@@ -99,14 +100,14 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		}
 		// update contact's info（写扩散）
 		if senderContact != nil {
-			err = b.repoContact.UpdateLastMsgId(ctx, logHead, senderContact.ID, sender, currMsgId, model.PeerNotAck)
+			err = b.repoContact.UpdateLastMsgId(ctx, logHead, senderContact.ID, sender, currMsgId, gmodel.PeerNotAck)
 			if err != nil {
 				return
 			}
 		}
 		// update contact's info（写扩散）
 		if receiverContact != nil {
-			err = b.repoContact.UpdateLastMsgId(ctx, logHead, receiverContact.ID, receiver, currMsgId, model.PeerAcked)
+			err = b.repoContact.UpdateLastMsgId(ctx, logHead, receiverContact.ID, receiver, currMsgId, gmodel.PeerAcked)
 			if err != nil {
 				return
 			}
@@ -209,11 +210,11 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 			MsgBody:   body,
 			SessionID: item.SessionID,
 			SenderID:  item.SenderID,
-			SendType:  gen_id.ContactIdType(item.SenderType),
+			SendType:  gmodel.ContactIdType(item.SenderType),
 			VersionID: item.VersionID,
 			SortKey:   item.SortKey,
-			Status:    model.MsgStatus(item.Status),
-			HasRead:   model.MsgReadStatus(item.HasRead),
+			Status:    gmodel.MsgStatus(item.Status),
+			HasRead:   gmodel.MsgReadStatus(item.HasRead),
 		})
 	}
 
@@ -255,7 +256,7 @@ func (b *MessageUseCase) Recall(ctx context.Context, req *request.MessageRecallR
 	senderId := req.Sender
 
 	// invoke common method
-	err = b.updateMsgIdStatus(ctx, logHead, req.MsgID, model.MsgStatusRecall, senderId)
+	err = b.updateMsgIdStatus(ctx, logHead, req.MsgID, gmodel.MsgStatusRecall, senderId)
 	if err != nil {
 		return
 	}
@@ -269,7 +270,7 @@ func (b *MessageUseCase) DelBothSide(ctx context.Context, req *request.MessageDe
 	senderId := req.Sender
 
 	// invoke common method
-	err = b.updateMsgIdStatus(ctx, logHead, req.MsgID, model.MsgStatusDeleted, senderId)
+	err = b.updateMsgIdStatus(ctx, logHead, req.MsgID, gmodel.MsgStatusDeleted, senderId)
 	if err != nil {
 		return
 	}
@@ -389,18 +390,18 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 
 	// build message
 	msg = &model.Message{
-		MsgID:         msgId,                         // 唯一id（服务端）
-		SeqID:         req.SeqId,                     // 唯一id（客户端）
-		MsgType:       uint32(req.MsgBody.MsgType),   // 消息类型
-		Content:       string(content),               // 消息内容
-		SessionID:     sessionId,                     // 会话ID
-		SenderID:      req.Sender.Id(),               // 发送者ID
-		SenderType:    uint32(req.Sender.Type()),     // 发送者的用户类型
-		VersionID:     versionId,                     // 版本ID
-		SortKey:       versionId,                     // sort_key的值等同于version_id
-		Status:        uint32(model.MsgStatusNormal), // 状态正常
-		HasRead:       uint32(model.MsgRead),         // TODO: 已读（功能还没做好）
-		InvisibleList: string(bInvisibleList),        // 不可见的列表
+		MsgID:         msgId,                          // 唯一id（服务端）
+		SeqID:         req.SeqId,                      // 唯一id（客户端）
+		MsgType:       uint32(req.MsgBody.MsgType),    // 消息类型
+		Content:       string(content),                // 消息内容
+		SessionID:     sessionId,                      // 会话ID
+		SenderID:      req.Sender.Id(),                // 发送者ID
+		SenderType:    uint32(req.Sender.Type()),      // 发送者的用户类型
+		VersionID:     versionId,                      // 版本ID
+		SortKey:       versionId,                      // sort_key的值等同于version_id
+		Status:        uint32(gmodel.MsgStatusNormal), // 状态正常
+		HasRead:       uint32(gmodel.MsgRead),         // TODO: 已读（功能还没做好）
+		InvisibleList: string(bInvisibleList),         // 不可见的列表
 	}
 	err = b.repoMessage.Create(logHead, msg)
 	if err != nil {
@@ -411,12 +412,12 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 }
 
 // 双方通信时，判断是否需要创建对方的Contact
-func (b *MessageUseCase) needCreateContact(logHead string, id *gen_id.ComponentId) bool {
+func (b *MessageUseCase) needCreateContact(logHead string, id *gmodel.ComponentId) bool {
 	logHead += fmt.Sprintf("needCreateContact|id=%v|", id)
 
-	noNeedCreate := []gen_id.ContactIdType{
-		gen_id.TypeRobot,
-		gen_id.TypeSystem,
+	noNeedCreate := []gmodel.ContactIdType{
+		gmodel.TypeRobot,
+		gmodel.TypeSystem,
 	}
 
 	// 如果用户是指定类型，那么不需要创建他的contact信息（比如：机器人）
@@ -518,7 +519,7 @@ func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.Messa
 }
 
 // updateMsgIdStatus 通用的方法，用于更新消息的状态和版本ID
-func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, msgId model.BigIntType, status model.MsgStatus, sender *gen_id.ComponentId) (err error) {
+func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, msgId model.BigIntType, status gmodel.MsgStatus, sender *gmodel.ComponentId) (err error) {
 	logHead += fmt.Sprintf("updateMsgIdStatus,msgId=%v,status=%v|", msgId, status)
 
 	// get: message
@@ -550,11 +551,11 @@ func (b *MessageUseCase) updateMsgIdStatus(ctx context.Context, logHead string, 
 type Fn func(versionId uint64) (err error)
 
 // updateMsgVersion 加锁 => 生成 version_id => 执行回调函数
-func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, sessionId string, sender *gen_id.ComponentId, fn Fn) (err error) {
+func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, sessionId string, sender *gmodel.ComponentId, fn Fn) (err error) {
 	mem := b.repoMessage.RedisClient
 
 	// get: 接收者的信息
-	var receiverId *gen_id.ComponentId
+	var receiverId *gmodel.ComponentId
 	parseResult := gen_id.ParseSessionId(sessionId)
 	switch parseResult.Prefix {
 	case gen_id.PrefixPair: // 1对1的timeline

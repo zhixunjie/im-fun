@@ -7,6 +7,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"testing"
 )
 
@@ -15,8 +16,8 @@ func TestSendSimple(t *testing.T) {
 
 	rsp, err := messageUseCase.Send(ctx, &request.MessageSendReq{
 		SeqId:    uint64(gen_id.SeqId()),
-		Sender:   gen_id.NewUserComponentId(1001),
-		Receiver: gen_id.NewUserComponentId(1005),
+		Sender:   gmodel.NewUserComponentId(1001),
+		Receiver: gmodel.NewUserComponentId(1005),
 		MsgBody: &format.MsgBody{
 			MsgType: format.MsgTypeText,
 			MsgContent: &format.TextContent{
@@ -38,13 +39,13 @@ func TestSendBetweenUser(t *testing.T) {
 		for _, user2 := range users2 {
 
 			for i := 1; i <= 5; i++ {
-				var sender, receiver *gen_id.ComponentId
+				var sender, receiver *gmodel.ComponentId
 				if i%2 == 1 {
-					sender = gen_id.NewUserComponentId(user1)
-					receiver = gen_id.NewUserComponentId(user2)
+					sender = gmodel.NewUserComponentId(user1)
+					receiver = gmodel.NewUserComponentId(user2)
 				} else {
-					sender = gen_id.NewUserComponentId(user2)
-					receiver = gen_id.NewUserComponentId(user1)
+					sender = gmodel.NewUserComponentId(user2)
+					receiver = gmodel.NewUserComponentId(user1)
 				}
 
 				// build data
@@ -72,13 +73,13 @@ func TestSendBetweenUserAndRobot(t *testing.T) {
 		for _, user2 := range users2 {
 
 			for i := 1; i <= 5; i++ {
-				var sender, receiver *gen_id.ComponentId
+				var sender, receiver *gmodel.ComponentId
 				if i%2 == 1 {
-					sender = gen_id.NewUserComponentId(user1)
-					receiver = gen_id.NewRobotComponentId(user2)
+					sender = gmodel.NewUserComponentId(user1)
+					receiver = gmodel.NewRobotComponentId(user2)
 				} else {
-					sender = gen_id.NewRobotComponentId(user2)
-					receiver = gen_id.NewUserComponentId(user1)
+					sender = gmodel.NewRobotComponentId(user2)
+					receiver = gmodel.NewUserComponentId(user1)
 				}
 
 				// build data
@@ -104,8 +105,8 @@ func TestSendBetweenUserAndGroup(t *testing.T) {
 
 	for _, groupId := range groups {
 		for _, senderId := range senders {
-			sender := gen_id.NewUserComponentId(senderId)
-			receiver := gen_id.NewGroupComponentId(groupId)
+			sender := gmodel.NewUserComponentId(senderId)
+			receiver := gmodel.NewGroupComponentId(groupId)
 
 			// build data
 			d := map[string]interface{}{

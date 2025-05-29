@@ -1,11 +1,9 @@
-package gen_id
+package gmodel
 
 import (
 	"fmt"
 	"github.com/samber/lo"
 )
-
-// note: 这个文件可以放全局管理
 
 // ContactIdType 联系人类型
 // 1-99业务自己扩展，100之后保留

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"gorm.io/gen"
 	"math"
@@ -99,13 +100,13 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 }
 
 // UpdateMsgVerAndStatus 修改某条消息的状态
-func (repo *MessageRepo) UpdateMsgVerAndStatus(logHead string, msgId, versionId model.BigIntType, status model.MsgStatus) (err error) {
+func (repo *MessageRepo) UpdateMsgVerAndStatus(logHead string, msgId, versionId model.BigIntType, status gmodel.MsgStatus) (err error) {
 	logHead += fmt.Sprintf("UpdateMsgVerAndStatus,msgId=%v,versionId=%v,status=%v|", msgId, versionId, status)
 	dbName, tbName := model.TbNameMessage(msgId)
 	master := repo.Master(dbName).Message.Table(tbName)
 
 	// status
-	srcStatus := uint32(model.MsgStatusNormal)
+	srcStatus := uint32(gmodel.MsgStatusNormal)
 	dstStatus := uint32(status)
 
 	// operation

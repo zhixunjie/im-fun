@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
-	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/utils"
 	"log"
 	"testing"
@@ -19,8 +19,8 @@ func TestMessageFetchBetweenUser(t *testing.T) {
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
 		FetchType: model.FetchTypeForward,
 		VersionId: 0,
-		Owner:     gen_id.NewUserComponentId(1001),
-		Peer:      gen_id.NewGroupComponentId(10001),
+		Owner:     gmodel.NewUserComponentId(1001),
+		Peer:      gmodel.NewGroupComponentId(10001),
 	})
 
 	if err != nil {
@@ -46,8 +46,8 @@ func TestFetchBetweenUserAndRobot(t *testing.T) {
 		//VersionID: 1705766012000002,
 		FetchType: model.FetchTypeForward,
 		VersionId: 0,
-		Owner:     gen_id.NewUserComponentId(1003),
-		Peer:      gen_id.NewGroupComponentId(10003),
+		Owner:     gmodel.NewUserComponentId(1003),
+		Peer:      gmodel.NewGroupComponentId(10003),
 	})
 
 	if err != nil {
@@ -69,8 +69,8 @@ func TestFetchBetweenUserAndGroup(t *testing.T) {
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
 		FetchType: model.FetchTypeForward,
 		VersionId: 0,
-		Owner:     gen_id.NewUserComponentId(1001),
-		Peer:      gen_id.NewGroupComponentId(100000001),
+		Owner:     gmodel.NewUserComponentId(1001),
+		Peer:      gmodel.NewGroupComponentId(100000001),
 	})
 
 	if err != nil {

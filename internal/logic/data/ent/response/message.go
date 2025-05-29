@@ -2,8 +2,7 @@ package response
 
 import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
-	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
-	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 )
 
 // MessageSendRsp 发送消息给某个用户
@@ -39,11 +38,11 @@ type MsgEntity struct {
 	MsgBody   *format.MsgBody      `json:"msg_body"`
 	SessionID string               `json:"session_id"`
 	SenderID  uint64               `json:"sender_id"`
-	SendType  gen_id.ContactIdType `json:"send_type"`
+	SendType  gmodel.ContactIdType `json:"send_type"`
 	VersionID uint64               `json:"version_id,string"`
 	SortKey   uint64               `json:"sort_key,string"`
-	Status    model.MsgStatus      `json:"status"`
-	HasRead   model.MsgReadStatus  `json:"has_read"`
+	Status    gmodel.MsgStatus     `json:"status"`
+	HasRead   gmodel.MsgReadStatus `json:"has_read"`
 }
 
 // MessageWithdrawRsp 撤回消息

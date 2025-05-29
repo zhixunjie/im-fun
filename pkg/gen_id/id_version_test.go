@@ -3,6 +3,7 @@ package gen_id
 import (
 	"context"
 	"fmt"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"testing"
 )
 
@@ -12,16 +13,16 @@ func TestVersionIdContact(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		fmt.Println(ContactVersionId(ctx, &ContactVerParams{
 			Mem:   client,
-			Owner: NewUserComponentId(1001),
+			Owner: gmodel.NewUserComponentId(1001),
 		}))
 	}
 }
 
 func TestVersionIdMsg(t *testing.T) {
 	ctx := context.Background()
-	id1 := NewUserComponentId(1001)
-	id2 := NewUserComponentId(1002)
-	id3 := NewGroupComponentId(10)
+	id1 := gmodel.NewUserComponentId(1001)
+	id2 := gmodel.NewUserComponentId(1002)
+	id3 := gmodel.NewGroupComponentId(10)
 
 	fmt.Println(MsgVersionId(ctx, &MsgVerParams{
 		Mem: client,

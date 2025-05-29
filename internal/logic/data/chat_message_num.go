@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/cast"
-	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"time"
 )
@@ -19,17 +19,17 @@ const (
 )
 
 // Hash：owner -> [ peer : serverId ]
-func keyHashSessionUnread(u *gen_id.ComponentId) string {
+func keyHashSessionUnread(u *gmodel.ComponentId) string {
 	return fmt.Sprintf("hash_session_unread_%v", u.ToString())
 }
 
 // String：owner -> 1000
-func keyStringTotalUnread(u *gen_id.ComponentId) string {
+func keyStringTotalUnread(u *gmodel.ComponentId) string {
 	return fmt.Sprintf("string_total_unread_%v", u.ToString())
 }
 
 // IncrUnreadAfterSend 发送消息后，增加未读数
-func (repo *MessageRepo) IncrUnreadAfterSend(ctx context.Context, logHead string, receiverId, senderId *gen_id.ComponentId, incr int64) (err error) {
+func (repo *MessageRepo) IncrUnreadAfterSend(ctx context.Context, logHead string, receiverId, senderId *gmodel.ComponentId, incr int64) (err error) {
 	// clean before add
 	err = repo.checkBeforeIncrSessionUnread(ctx, logHead, receiverId, senderId)
 	if err != nil {
@@ -58,7 +58,7 @@ func (repo *MessageRepo) IncrUnreadAfterSend(ctx context.Context, logHead string
 }
 
 // DecrUnreadAfterFetch 获取消息后，清空未读数
-func (repo *MessageRepo) DecrUnreadAfterFetch(ctx context.Context, logHead string, owner, peer *gen_id.ComponentId, decr int64) (err error) {
+func (repo *MessageRepo) DecrUnreadAfterFetch(ctx context.Context, logHead string, owner, peer *gmodel.ComponentId, decr int64) (err error) {
 	// 减少：会话未读数
 	_, err = repo.incrSessionUnread(ctx, logHead, owner, peer, -decr)
 	if err != nil {
@@ -75,8 +75,8 @@ func (repo *MessageRepo) DecrUnreadAfterFetch(ctx context.Context, logHead strin
 }
 
 // clean before add
-func (repo *MessageRepo) checkBeforeIncrSessionUnread(ctx context.Context, logHead string, receiverId, senderId *gen_id.ComponentId) (err error) {
-	retMap, err := repo.MGetSessionUnread(ctx, logHead, receiverId, []*gen_id.ComponentId{senderId})
+func (repo *MessageRepo) checkBeforeIncrSessionUnread(ctx context.Context, logHead string, receiverId, senderId *gmodel.ComponentId) (err error) {
+	retMap, err := repo.MGetSessionUnread(ctx, logHead, receiverId, []*gmodel.ComponentId{senderId})
 	if err != nil {
 		return
 	}
@@ -94,7 +94,7 @@ func (repo *MessageRepo) checkBeforeIncrSessionUnread(ctx context.Context, logHe
 }
 
 // clean before add
-func (repo *MessageRepo) checkBeforeIncrTotalUnread(ctx context.Context, logHead string, receiverId *gen_id.ComponentId) (err error) {
+func (repo *MessageRepo) checkBeforeIncrTotalUnread(ctx context.Context, logHead string, receiverId *gmodel.ComponentId) (err error) {
 	srcVal, err := repo.GetTotalUnread(ctx, logHead, receiverId)
 	if err != nil {
 		return
@@ -114,7 +114,7 @@ func (repo *MessageRepo) checkBeforeIncrTotalUnread(ctx context.Context, logHead
 ////////////////////// 会话未读数
 
 // incrSessionUnread 增减未读数（会话未读数）
-func (repo *MessageRepo) incrSessionUnread(ctx context.Context, logHead string, id1, id2 *gen_id.ComponentId, incr int64) (afterIncr int64, err error) {
+func (repo *MessageRepo) incrSessionUnread(ctx context.Context, logHead string, id1, id2 *gmodel.ComponentId, incr int64) (afterIncr int64, err error) {
 	mem := repo.RedisClient
 	key := keyHashSessionUnread(id1)
 	expire := KeySessionUnreadExpire * time.Second
@@ -139,7 +139,7 @@ func (repo *MessageRepo) incrSessionUnread(ctx context.Context, logHead string, 
 }
 
 // MGetSessionUnread 获取未读数（会话未读数）
-func (repo *MessageRepo) MGetSessionUnread(ctx context.Context, logHead string, id1 *gen_id.ComponentId, id2Arr []*gen_id.ComponentId) (retMap map[string]int64, err error) {
+func (repo *MessageRepo) MGetSessionUnread(ctx context.Context, logHead string, id1 *gmodel.ComponentId, id2Arr []*gmodel.ComponentId) (retMap map[string]int64, err error) {
 	mem := repo.RedisClient
 	key := keyHashSessionUnread(id1)
 	logHead += fmt.Sprintf("MGetSessionUnread,key=%v|", key)
@@ -160,7 +160,7 @@ func (repo *MessageRepo) MGetSessionUnread(ctx context.Context, logHead string, 
 }
 
 // cleanSessionUnread 清空所有的未读数（会话未读数）
-func (repo *MessageRepo) cleanSessionUnread(ctx context.Context, logHead string, OwnerId, PeerId *gen_id.ComponentId) (err error) {
+func (repo *MessageRepo) cleanSessionUnread(ctx context.Context, logHead string, OwnerId, PeerId *gmodel.ComponentId) (err error) {
 	mem := repo.RedisClient
 	key := keyHashSessionUnread(OwnerId)
 	logHead += fmt.Sprintf("cleanSessionUnread,key=%v|", key)
@@ -178,7 +178,7 @@ func (repo *MessageRepo) cleanSessionUnread(ctx context.Context, logHead string,
 ////////////////////// 总未读数
 
 // incrTotalUnread 增减未读数（总未读数）
-func (repo *MessageRepo) incrTotalUnread(ctx context.Context, logHead string, id *gen_id.ComponentId, incr int64) (afterIncr int64, err error) {
+func (repo *MessageRepo) incrTotalUnread(ctx context.Context, logHead string, id *gmodel.ComponentId, incr int64) (afterIncr int64, err error) {
 	mem := repo.RedisClient
 	key := keyStringTotalUnread(id)
 	expire := KeyTotalUnreadExpire * time.Second
@@ -203,7 +203,7 @@ func (repo *MessageRepo) incrTotalUnread(ctx context.Context, logHead string, id
 }
 
 // GetTotalUnread 获取未读数（总未读数）
-func (repo *MessageRepo) GetTotalUnread(ctx context.Context, logHead string, id *gen_id.ComponentId) (val int64, err error) {
+func (repo *MessageRepo) GetTotalUnread(ctx context.Context, logHead string, id *gmodel.ComponentId) (val int64, err error) {
 	mem := repo.RedisClient
 	key := keyStringTotalUnread(id)
 	logHead += fmt.Sprintf("GetTotalUnread,key=%v|", key)
@@ -221,7 +221,7 @@ func (repo *MessageRepo) GetTotalUnread(ctx context.Context, logHead string, id 
 }
 
 // cleanTotalUnread 清空所有的未读数（总未读数）
-func (repo *MessageRepo) cleanTotalUnread(ctx context.Context, logHead string, id *gen_id.ComponentId) (err error) {
+func (repo *MessageRepo) cleanTotalUnread(ctx context.Context, logHead string, id *gmodel.ComponentId) (err error) {
 	mem := repo.RedisClient
 	key := keyStringTotalUnread(id)
 	logHead += fmt.Sprintf("cleanTotalUnread,key=%v|", key)

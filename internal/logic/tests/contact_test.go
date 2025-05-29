@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
-	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/utils"
 	"log"
 	"testing"
@@ -24,7 +24,7 @@ func TestContactFetch(t *testing.T) {
 
 	rsp, err := contactUseCase.Fetch(ctx, &request.ContactFetchReq{
 		VersionId: 0,
-		Owner:     gen_id.NewUserComponentId(1005),
+		Owner:     gmodel.NewUserComponentId(1005),
 	})
 
 	if err != nil {

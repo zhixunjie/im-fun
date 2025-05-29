@@ -8,7 +8,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/response"
-	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/utils"
 	"sort"
@@ -45,8 +45,8 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	}
 
 	// extract: all peer ids
-	peerIds := lo.Map(list, func(item *model.Contact, index int) *gen_id.ComponentId {
-		return gen_id.NewComponentId(item.PeerID, gen_id.ContactIdType(item.PeerType))
+	peerIds := lo.Map(list, func(item *model.Contact, index int) *gmodel.ComponentId {
+		return gmodel.NewComponentId(item.PeerID, gmodel.ContactIdType(item.PeerType))
 	})
 	retMap, err := b.repoMessage.MGetSessionUnread(ctx, logHead, ownerId, peerIds)
 	if err != nil {
@@ -58,7 +58,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	maxVersionId := uint64(0)
 	for _, item := range list {
 		maxVersionId = utils.Max(maxVersionId, item.VersionID)
-		peerId := gen_id.NewComponentId(item.PeerID, gen_id.ContactIdType(item.PeerType))
+		peerId := gmodel.NewComponentId(item.PeerID, gmodel.ContactIdType(item.PeerType))
 
 		var sessionUnreadCount int64
 		if v, ok := retMap[peerId.ToString()]; ok {
@@ -68,13 +68,13 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 		// createMessage message list
 		retList = append(retList, &response.ContactEntity{
 			OwnerID:      item.OwnerID,
-			OwnerType:    gen_id.ContactIdType(item.OwnerType),
+			OwnerType:    gmodel.ContactIdType(item.OwnerType),
 			PeerID:       item.PeerID,
-			PeerType:     gen_id.ContactIdType(item.PeerType),
-			PeerAck:      model.PeerAckStatus(item.PeerAck),
+			PeerType:     gmodel.ContactIdType(item.PeerType),
+			PeerAck:      gmodel.PeerAckStatus(item.PeerAck),
 			VersionID:    item.VersionID,
 			SortKey:      item.SortKey,
-			Status:       model.ContactStatus(item.Status),
+			Status:       gmodel.ContactStatus(item.Status),
 			Labels:       item.Labels,
 			LastMsg:      nil,
 			UnreadMsgNum: sessionUnreadCount,
