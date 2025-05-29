@@ -29,7 +29,13 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	logHead := fmt.Sprintf("Fetch|req=%v", req)
 	limit := 50
 
-	// 会话只会拉取最新的
+	// check params
+	err = b.checkParamsFetch(ctx, req)
+	if err != nil {
+		return
+	}
+
+	// get: contact list
 	ownerId := req.Owner
 	list, err := b.contactRepo.RangeList(&model.FetchContactRangeParams{
 		FetchType:      gmodel.FetchTypeForward,
@@ -66,7 +72,6 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 			sessionUnreadCount = v
 		}
 
-		// createMessage message list
 		retList = append(retList, &response.ContactEntity{
 			OwnerID:      item.OwnerID,
 			OwnerType:    gmodel.ContactIdType(item.OwnerType),
