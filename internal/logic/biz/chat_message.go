@@ -556,7 +556,7 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 
 	// get: 接收者的信息
 	var receiverId *gmodel.ComponentId
-	parseResult := gmodel.SessionID(sessionId).Parse()
+	parseResult := gmodel.SessionId(sessionId).Parse()
 	switch parseResult.Prefix {
 	case gmodel.PrefixPair: // 1对1的timeline
 		switch {

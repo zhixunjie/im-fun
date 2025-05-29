@@ -67,7 +67,7 @@ type BigIntType = uint64
 // FetchMsgRangeParams 拉取消息列表
 type FetchMsgRangeParams struct {
 	FetchType                           gmodel.FetchType
-	SessionId                           gmodel.SessionID
+	SessionId                           gmodel.SessionId
 	LastDelMsgVersionId, PivotVersionId BigIntType // 确定消息的允许获取范围
 	Limit                               int
 	Owner, Peer                         *gmodel.ComponentId

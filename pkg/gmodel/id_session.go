@@ -11,10 +11,10 @@ const (
 	PrefixGroup = "group"
 )
 
-type SessionID string
+type SessionId string
 
 // NewSessionId 根据id的类型，生成sessionId
-func NewSessionId(id1, id2 *ComponentId) (sessionId SessionID) {
+func NewSessionId(id1, id2 *ComponentId) (sessionId SessionId) {
 	switch {
 	case id1.IsGroup(): // 群聊
 		sessionId = groupSessionId(id1)
@@ -28,18 +28,18 @@ func NewSessionId(id1, id2 *ComponentId) (sessionId SessionID) {
 }
 
 // userSessionId 标识单聊timeline（使用双方id，小的id在前，大的id在后）
-func userSessionId(id1, id2 *ComponentId) SessionID {
+func userSessionId(id1, id2 *ComponentId) SessionId {
 	smallerId, largerId := id1.Sort(id2)
 
 	// session_id的组成部分：[ smallerId ":" largerId]
-	return SessionID(fmt.Sprintf(PrefixPair+":%s:%s", smallerId.ToString(), largerId.ToString()))
+	return SessionId(fmt.Sprintf(PrefixPair+":%s:%s", smallerId.ToString(), largerId.ToString()))
 }
 
 // groupSessionId 标识群聊timeline（使用群组id）
-func groupSessionId(group *ComponentId) SessionID {
+func groupSessionId(group *ComponentId) SessionId {
 
 	// session_id的组成部分：[ groupId ]
-	return SessionID(fmt.Sprintf(PrefixGroup+":%s", group.ToString()))
+	return SessionId(fmt.Sprintf(PrefixGroup+":%s", group.ToString()))
 }
 
 type ParseResult struct {
@@ -48,7 +48,7 @@ type ParseResult struct {
 }
 
 // Parse 解析SessionId
-func (s SessionID) Parse() (result *ParseResult) {
+func (s SessionId) Parse() (result *ParseResult) {
 	slice := strings.Split(string(s), ":")
 	result = new(ParseResult)
 
