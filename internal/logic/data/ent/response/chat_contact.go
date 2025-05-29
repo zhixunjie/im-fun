@@ -12,9 +12,9 @@ type ContactFetchRsp struct {
 }
 
 type FetchContactData struct {
-	ContactList   []*ContactEntity `json:"contact_list"`           // 联系人列表
-	NextVersionId model.BigIntType `json:"next_version_id,string"` // 最大的版本ID
 	HasMore       bool             `json:"has_more"`
+	NextVersionId model.BigIntType `json:"next_version_id,string"` // 最大的版本ID
+	ContactList   []*ContactEntity `json:"contact_list"`           // 联系人列表
 }
 
 type ContactEntity struct {
