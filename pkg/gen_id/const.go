@@ -22,7 +22,7 @@ const (
 
 // version_id
 const (
-	shiftVersionKey  = 7                                      // 生成 version_id 时，每隔2^7秒对应一个redis key
+	shiftVersionKey  = 5                                      // 生成 version_id 时，每隔2^5(32)秒对应一个redis key
 	expireVersionKey = (1<<shiftVersionKey + 3) * time.Second // 生成 version_id 时，redis key的有效期
 )
 

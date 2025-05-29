@@ -11,17 +11,17 @@ import (
 
 // NewMsgVersionId 专门为message表生成version_id
 func NewMsgVersionId(ctx context.Context, params *MsgVerParams) (versionId uint64, err error) {
-	// 每隔128秒，verIdTimeKey的值增加1（随着时间过去，KEY会不断增大）
+	// 每隔32秒，verIdTimeKey的值增加1（随着时间过去，KEY会不断增大）
 	ts := time.Now().Unix()
 	verIdTimeKey := ts >> shiftVersionKey
 
 	var key string
 	switch {
-	case params.Id1.IsGroup(): // 群聊（群组id固定放在后面）
+	case params.Id1.IsGroup(): // 群聊｜群组维度的递增
 		key = keyMsgGroupVersion(params.Id1.ToString(), verIdTimeKey)
-	case params.Id2.IsGroup(): // 群聊（群组id固定放在后面）
+	case params.Id2.IsGroup(): // 群聊｜群组维度的递增
 		key = keyMsgGroupVersion(params.Id2.ToString(), verIdTimeKey)
-	default: // 单聊
+	default: // 单聊｜会话维度的递增
 		smallerId, largerId := params.Id1.Sort(params.Id2)
 		key = keyMsgVersion(smallerId.ToString(), largerId.ToString(), verIdTimeKey)
 	}
@@ -40,10 +40,11 @@ func NewMsgVersionId(ctx context.Context, params *MsgVerParams) (versionId uint6
 
 // NewContactVersionId 专门为contact表生成version_id
 func NewContactVersionId(ctx context.Context, params *ContactVerParams) (versionId uint64, err error) {
-	// 每隔128秒，verIdTimeKey的值增加1（随着时间过去，KEY会不断增大）
+	// 每隔32秒，verIdTimeKey的值增加1（随着时间过去，KEY会不断增大）
 	ts := time.Now().Unix()
 	verIdTimeKey := ts >> shiftVersionKey
 
+	// UID 维度的递增
 	key := keyContactVersion(params.Owner.ToString(), verIdTimeKey)
 
 	// incr
