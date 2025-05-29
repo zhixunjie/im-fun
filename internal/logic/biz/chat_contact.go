@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/samber/lo"
+	"github.com/zhixunjie/im-fun/internal/logic/api"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
@@ -94,4 +95,25 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	}
 
 	return
+}
+
+func (b *ContactUseCase) checkParamsFetch(ctx context.Context, req *request.ContactFetchReq) error {
+	// check: sender
+	if req.Owner == nil {
+		return api.ErrSenderOrReceiverNotAllow
+	}
+	if req.Owner.Id() == 0 {
+		return api.ErrSenderOrReceiverNotAllow
+	}
+
+	//allowOwnerType := []gen_id.ContactIdType{
+	//	gen_id.TypeUser,
+	//}
+	//
+	//// check: owner type
+	//if !lo.Contains(allowOwnerType, req.Owner.Type()) {
+	//	return api.ErrSenderTypeNotAllow
+	//}
+
+	return nil
 }
