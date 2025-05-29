@@ -126,7 +126,7 @@ func (repo *ContactRepo) RangeList(params *model.FetchContactRangeParams) (list 
 
 	// 需要建立索引：owner_id、status、version_id
 	switch params.FetchType {
-	case model.FetchTypeBackward: // 拉取历史消息，范围为：（负无穷, pivotVersionId）
+	case gmodel.FetchTypeBackward: // 拉取历史消息，范围为：（负无穷, pivotVersionId）
 		if pivotVersionId == 0 {
 			pivotVersionId = math.MaxInt64
 		}
@@ -139,7 +139,7 @@ func (repo *ContactRepo) RangeList(params *model.FetchContactRangeParams) (list 
 			err = fmt.Errorf("FetchTypeBackward err=%v", err)
 			return
 		}
-	case model.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
+	case gmodel.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
 		list, err = slave.Where(
 			slave.OwnerID.Eq(ownerId.Id()),
 			slave.OwnerType.Eq(uint32(ownerId.Type())),

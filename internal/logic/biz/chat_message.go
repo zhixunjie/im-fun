@@ -221,9 +221,9 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	// get: nextVersionId
 	var nextVersionId uint64
 	switch req.FetchType {
-	case model.FetchTypeBackward: // 1. 拉取历史消息
+	case gmodel.FetchTypeBackward: // 1. 拉取历史消息
 		nextVersionId = minVersionId
-	case model.FetchTypeForward: // 2. 拉取最新消息
+	case gmodel.FetchTypeForward: // 2. 拉取最新消息
 		nextVersionId = maxVersionId
 	default:
 		return

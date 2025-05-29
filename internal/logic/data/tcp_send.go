@@ -47,7 +47,7 @@ func (d *Data) GetSessionByUserIds(ctx context.Context, userIds []uint64) (res m
 	// get command result
 	res = make(map[string]string)
 	for _, cmd := range cmds {
-		tmpMap := cmd.(*redis.StringStringMapCmd).Val()
+		tmpMap := cmd.(*redis.MapStringStringCmd).Val()
 		for tcpSessionId, serverId := range tmpMap {
 			res[tcpSessionId] = serverId
 		}

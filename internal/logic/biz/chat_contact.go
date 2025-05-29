@@ -31,7 +31,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	// 会话只会拉取最新的
 	ownerId := req.Owner
 	list, err := b.contactRepo.RangeList(&model.FetchContactRangeParams{
-		FetchType:      model.FetchTypeForward,
+		FetchType:      gmodel.FetchTypeForward,
 		Owner:          ownerId,
 		PivotVersionId: req.VersionId,
 		Limit:          limit,

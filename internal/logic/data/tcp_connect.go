@@ -53,7 +53,7 @@ func (d *Data) SessionBinding(ctx context.Context, logHead string, rr *pb.Connec
 	// set string
 	{
 		key := keyStringTcpSessionId(tcpSessionId)
-		if err = mem.SetEX(ctx, key, serverId, expire).Err(); err != nil {
+		if err = mem.SetEx(ctx, key, serverId, expire).Err(); err != nil {
 			logging.Errorf(logHead+"SetEX error=%v,key=%v", key)
 			return
 		}
