@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func Decode(base *MsgBody) (msgContent MsgContent, err error) {
+func DecodeMsgBody(base *MsgBody) (msgContent MsgContent, err error) {
 	if base == nil {
 		err = errors.New("msg body is invalid")
 		return

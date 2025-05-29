@@ -483,7 +483,7 @@ func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.Messa
 	}
 
 	// check: message content
-	msgContent, err := format.Decode(req.MsgBody)
+	msgContent, err := format.DecodeMsgBody(req.MsgBody)
 	if err != nil {
 		return api.ErrMessageBodyDecodedFailed
 	}
