@@ -394,7 +394,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 		SeqID:         req.SeqId,                      // 唯一id（客户端）
 		MsgType:       uint32(req.MsgBody.MsgType),    // 消息类型
 		Content:       string(content),                // 消息内容
-		SessionID:     sessionId,                      // 会话ID
+		SessionID:     string(sessionId),              // 会话ID
 		SenderID:      req.Sender.Id(),                // 发送者ID
 		SenderType:    uint32(req.Sender.Type()),      // 发送者的用户类型
 		VersionID:     versionId,                      // 版本ID
