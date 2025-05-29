@@ -48,7 +48,7 @@ func TestSendBetweenUser(t *testing.T) {
 				}
 
 				// build data
-				d := map[string]interface{}{
+				d := map[string]any{
 					"type":    111111,
 					"content": i,
 				}
@@ -82,7 +82,7 @@ func TestSendBetweenUserAndRobot(t *testing.T) {
 				}
 
 				// build data
-				d := map[string]interface{}{
+				d := map[string]any{
 					"type":    111111,
 					"content": i,
 				}
@@ -108,7 +108,7 @@ func TestSendBetweenUserAndGroup(t *testing.T) {
 			receiver := gmodel.NewGroupComponentId(groupId)
 
 			// build data
-			d := map[string]interface{}{
+			d := map[string]any{
 				"type":    111111,
 				"content": 123456,
 			}

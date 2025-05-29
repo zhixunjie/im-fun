@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/utils"
@@ -17,7 +16,7 @@ func TestMessageFetchBetweenUser(t *testing.T) {
 	ctx := context.Background()
 
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
-		FetchType: model.FetchTypeForward,
+		FetchType: gmodel.FetchTypeForward,
 		VersionId: 0,
 		Owner:     gmodel.NewUserComponentId(1001),
 		Peer:      gmodel.NewGroupComponentId(10001),
@@ -44,7 +43,7 @@ func TestFetchBetweenUserAndRobot(t *testing.T) {
 		//VersionID: 1705766012000002,
 		//FetchType: model.FetchTypeForward,
 		//VersionID: 1705766012000002,
-		FetchType: model.FetchTypeForward,
+		FetchType: gmodel.FetchTypeForward,
 		VersionId: 0,
 		Owner:     gmodel.NewUserComponentId(1003),
 		Peer:      gmodel.NewGroupComponentId(10003),
@@ -67,7 +66,7 @@ func TestFetchBetweenUserAndGroup(t *testing.T) {
 	ctx := context.Background()
 
 	rsp, err := messageUseCase.Fetch(ctx, &request.MessageFetchReq{
-		FetchType: model.FetchTypeForward,
+		FetchType: gmodel.FetchTypeForward,
 		VersionId: 0,
 		Owner:     gmodel.NewUserComponentId(1001),
 		Peer:      gmodel.NewGroupComponentId(100000001),
