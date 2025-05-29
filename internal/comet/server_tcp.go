@@ -8,7 +8,7 @@ import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
-	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/websocket"
 	"io"
@@ -284,7 +284,7 @@ func (s *TcpServer) auth(ctx context.Context, logHead string, ch *channel.Channe
 
 	// TCP响应：下发TCP消息给给客户端（授权结果）
 	proto.Op = int32(protocol.OpAuthReply)
-	proto.Seq = gen_id.SeqId32()
+	proto.Seq = gmodel.NewSeqId32()
 	proto.Body = nil
 	if err = ch.ConnReadWriter.WriteProto(proto); err != nil {
 		logging.Errorf(logHead+"WriteTCP err=%v,UserInfo=%v", err, ch.UserInfo)

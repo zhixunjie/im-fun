@@ -24,19 +24,19 @@ func TestIdMsg(t *testing.T) {
 	id3 := gmodel.NewGroupComponentId(10)
 
 	// test1
-	msgId, err := MsgId(ctx, client, id1, id2)
+	msgId, err := NewMsgId(ctx, client, id1, id2)
 	fmt.Printf("单聊,msgId=%v,err=%v\n", msgId, err)
 
 	// test2
-	msgId, err = MsgId(ctx, client, id2, id1)
+	msgId, err = NewMsgId(ctx, client, id2, id1)
 	fmt.Printf("单聊,msgId=%v,err=%v\n", msgId, err)
 
 	// test3
-	msgId, err = MsgId(ctx, client, id1, id3)
+	msgId, err = NewMsgId(ctx, client, id1, id3)
 	fmt.Printf("群聊,msgId=%v,err=%v\n", msgId, err)
 
 	// test4
-	msgId, err = MsgId(ctx, client, id3, id1)
+	msgId, err = NewMsgId(ctx, client, id3, id1)
 	fmt.Printf("群聊,msgId=%v,err=%v\n", msgId, err)
 }
 

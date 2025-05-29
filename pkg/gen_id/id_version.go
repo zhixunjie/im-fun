@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-// MsgVersionId 专门为message表生成version_id
-func MsgVersionId(ctx context.Context, params *MsgVerParams) (versionId uint64, err error) {
+// NewMsgVersionId 专门为message表生成version_id
+func NewMsgVersionId(ctx context.Context, params *MsgVerParams) (versionId uint64, err error) {
 	// 每隔128秒，verIdTimeKey的值增加1（随着时间过去，KEY会不断增大）
 	ts := time.Now().Unix()
 	verIdTimeKey := ts >> shiftVersionKey
@@ -38,8 +38,8 @@ func MsgVersionId(ctx context.Context, params *MsgVerParams) (versionId uint64, 
 	return
 }
 
-// ContactVersionId 专门为contact表生成version_id
-func ContactVersionId(ctx context.Context, params *ContactVerParams) (versionId uint64, err error) {
+// NewContactVersionId 专门为contact表生成version_id
+func NewContactVersionId(ctx context.Context, params *ContactVerParams) (versionId uint64, err error) {
 	// 每隔128秒，verIdTimeKey的值增加1（随着时间过去，KEY会不断增大）
 	ts := time.Now().Unix()
 	verIdTimeKey := ts >> shiftVersionKey

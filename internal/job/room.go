@@ -6,7 +6,7 @@ import (
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/job/conf"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
-	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"time"
 )
@@ -42,7 +42,7 @@ func (r *RoomJob) SendToCh(msg []byte) error {
 	var p = &protocol.Proto{
 		Ver:  protocol.ProtoVersion,
 		Op:   int32(protocol.OpBatchMsg),
-		Seq:  gen_id.SeqId32(),
+		Seq:  gmodel.NewSeqId32(),
 		Body: msg,
 	}
 

@@ -70,7 +70,7 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 			pivotVersionId = math.MaxInt64
 		}
 		list, err = slave.Where(
-			slave.SessionID.Eq(params.SessionId),
+			slave.SessionID.Eq(string(params.SessionId)),
 			slave.VersionID.Gt(delVersionId),
 			slave.VersionID.Lt(pivotVersionId),
 		).Limit(params.Limit).Order(slave.VersionID.Desc()).Find() // 按照version_id倒序排序
@@ -84,7 +84,7 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 			pivotVersionId = delVersionId
 		}
 		list, err = slave.Where(
-			slave.SessionID.Eq(params.SessionId),
+			slave.SessionID.Eq(string(params.SessionId)),
 			slave.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(slave.VersionID).Find() // 按照version_id正序排序
 		if err != nil {

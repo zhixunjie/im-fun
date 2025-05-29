@@ -4,7 +4,7 @@ import (
 	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bytes"
-	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
@@ -16,7 +16,7 @@ func (b *Job) SendToUser(subId int32, serverId string, tcpSessionIds []string, m
 	proto := &protocol.Proto{
 		Ver:  protocol.ProtoVersion,
 		Op:   int32(protocol.OpBatchMsg),
-		Seq:  gen_id.SeqId32(),
+		Seq:  gmodel.NewSeqId32(),
 		Body: message,
 	}
 	writer := bytes.NewWriterSize(len(message) + 64)
@@ -46,7 +46,7 @@ func (b *Job) SendToRoom(subId int32, roomId string, batchMessage []byte) (err e
 	proto := &protocol.Proto{
 		Ver:  protocol.ProtoVersion,
 		Op:   int32(protocol.OpBatchMsg),
-		Seq:  gen_id.SeqId32(),
+		Seq:  gmodel.NewSeqId32(),
 		Body: batchMessage,
 	}
 
@@ -71,7 +71,7 @@ func (b *Job) SendToAll(subId int32, speed int32, message []byte) (err error) {
 	proto := &protocol.Proto{
 		Ver:  protocol.ProtoVersion,
 		Op:   int32(protocol.OpBatchMsg),
-		Seq:  gen_id.SeqId32(),
+		Seq:  gmodel.NewSeqId32(),
 		Body: message,
 	}
 

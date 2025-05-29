@@ -67,7 +67,7 @@ type BigIntType = uint64
 // FetchMsgRangeParams 拉取消息列表
 type FetchMsgRangeParams struct {
 	FetchType                           gmodel.FetchType
-	SessionId                           string
+	SessionId                           gmodel.SessionID
 	LastDelMsgVersionId, PivotVersionId BigIntType // 确定消息的允许获取范围
 	Limit                               int
 	Owner, Peer                         *gmodel.ComponentId
@@ -90,7 +90,7 @@ type BuildContactParams struct {
 // UpdateLastMsgId 更新最后一条消息
 //type (
 //	UpdateLastMsgId struct {
-//		SessionId string
+//		NewSessionId string
 //		LastMsgId uint64
 //		Peer1     UpdateLastMsgIdItem `json:"peer_1"`
 //		Peer2     UpdateLastMsgIdItem `json:"peer_2"`

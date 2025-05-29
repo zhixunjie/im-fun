@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-// MsgId 根据id的类型，生成msgId
-func MsgId(ctx context.Context, mem *redis.Client, id1, id2 *gmodel.ComponentId) (msgId uint64, err error) {
+// NewMsgId 根据id的类型，生成msgId
+func NewMsgId(ctx context.Context, mem *redis.Client, id1, id2 *gmodel.ComponentId) (msgId uint64, err error) {
 	switch {
 	case id1.IsGroup(): // 群聊
 		msgId, err = genMsgId(ctx, mem, id1.Id())
@@ -106,18 +106,18 @@ return current
 
 // incNum 每秒一个Key，进行累加
 // DEPRECATED
-func incNum(ctx context.Context, mem *redis.Client, key string, expire time.Duration) (value int64, err error) {
-	value, err = mem.IncrBy(ctx, key, 1).Result()
-	if err != nil {
-		return
-	}
-	// 这里的命令可能会失败
-	// 解决办法：lua脚本：https://gitee.com/jasonzxj/LearnGo/blob/master/use/pkg/redis/goredis/lua/atomic/incry_expire.go
-	if value == 1 {
-		_, err = mem.Expire(ctx, key, expire).Result()
-		if err != nil {
-			return
-		}
-	}
-	return
-}
+//func incNum(ctx context.Context, mem *redis.Client, key string, expire time.Duration) (value int64, err error) {
+//	value, err = mem.IncrBy(ctx, key, 1).Result()
+//	if err != nil {
+//		return
+//	}
+//	// 这里的命令可能会失败
+//	// 解决办法：lua脚本：https://gitee.com/jasonzxj/LearnGo/blob/master/use/pkg/redis/goredis/lua/atomic/incry_expire.go
+//	if value == 1 {
+//		_, err = mem.Expire(ctx, key, expire).Result()
+//		if err != nil {
+//			return
+//		}
+//	}
+//	return
+//}

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
-	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"testing"
 )
@@ -15,7 +14,7 @@ func TestSendSimple(t *testing.T) {
 	ctx := context.Background()
 
 	rsp, err := messageUseCase.Send(ctx, &request.MessageSendReq{
-		SeqId:    uint64(gen_id.SeqId()),
+		SeqId:    uint64(gmodel.NewSeqId()),
 		Sender:   gmodel.NewUserComponentId(1001),
 		Receiver: gmodel.NewUserComponentId(1005),
 		MsgBody: &format.MsgBody{

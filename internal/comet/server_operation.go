@@ -3,7 +3,7 @@ package comet
 import (
 	"context"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
-	"github.com/zhixunjie/im-fun/pkg/gen_id"
+	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"time"
 
@@ -19,7 +19,7 @@ func (s *TcpServer) handleClientMsg(ctx context.Context, logHead string, proto *
 	case protocol.OpHeartbeat: // 心跳上报
 		proto.Op = int32(protocol.OpHeartbeatReply)
 		proto.Ver = protocol.ProtoVersion
-		proto.Seq = gen_id.SeqId32()
+		proto.Seq = gmodel.NewSeqId32()
 		proto.Body = nil
 		logging.Infof(logHead + "Heartbeat Proto is generated")
 		// reset timer

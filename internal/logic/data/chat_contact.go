@@ -175,7 +175,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
 
 	// generate contact's version_id
-	versionId, err := gen_id.ContactVersionId(ctx, &gen_id.ContactVerParams{Mem: mem, Owner: owner})
+	versionId, err := gen_id.NewContactVersionId(ctx, &gen_id.ContactVerParams{Mem: mem, Owner: owner})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionID error=%v", err)
 		return

@@ -43,7 +43,7 @@ func NewMessageUseCase(repoMessage *data.MessageRepo, repoContact *data.ContactR
 // SendSimpleCustomMessage 简化接口：发送自定义消息
 func (b *MessageUseCase) SendSimpleCustomMessage(ctx context.Context, sender, receiver *gmodel.ComponentId, d string) (rsp response.MessageSendRsp, err error) {
 	return b.Send(ctx, &request.MessageSendReq{
-		SeqId:    uint64(gen_id.SeqId()),
+		SeqId:    uint64(gmodel.NewSeqId()),
 		Sender:   sender,
 		Receiver: receiver,
 		MsgBody: &format.MsgBody{
@@ -160,7 +160,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	}
 
 	// get: message list
-	sessionId := gen_id.SessionId(owner, peer)
+	sessionId := gmodel.NewSessionId(owner, peer)
 	list, err := b.repoMessage.RangeList(&model.FetchMsgRangeParams{
 		FetchType:           req.FetchType,
 		SessionId:           sessionId,
@@ -308,7 +308,7 @@ func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.ClearHis
 	}
 
 	// contact: gen version_id
-	versionId, err := gen_id.ContactVersionId(ctx, &gen_id.ContactVerParams{
+	versionId, err := gen_id.NewContactVersionId(ctx, &gen_id.ContactVerParams{
 		Mem:   mem,
 		Owner: owner,
 	})
@@ -357,7 +357,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 	}
 
 	// message: gen session id
-	sessionId := gen_id.SessionId(sender, receiver)
+	sessionId := gmodel.NewSessionId(sender, receiver)
 
 	// note: 同一个消息timeline的版本变动，需要加锁
 	// 保证数据库记录中的 msg_id 与 session_id 是递增的
@@ -371,14 +371,14 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
 
 	// a) generate message's msg_id
-	msgId, err := gen_id.MsgId(ctx, mem, sender, receiver)
+	msgId, err := gen_id.NewMsgId(ctx, mem, sender, receiver)
 	if err != nil {
 		logging.Errorf(logHead+"gen MsgID error=%v", err)
 		return
 	}
 
 	// b) generate message's version_id
-	versionId, err := gen_id.MsgVersionId(ctx, &gen_id.MsgVerParams{
+	versionId, err := gen_id.NewMsgVersionId(ctx, &gen_id.MsgVerParams{
 		Mem: mem,
 		Id1: sender,
 		Id2: receiver,
@@ -556,9 +556,9 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 
 	// get: 接收者的信息
 	var receiverId *gmodel.ComponentId
-	parseResult := gen_id.ParseSessionId(sessionId)
+	parseResult := gmodel.SessionID(sessionId).Parse()
 	switch parseResult.Prefix {
-	case gen_id.PrefixPair: // 1对1的timeline
+	case gmodel.PrefixPair: // 1对1的timeline
 		switch {
 		case parseResult.IdArr[0].Equal(sender):
 			receiverId = parseResult.IdArr[1]
@@ -568,7 +568,7 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 			err = errors.New("can not find peer")
 			return
 		}
-	case gen_id.PrefixGroup: // 群组的timeline
+	case gmodel.PrefixGroup: // 群组的timeline
 		receiverId = parseResult.IdArr[0]
 	default:
 		err = errors.New("can not find peer")
@@ -586,7 +586,7 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
 
 	// generate message's version_id
-	versionId, err := gen_id.MsgVersionId(ctx, &gen_id.MsgVerParams{
+	versionId, err := gen_id.NewMsgVersionId(ctx, &gen_id.MsgVerParams{
 		Mem: mem,
 		Id1: sender,
 		Id2: receiverId,
