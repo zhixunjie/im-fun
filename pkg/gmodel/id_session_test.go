@@ -27,13 +27,13 @@ func TestSort(t *testing.T) {
 func TestParseSessionId(t *testing.T) {
 	sessionId := NewSessionId(NewUserComponentId(1001), NewGroupComponentId(100000000001))
 	result := sessionId.Parse()
-	fmt.Println(result, result.IdArr[0])
+	fmt.Println(result, result.Ids[0])
 
 	sessionId = NewSessionId(NewUserComponentId(1001), NewUserComponentId(1002))
 	result = sessionId.Parse()
-	fmt.Println(result, result.IdArr[0], result.IdArr[1])
+	fmt.Println(result, result.Ids[0], result.Ids[1])
 
 	sessionId = NewSessionId(NewUserComponentId(1001), NewRobotComponentId(111111))
 	result = sessionId.Parse()
-	fmt.Println(result, result.IdArr[0], result.IdArr[1])
+	fmt.Println(result, result.Ids[0], result.Ids[1])
 }

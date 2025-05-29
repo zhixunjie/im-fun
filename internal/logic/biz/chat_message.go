@@ -560,16 +560,16 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 	switch parseResult.Prefix {
 	case gmodel.PrefixPair: // 1对1的timeline
 		switch {
-		case parseResult.IdArr[0].Equal(sender):
-			receiverId = parseResult.IdArr[1]
-		case parseResult.IdArr[1].Equal(sender):
-			receiverId = parseResult.IdArr[0]
+		case parseResult.Ids[0].Equal(sender):
+			receiverId = parseResult.Ids[1]
+		case parseResult.Ids[1].Equal(sender):
+			receiverId = parseResult.Ids[0]
 		default:
 			err = errors.New("can not find peer")
 			return
 		}
 	case gmodel.PrefixGroup: // 群组的timeline
-		receiverId = parseResult.IdArr[0]
+		receiverId = parseResult.Ids[0]
 	default:
 		err = errors.New("can not find peer")
 		return
