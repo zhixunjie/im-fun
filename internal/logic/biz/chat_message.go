@@ -61,7 +61,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	receiver := req.Receiver
 	logHead := fmt.Sprintf("Send|sender=%v,receiver=%v|", sender, receiver)
 
-	// check limit
+	// check params
 	err = b.checkParamsSend(ctx, req)
 	if err != nil {
 		return
@@ -135,6 +135,12 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 	logHead := fmt.Sprintf("Fetch|req=%v", req)
 	pivotVersionId := req.VersionId
 	limit := 50
+
+	// check params
+	err = b.checkParamsFetch(ctx, req)
+	if err != nil {
+		return
+	}
 
 	// get: contact info
 	owner := req.Owner
@@ -455,6 +461,7 @@ func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.Messa
 	//if !lo.Contains(allowSenderType, req.Sender.Type()) {
 	//	return api.ErrSenderTypeNotAllow
 	//}
+	//// check: receiver type
 	//if !lo.Contains(allowReceiverType, req.Receiver.Type()) {
 	//	return api.ErrReceiverTypeNotAllow
 	//}
@@ -514,6 +521,37 @@ func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.Messa
 	}
 
 	// TODO: 频率控制、敏感词控制
+
+	return nil
+}
+
+func (b *MessageUseCase) checkParamsFetch(ctx context.Context, req *request.MessageFetchReq) error {
+	// check: sender
+	if req.Owner == nil || req.Peer == nil {
+		return api.ErrSenderOrReceiverNotAllow
+	}
+	if req.Owner.Id() == 0 || req.Peer.Id() == 0 {
+		return api.ErrSenderOrReceiverNotAllow
+	}
+
+	//allowOwnerType := []gen_id.ContactIdType{
+	//	gen_id.TypeUser,
+	//}
+	//
+	//allowPeerType := []gen_id.ContactIdType{
+	//	gen_id.TypeUser,
+	//	gen_id.TypeRobot,
+	//	gen_id.TypeGroup,
+	//}
+	//
+	//// check: owner type
+	//if !lo.Contains(allowOwnerType, req.Owner.Type()) {
+	//	return api.ErrSenderTypeNotAllow
+	//}
+	//// check: peer type
+	//if !lo.Contains(allowPeerType, req.Peer.Type()) {
+	//	return api.ErrReceiverTypeNotAllow
+	//}
 
 	return nil
 }
