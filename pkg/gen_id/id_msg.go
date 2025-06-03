@@ -11,7 +11,10 @@ import (
 )
 
 // NewMsgId 根据id的类型，生成msgId
-func NewMsgId(ctx context.Context, mem *redis.Client, id1, id2 *gmodel.ComponentId) (msgId uint64, err error) {
+func NewMsgId(ctx context.Context, params *MsgIdParams) (msgId uint64, err error) {
+	id1, id2 := params.Id1, params.Id2
+	mem := params.Mem
+
 	switch {
 	case id1.IsGroup(): // 群聊
 		msgId, err = genMsgId(ctx, mem, id1.Id())
@@ -121,3 +124,8 @@ return current
 //	}
 //	return
 //}
+
+type MsgIdParams struct {
+	Mem      *redis.Client
+	Id1, Id2 *gmodel.ComponentId
+}

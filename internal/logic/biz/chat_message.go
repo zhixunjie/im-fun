@@ -377,7 +377,11 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 	logging.Infof(logHead+"acquire success,lockKey=%v", lockKey)
 
 	// a) generate message's msg_id
-	msgId, err := gen_id.NewMsgId(ctx, mem, sender, receiver)
+	msgId, err := gen_id.NewMsgId(ctx, &gen_id.MsgIdParams{
+		Mem: mem,
+		Id1: sender,
+		Id2: receiver,
+	})
 	if err != nil {
 		logging.Errorf(logHead+"gen MsgID error=%v", err)
 		return
