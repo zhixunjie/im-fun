@@ -448,6 +448,9 @@ func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.Messa
 	if req.Sender.Id() == 0 || req.Receiver.Id() == 0 {
 		return api.ErrSenderOrReceiverNotAllow
 	}
+	if req.Sender.Id() == req.Receiver.Id() {
+		return fmt.Errorf("ID equal %w", api.ErrSenderOrReceiverNotAllow)
+	}
 
 	//allowSenderType := []gen_id.ContactIdType{
 	//	gen_id.TypeUser,
