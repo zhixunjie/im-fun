@@ -166,7 +166,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 
 	// note: 同一用户的会话timeline的版本变动，需要加锁
 	lockKey := cache.TimelineContactLock.Format(k.M{"contact_id": contactId})
-	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 20 * time.Millisecond, Times: 20})
+	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 50 * time.Millisecond, Times: 40})
 	if err = redisSpinLock.AcquireWithTimes(); err != nil {
 		logging.Errorf(logHead+"acquire fail,lockKey=%v,err=%v", lockKey, err)
 		return

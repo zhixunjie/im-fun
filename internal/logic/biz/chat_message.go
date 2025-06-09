@@ -368,7 +368,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 	// note: 同一个消息timeline的版本变动，需要加锁
 	// 保证数据库记录中的 msg_id 与 session_id 是递增的
 	lockKey := cache.TimelineMessageLock.Format(k.M{"session_id": sessionId})
-	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 20 * time.Millisecond, Times: 20})
+	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 50 * time.Millisecond, Times: 40})
 	if err = redisSpinLock.AcquireWithTimes(); err != nil {
 		logging.Errorf(logHead+"acquire fail,lockKey=%v,err=%v", lockKey, err)
 		return
@@ -622,7 +622,7 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 
 	// note: 同一个消息timeline的版本变动，需要加锁
 	lockKey := cache.TimelineMessageLock.Format(k.M{"session_id": sessionId})
-	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 20 * time.Millisecond, Times: 20})
+	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 50 * time.Millisecond, Times: 40})
 	if err = redisSpinLock.AcquireWithTimes(); err != nil {
 		logging.Errorf(logHead+"acquire fail,lockKey=%v,err=%v", lockKey, err)
 		return
