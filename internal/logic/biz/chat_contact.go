@@ -2,10 +2,12 @@ package biz
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/samber/lo"
 	"github.com/zhixunjie/im-fun/internal/logic/api"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/response"
@@ -52,6 +54,15 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 		return
 	}
 
+	lastMsgIds := lo.Map(list, func(item *model.Contact, index int) uint64 {
+		return item.LastMsgID
+	})
+	lastMsgMap, err := b.repoMessage.BatchGetByMsgIds(ctx, lastMsgIds)
+	if err != nil {
+		logging.Errorf(logHead+"BatchGetByMsgIds err=%v", err)
+		return
+	}
+
 	// extract: all peer ids
 	peerIds := lo.Map(list, func(item *model.Contact, index int) *gmodel.ComponentId {
 		return gmodel.NewComponentId(item.PeerID, gmodel.ContactIdType(item.PeerType))
@@ -72,8 +83,8 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 		if v, ok := retMap[peerId.ToString()]; ok {
 			sessionUnreadCount = v
 		}
-
-		retList = append(retList, &response.ContactEntity{
+		// build data
+		row := &response.ContactEntity{
 			OwnerID:      item.OwnerID,
 			OwnerType:    gmodel.ContactIdType(item.OwnerType),
 			PeerID:       item.PeerID,
@@ -83,9 +94,33 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 			SortKey:      item.SortKey,
 			Status:       gmodel.ContactStatus(item.Status),
 			Labels:       item.Labels,
-			LastMsg:      nil,
 			UnreadMsgNum: sessionUnreadCount,
-		})
+			LastMsg:      nil,
+			CreatedAt:    item.CreatedAt,
+			UpdatedAt:    item.UpdatedAt,
+		}
+
+		// supply last msg info
+		if v, ok := lastMsgMap[item.LastMsgID]; ok {
+			body := new(format.MsgBody)
+			tmpErr := json.Unmarshal([]byte(v.Content), &body)
+			if tmpErr == nil {
+				row.LastMsg = &response.MsgEntity{
+					MsgID:     v.MsgID,
+					SeqID:     v.SeqID,
+					MsgBody:   body,
+					SessionID: v.SessionID,
+					SenderID:  v.SenderID,
+					SendType:  gmodel.ContactIdType(v.SenderType),
+					VersionID: v.VersionID,
+					SortKey:   v.SortKey,
+					Status:    gmodel.MsgStatus(v.Status),
+					HasRead:   gmodel.MsgReadStatus(v.HasRead),
+				}
+			}
+		}
+
+		retList = append(retList, row)
 	}
 
 	// 返回之前进行重新排序

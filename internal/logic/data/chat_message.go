@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
@@ -8,6 +9,7 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"gorm.io/gen"
 	"math"
+	"strings"
 )
 
 type MessageRepo struct {
@@ -127,5 +129,33 @@ func (repo *MessageRepo) UpdateMsgVerAndStatus(logHead string, msgId, versionId 
 		return
 	}
 
+	return
+}
+
+func (repo *MessageRepo) BatchGetByMsgIds(ctx context.Context, msgIds []uint64) (retMap map[uint64]*model.Message, err error) {
+	tbNames := map[string][]uint64{}
+	for _, msgId := range msgIds {
+		dbName, tbName := model.TbNameMessage(msgId)
+		key := dbName + "_" + tbName
+		tbNames[key] = append(tbNames[key], msgId)
+	}
+
+	list := make([]*model.Message, 0, len(msgIds))
+	tmpList := make([]*model.Message, 0, len(msgIds))
+	for key, ids := range tbNames {
+		res := strings.Split(key, "_")
+		if len(res) != 2 {
+			continue
+		}
+		dbName, tbName := res[0], res[1]
+		slave := repo.Slave(dbName).Message.Table(tbName)
+		// find it
+		tmpList, err = slave.Where(slave.MsgID.In(ids...)).Find()
+		if err != nil {
+			err = fmt.Errorf("BatchGetByMsgIds Find in err=%v", err)
+			return
+		}
+		list = append(list, tmpList...)
+	}
 	return
 }

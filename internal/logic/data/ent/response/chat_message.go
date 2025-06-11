@@ -3,6 +3,7 @@ package response
 import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
 	"github.com/zhixunjie/im-fun/pkg/gmodel"
+	"time"
 )
 
 // MessageSendRsp 发送消息给某个用户
@@ -43,6 +44,8 @@ type MsgEntity struct {
 	SortKey   uint64               `json:"sort_key,string"`
 	Status    gmodel.MsgStatus     `json:"status"`
 	HasRead   gmodel.MsgReadStatus `json:"has_read"`
+	CreatedAt time.Time            `json:"created_at"` // 创建时间
+	UpdatedAt time.Time            `json:"updated_at"` // 更新时间
 }
 
 // MessageWithdrawRsp 撤回消息

@@ -221,6 +221,8 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 			SortKey:   item.SortKey,
 			Status:    gmodel.MsgStatus(item.Status),
 			HasRead:   gmodel.MsgReadStatus(item.HasRead),
+			CreatedAt: item.CreatedAt,
+			UpdatedAt: item.UpdatedAt,
 		})
 	}
 

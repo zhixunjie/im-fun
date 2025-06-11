@@ -3,6 +3,7 @@ package response
 import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/pkg/gmodel"
+	"time"
 )
 
 // ContactFetchRsp 拉取会话列表（by version_id）
@@ -29,4 +30,6 @@ type ContactEntity struct {
 	Labels       string               `json:"labels"`
 	UnreadMsgNum int64                `json:"unread_msg_num"` // 当前会话框的未读信息数
 	LastMsg      *MsgEntity           `json:"last_msg"`       // 最后一条消息
+	CreatedAt    time.Time            `json:"created_at"`     // 创建时间
+	UpdatedAt    time.Time            `json:"updated_at"`     // 更新时间
 }
