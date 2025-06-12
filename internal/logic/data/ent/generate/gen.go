@@ -35,6 +35,8 @@ func applyTableNames(g *gen.Generator) {
 		g.GenerateModel("chat_id_counter"),
 		g.GenerateModel("chat_group"),
 		g.GenerateModel("chat_group_user"),
+		g.GenerateModel("chat_group_message"),
+		g.GenerateModel("chat_group_message_ref"),
 	)
 
 }

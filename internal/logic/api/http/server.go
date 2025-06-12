@@ -20,9 +20,10 @@ type Server struct {
 	engine     *gin.Engine
 	httpServer *http.Server
 
-	bz        *biz.Biz
-	BzContact *biz.ContactUseCase
-	BzMessage *biz.MessageUseCase
+	bz             *biz.Biz
+	BzContact      *biz.ContactUseCase
+	BzMessage      *biz.MessageUseCase
+	BzGroupMessage *biz.GroupMessageUseCase
 }
 
 func NewServer(conf *conf.Config, bz *biz.Biz, bzContact *biz.ContactUseCase, bzMessage *biz.MessageUseCase) *Server {

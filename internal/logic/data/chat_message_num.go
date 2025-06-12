@@ -20,12 +20,12 @@ const (
 
 // Hash：owner -> [ peer : serverId ]
 func keyHashSessionUnread(u *gmodel.ComponentId) string {
-	return fmt.Sprintf("hash_session_unread_%v", u.ToString())
+	return fmt.Sprintf("hash_session_unread:%v", u.ToString())
 }
 
 // String：owner -> 1000
 func keyStringTotalUnread(u *gmodel.ComponentId) string {
-	return fmt.Sprintf("string_total_unread_%v", u.ToString())
+	return fmt.Sprintf("string_total_unread:%v", u.ToString())
 }
 
 // IncrUnreadAfterSend 发送消息后，增加未读数

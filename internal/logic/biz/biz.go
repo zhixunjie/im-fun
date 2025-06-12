@@ -7,7 +7,7 @@ import (
 )
 
 // ProviderSet is biz providers.
-var ProviderSet = wire.NewSet(NewBiz, NewMessageUseCase, NewContactUseCase)
+var ProviderSet = wire.NewSet(NewBiz, NewMessageUseCase, NewGroupMessageUseCase, NewContactUseCase)
 
 // Biz 通用的对象
 type Biz struct {

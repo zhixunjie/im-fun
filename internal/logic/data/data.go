@@ -15,7 +15,7 @@ import (
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewContactRepo, NewMessageRepo, NewData)
+var ProviderSet = wire.NewSet(NewContactRepo, NewMessageRepo, NewGroupMessageRepo, NewData)
 
 type Data struct {
 	conf          *conf.Config
@@ -84,6 +84,7 @@ func (d *Data) CreateOrDrop() {
 			continue
 		}
 		utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameChatMessage, int64(model.DBNum()))
+		utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameChatGroupMessage, int64(model.DBNum()))
 		utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameChatContact, int64(model.DBNum()))
 	}
 }
