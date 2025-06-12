@@ -356,7 +356,7 @@ func (b *MessageUseCase) checkParamsClearHistory(ctx context.Context, req *reque
 }
 
 // ClearHistory
-// 清空聊天记录（批量清空），比如：删除联系人后，通信双方都无法看到对方的聊天记录了
+// 清空聊天记录（批量清空），比如：删除联系人后，需要把自己这边的聊天记录给清空（如果需要清空双方，需要把双方的 contact 都做标记）
 // 核心：更新Contact的 last_del_msg_id 为 last_msg_id
 func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.MessageClearHistoryReq) (rsp *response.MessageClearHistoryRsp, err error) {
 	rsp = new(response.MessageClearHistoryRsp)
