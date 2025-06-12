@@ -22,10 +22,10 @@ func NewMessageRepo(data *Data) *MessageRepo {
 	}
 }
 
-func (repo *MessageRepo) Create(logHead string, row *model.Message) (err error) {
+func (repo *MessageRepo) Create(logHead string, row *model.ChatMessage) (err error) {
 	logHead += "Create|"
 	dbName, tbName := model.TbNameMessage(row.MsgID)
-	master := repo.Master(dbName).Message.Table(tbName)
+	master := repo.Master(dbName).ChatMessage.Table(tbName)
 
 	err = master.Create(row)
 	if err != nil {
@@ -38,16 +38,16 @@ func (repo *MessageRepo) Create(logHead string, row *model.Message) (err error) 
 }
 
 // InfoWithCache 查询某条消息的详情
-func (repo *MessageRepo) InfoWithCache(msgId uint64) (*model.Message, error) {
+func (repo *MessageRepo) InfoWithCache(msgId uint64) (*model.ChatMessage, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
 	return repo.Info(msgId)
 }
 
 // Info 查询某条消息的详情
-func (repo *MessageRepo) Info(msgId uint64) (row *model.Message, err error) {
+func (repo *MessageRepo) Info(msgId uint64) (row *model.ChatMessage, err error) {
 	dbName, tbName := model.TbNameMessage(msgId)
-	slave := repo.Slave(dbName).Message.Table(tbName)
+	slave := repo.Slave(dbName).ChatMessage.Table(tbName)
 
 	row, err = slave.Where(slave.MsgID.Eq(msgId)).Take()
 	if err != nil {
@@ -57,9 +57,9 @@ func (repo *MessageRepo) Info(msgId uint64) (row *model.Message, err error) {
 }
 
 // RangeList 获取一定范围的消息列表
-func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*model.Message, err error) {
+func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*model.ChatMessage, err error) {
 	dbName, tbName := model.TbNameMessageByCId(params.Owner, params.Peer)
-	slave := repo.Slave(dbName).Message.Table(tbName)
+	slave := repo.Slave(dbName).ChatMessage.Table(tbName)
 
 	// get id
 	delVersionId := params.LastDelMsgVersionId
@@ -105,7 +105,7 @@ func (repo *MessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*m
 func (repo *MessageRepo) UpdateMsgVerAndStatus(logHead string, msgId, versionId model.BigIntType, status gmodel.MsgStatus) (err error) {
 	logHead += fmt.Sprintf("UpdateMsgVerAndStatus,msgId=%v,versionId=%v,status=%v|", msgId, versionId, status)
 	dbName, tbName := model.TbNameMessage(msgId)
-	master := repo.Master(dbName).Message.Table(tbName)
+	master := repo.Master(dbName).ChatMessage.Table(tbName)
 
 	// status
 	srcStatus := uint32(gmodel.MsgStatusNormal)
@@ -115,7 +115,7 @@ func (repo *MessageRepo) UpdateMsgVerAndStatus(logHead string, msgId, versionId 
 	var res gen.ResultInfo
 	res, err = master.
 		Where(master.MsgID.Eq(msgId), master.Status.Eq(srcStatus)).Limit(1).
-		Updates(&model.Message{
+		Updates(&model.ChatMessage{
 			VersionID: versionId,
 			Status:    dstStatus,
 		})
@@ -132,7 +132,7 @@ func (repo *MessageRepo) UpdateMsgVerAndStatus(logHead string, msgId, versionId 
 	return
 }
 
-func (repo *MessageRepo) BatchGetByMsgIds(ctx context.Context, msgIds []uint64) (retMap map[uint64]*model.Message, err error) {
+func (repo *MessageRepo) BatchGetByMsgIds(ctx context.Context, msgIds []uint64) (retMap map[uint64]*model.ChatMessage, err error) {
 	tbNames := map[string][]uint64{}
 	for _, msgId := range msgIds {
 		dbName, tbName := model.TbNameMessage(msgId)
@@ -140,15 +140,15 @@ func (repo *MessageRepo) BatchGetByMsgIds(ctx context.Context, msgIds []uint64) 
 		tbNames[key] = append(tbNames[key], msgId)
 	}
 
-	list := make([]*model.Message, 0, len(msgIds))
-	tmpList := make([]*model.Message, 0, len(msgIds))
+	list := make([]*model.ChatMessage, 0, len(msgIds))
+	tmpList := make([]*model.ChatMessage, 0, len(msgIds))
 	for key, ids := range tbNames {
 		res := strings.Split(key, "_")
 		if len(res) != 2 {
 			continue
 		}
 		dbName, tbName := res[0], res[1]
-		slave := repo.Slave(dbName).Message.Table(tbName)
+		slave := repo.Slave(dbName).ChatMessage.Table(tbName)
 		// find it
 		tmpList, err = slave.Where(slave.MsgID.In(ids...)).Find()
 		if err != nil {

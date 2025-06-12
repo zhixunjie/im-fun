@@ -54,7 +54,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 		return
 	}
 
-	lastMsgIds := lo.Map(list, func(item *model.Contact, index int) uint64 {
+	lastMsgIds := lo.Map(list, func(item *model.ChatContact, index int) uint64 {
 		return item.LastMsgID
 	})
 	lastMsgMap, err := b.repoMessage.BatchGetByMsgIds(ctx, lastMsgIds)
@@ -64,7 +64,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	}
 
 	// extract: all peer ids
-	peerIds := lo.Map(list, func(item *model.Contact, index int) *gmodel.ComponentId {
+	peerIds := lo.Map(list, func(item *model.ChatContact, index int) *gmodel.ComponentId {
 		return gmodel.NewComponentId(item.PeerID, gmodel.ContactIdType(item.PeerType))
 	})
 	retMap, err := b.repoMessage.MGetSessionUnread(ctx, logHead, ownerId, peerIds)

@@ -17,22 +17,22 @@ import (
 
 var (
 	Q             = new(Query)
+	ChatContact   *chatContact
 	ChatGroup     *chatGroup
 	ChatGroupUser *chatGroupUser
 	ChatIDCounter *chatIDCounter
-	Contact       *contact
-	Message       *message
+	ChatMessage   *chatMessage
 	Robot         *robot
 	User          *user
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
+	ChatContact = &Q.ChatContact
 	ChatGroup = &Q.ChatGroup
 	ChatGroupUser = &Q.ChatGroupUser
 	ChatIDCounter = &Q.ChatIDCounter
-	Contact = &Q.Contact
-	Message = &Q.Message
+	ChatMessage = &Q.ChatMessage
 	Robot = &Q.Robot
 	User = &Q.User
 }
@@ -40,11 +40,11 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:            db,
+		ChatContact:   newChatContact(db, opts...),
 		ChatGroup:     newChatGroup(db, opts...),
 		ChatGroupUser: newChatGroupUser(db, opts...),
 		ChatIDCounter: newChatIDCounter(db, opts...),
-		Contact:       newContact(db, opts...),
-		Message:       newMessage(db, opts...),
+		ChatMessage:   newChatMessage(db, opts...),
 		Robot:         newRobot(db, opts...),
 		User:          newUser(db, opts...),
 	}
@@ -53,11 +53,11 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 type Query struct {
 	db *gorm.DB
 
+	ChatContact   chatContact
 	ChatGroup     chatGroup
 	ChatGroupUser chatGroupUser
 	ChatIDCounter chatIDCounter
-	Contact       contact
-	Message       message
+	ChatMessage   chatMessage
 	Robot         robot
 	User          user
 }
@@ -67,11 +67,11 @@ func (q *Query) Available() bool { return q.db != nil }
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:            db,
+		ChatContact:   q.ChatContact.clone(db),
 		ChatGroup:     q.ChatGroup.clone(db),
 		ChatGroupUser: q.ChatGroupUser.clone(db),
 		ChatIDCounter: q.ChatIDCounter.clone(db),
-		Contact:       q.Contact.clone(db),
-		Message:       q.Message.clone(db),
+		ChatMessage:   q.ChatMessage.clone(db),
 		Robot:         q.Robot.clone(db),
 		User:          q.User.clone(db),
 	}
@@ -88,33 +88,33 @@ func (q *Query) WriteDB() *Query {
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:            db,
+		ChatContact:   q.ChatContact.replaceDB(db),
 		ChatGroup:     q.ChatGroup.replaceDB(db),
 		ChatGroupUser: q.ChatGroupUser.replaceDB(db),
 		ChatIDCounter: q.ChatIDCounter.replaceDB(db),
-		Contact:       q.Contact.replaceDB(db),
-		Message:       q.Message.replaceDB(db),
+		ChatMessage:   q.ChatMessage.replaceDB(db),
 		Robot:         q.Robot.replaceDB(db),
 		User:          q.User.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
+	ChatContact   IChatContactDo
 	ChatGroup     IChatGroupDo
 	ChatGroupUser IChatGroupUserDo
 	ChatIDCounter IChatIDCounterDo
-	Contact       IContactDo
-	Message       IMessageDo
+	ChatMessage   IChatMessageDo
 	Robot         IRobotDo
 	User          IUserDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
+		ChatContact:   q.ChatContact.WithContext(ctx),
 		ChatGroup:     q.ChatGroup.WithContext(ctx),
 		ChatGroupUser: q.ChatGroupUser.WithContext(ctx),
 		ChatIDCounter: q.ChatIDCounter.WithContext(ctx),
-		Contact:       q.Contact.WithContext(ctx),
-		Message:       q.Message.WithContext(ctx),
+		ChatMessage:   q.ChatMessage.WithContext(ctx),
 		Robot:         q.Robot.WithContext(ctx),
 		User:          q.User.WithContext(ctx),
 	}

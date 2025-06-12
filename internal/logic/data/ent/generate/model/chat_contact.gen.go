@@ -8,10 +8,10 @@ import (
 	"time"
 )
 
-const TableNameContact = "contact"
+const TableNameChatContact = "chat_contact"
 
-// Contact 会话表（通信双方各有一行记录）
-type Contact struct {
+// ChatContact 会话表（通信双方各有一行记录）
+type ChatContact struct {
 	ID           uint64    `gorm:"column:id;primaryKey;autoIncrement:true;comment:自增id,主键" json:"id"`                    // 自增id,主键
 	OwnerID      uint64    `gorm:"column:owner_id;not null;comment:会话拥有者" json:"owner_id"`                               // 会话拥有者
 	OwnerType    uint32    `gorm:"column:owner_type;not null;comment:用户类型（owner_id）" json:"owner_type"`                  // 用户类型（owner_id）
@@ -28,7 +28,7 @@ type Contact struct {
 	UpdatedAt    time.Time `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`  // 更新时间
 }
 
-// TableName Contact's table name
-func (*Contact) TableName() string {
-	return TableNameContact
+// TableName ChatContact's table name
+func (*ChatContact) TableName() string {
+	return TableNameChatContact
 }

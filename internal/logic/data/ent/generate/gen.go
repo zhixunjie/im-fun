@@ -28,8 +28,8 @@ type Querier interface {
 func applyTableNames(g *gen.Generator) {
 	g.ApplyInterface(
 		func(Querier) {},
-		g.GenerateModel("contact"),
-		g.GenerateModel("message"),
+		g.GenerateModel("chat_contact"),
+		g.GenerateModel("chat_message"),
 		g.GenerateModel("user"),
 		g.GenerateModel("robot"),
 		g.GenerateModel("chat_id_counter"),

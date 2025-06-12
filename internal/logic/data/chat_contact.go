@@ -28,16 +28,16 @@ func NewContactRepo(data *Data) *ContactRepo {
 }
 
 // InfoWithCache 查询某个会话的信息
-func (repo *ContactRepo) InfoWithCache(ownerId, peerId *gmodel.ComponentId) (*model.Contact, error) {
+func (repo *ContactRepo) InfoWithCache(ownerId, peerId *gmodel.ComponentId) (*model.ChatContact, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
 	return repo.Info(ownerId, peerId)
 }
 
 // Info 查询某个会话的信息
-func (repo *ContactRepo) Info(ownerId, peerId *gmodel.ComponentId) (row *model.Contact, err error) {
+func (repo *ContactRepo) Info(ownerId, peerId *gmodel.ComponentId) (row *model.ChatContact, err error) {
 	dbName, tbName := model.TbNameContact(ownerId.Id())
-	slave := repo.Slave(dbName).Contact.Table(tbName)
+	slave := repo.Slave(dbName).ChatContact.Table(tbName)
 
 	row, err = slave.Where(
 		slave.OwnerID.Eq(ownerId.Id()),
@@ -52,10 +52,10 @@ func (repo *ContactRepo) Info(ownerId, peerId *gmodel.ComponentId) (row *model.C
 }
 
 // Edit 插入/更新记录
-//func (repo *ContactRepo) Edit( tx *query.Query, row *model.Contact) (err error) {
+//func (repo *ContactRepo) Edit( tx *query.Query, row *model.ChatContact) (err error) {
 //	logHead += fmt.Sprintf("Edit,row=%v|", row)
 //	dbName, tbName := model.TbNameContact(row.OwnerID)
-//	master := repo.Master(dbName).Contact.Table(tbName)
+//	master := repo.Master(dbName).ChatContact.Table(tbName)
 //
 //	// insert or update ?
 //	if row.ID == 0 {
@@ -79,10 +79,10 @@ func (repo *ContactRepo) Info(ownerId, peerId *gmodel.ComponentId) (row *model.C
 //}
 
 // CreateNotExists 创建会话
-func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildContactParams) (contact *model.Contact, err error) {
+func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildContactParams) (contact *model.ChatContact, err error) {
 	logHead += "CreateNotExists|"
 	dbName, tbName := model.TbNameContact(params.Owner.Id())
-	master := repo.Master(dbName).Contact.Table(tbName)
+	master := repo.Master(dbName).ChatContact.Table(tbName)
 
 	// TODO: 使用 redis hash/string 进行优化（支持同时查两个contact）
 	// TODO：使用 local cache 的 bitmap 进行优化
@@ -96,7 +96,7 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 
 	// insert if not exists
 	if errors.Is(tmpErr, gorm.ErrRecordNotFound) {
-		contact = &model.Contact{
+		contact = &model.ChatContact{
 			OwnerID:   params.Owner.Id(),
 			OwnerType: uint32(params.Owner.Type()),
 			PeerID:    params.Peer.Id(),
@@ -117,9 +117,9 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 }
 
 // RangeList 获取一定范围的会话列表
-func (repo *ContactRepo) RangeList(params *model.FetchContactRangeParams) (list []*model.Contact, err error) {
+func (repo *ContactRepo) RangeList(params *model.FetchContactRangeParams) (list []*model.ChatContact, err error) {
 	dbName, tbName := model.TbNameContact(params.Owner.Id())
-	slave := repo.Slave(dbName).Contact.Table(tbName)
+	slave := repo.Slave(dbName).ChatContact.Table(tbName)
 
 	pivotVersionId := params.PivotVersionId
 	ownerId := params.Owner
@@ -162,7 +162,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 	logHead += "UpdateLastMsgId|"
 	mem := repo.RedisClient
 	dbName, tbName := model.TbNameContact(owner.Id())
-	master := repo.Master(dbName).Contact.Table(tbName)
+	master := repo.Master(dbName).ChatContact.Table(tbName)
 
 	// note: 同一用户的会话timeline的版本变动，需要加锁
 	lockKey := cache.TimelineContactLock.Format(k.M{"contact_id": contactId})
@@ -182,7 +182,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 	}
 
 	// 只更新一部分的字段
-	row := &model.Contact{
+	row := &model.ChatContact{
 		LastMsgID: lastMsgId, // 1. 双方聊天记录中，最新一次发送的消息id
 		VersionID: versionId, // 2. 版本号（用于拉取会话框）
 		SortKey:   versionId, // 3. sort_key的值等同于version_id
@@ -206,7 +206,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 // UpdateLastDelMsg 更新contact的最后一条已删除的消息（清空聊天记录）
 func (repo *ContactRepo) UpdateLastDelMsg(lastDelMsgId model.BigIntType, versionId uint64, ownerId, peerId *gmodel.ComponentId) (err error) {
 	dbName, tbName := model.TbNameContact(ownerId.Id())
-	master := repo.Master(dbName).Contact.Table(tbName)
+	master := repo.Master(dbName).ChatContact.Table(tbName)
 
 	var res gen.ResultInfo
 	res, err = master.Where(
@@ -214,7 +214,7 @@ func (repo *ContactRepo) UpdateLastDelMsg(lastDelMsgId model.BigIntType, version
 		master.OwnerType.Eq(uint32(ownerId.Type())),
 		master.PeerID.Eq(peerId.Id()),
 		master.PeerType.Eq(uint32(peerId.Type())),
-	).Limit(1).Updates(&model.Contact{
+	).Limit(1).Updates(&model.ChatContact{
 		LastDelMsgID: lastDelMsgId,
 		VersionID:    versionId,
 	})

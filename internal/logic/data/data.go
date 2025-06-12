@@ -83,7 +83,7 @@ func (d *Data) CreateOrDrop() {
 		if item.IsDefault {
 			continue
 		}
-		utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameMessage, int64(model.DBNum()))
-		utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameContact, int64(model.DBNum()))
+		utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameChatMessage, int64(model.DBNum()))
+		utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameChatContact, int64(model.DBNum()))
 	}
 }

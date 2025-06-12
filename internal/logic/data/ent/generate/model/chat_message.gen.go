@@ -8,10 +8,10 @@ import (
 	"time"
 )
 
-const TableNameMessage = "message"
+const TableNameChatMessage = "chat_message"
 
-// Message 消息表（一条私信只有一行记录）
-type Message struct {
+// ChatMessage 消息表（一条私信只有一行记录）
+type ChatMessage struct {
 	ID            uint64    `gorm:"column:id;primaryKey;autoIncrement:true;comment:自增id" json:"id"`                           // 自增id
 	MsgID         uint64    `gorm:"column:msg_id;not null;comment:消息唯一id（服务端生成）" json:"msg_id"`                               // 消息唯一id（服务端生成）
 	SeqID         uint64    `gorm:"column:seq_id;not null;comment:消息唯一id（客户端生成）" json:"seq_id"`                               // 消息唯一id（客户端生成）
@@ -29,7 +29,7 @@ type Message struct {
 	UpdatedAt     time.Time `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"`      // 更新时间
 }
 
-// TableName Message's table name
-func (*Message) TableName() string {
-	return TableNameMessage
+// TableName ChatMessage's table name
+func (*ChatMessage) TableName() string {
+	return TableNameChatMessage
 }

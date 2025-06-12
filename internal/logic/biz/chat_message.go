@@ -69,7 +69,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	}
 
 	// 1. create sender's contact if not exists
-	var senderContact, receiverContact *model.Contact
+	var senderContact, receiverContact *model.ChatContact
 	if b.needCreateContact(logHead, sender) {
 		if !lo.Contains(req.InvisibleList, cast.ToString(req.Sender.Id())) {
 			senderContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{Owner: sender, Peer: receiver})
@@ -156,7 +156,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 
 	// get: last msg info
 	var lastDelMsgVersionId uint64
-	var messageInfo *model.Message
+	var messageInfo *model.ChatMessage
 	if contactInfo.LastDelMsgID > 0 {
 		messageInfo, err = b.repoMessage.Info(contactInfo.LastDelMsgID)
 		if err != nil {
@@ -324,7 +324,7 @@ func (b *MessageUseCase) checkParamsClearHistory(ctx context.Context, req *reque
 	// 1. 如果指定 msgId，则对该 msgId 为界限进行清空；
 	// 2. 如果没有指定，则通过 contact 记录的最后一条消息进行清空（通信双方都有各自的 last_msg_id 和 last_del_msg_id）；
 	if lastDelMsgId > 0 {
-		var msgInfo *model.Message
+		var msgInfo *model.ChatMessage
 		msgInfo, err = b.repoMessage.Info(lastDelMsgId)
 		if err != nil {
 			err = fmt.Errorf("get message info error: %w", err)
@@ -343,7 +343,7 @@ func (b *MessageUseCase) checkParamsClearHistory(ctx context.Context, req *reque
 		}
 	} else {
 		// get: contact info
-		var contactInfo *model.Contact
+		var contactInfo *model.ChatContact
 		contactInfo, err = b.repoContact.Info(owner, peer)
 		if err != nil {
 			err = fmt.Errorf("get contact info error: %w", err)
@@ -394,7 +394,7 @@ func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.MessageC
 }
 
 // createMessage 构建消息体
-func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req *request.MessageSendReq) (msg *model.Message, err error) {
+func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req *request.MessageSendReq) (msg *model.ChatMessage, err error) {
 	logHead += "createMessage|"
 	mem := b.repoMessage.RedisClient
 	sender := req.Sender
@@ -454,7 +454,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 	}
 
 	// build message
-	msg = &model.Message{
+	msg = &model.ChatMessage{
 		MsgID:         msgId,                          // 唯一id（服务端）
 		SeqID:         req.SeqId,                      // 唯一id（客户端）
 		MsgType:       uint32(req.MsgBody.MsgType),    // 消息类型
