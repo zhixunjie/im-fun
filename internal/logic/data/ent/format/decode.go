@@ -12,7 +12,7 @@ func DecodeMsgBody(base *MsgBody) (msgContent MsgContent, err error) {
 		return
 	}
 	// 创建：newInstance
-	msgContent = newInstance(base.MsgType)
+	msgContent = NewMsgContent(base.MsgType)
 	if msgContent == nil {
 		err = fmt.Errorf("unknown type: %v", base.MsgType)
 		return
@@ -32,8 +32,8 @@ func DecodeMsgBody(base *MsgBody) (msgContent MsgContent, err error) {
 	return
 }
 
-// newInstance 根据类型创建新实例
-func newInstance(t MsgType) MsgContent {
+// NewMsgContent 根据类型创建新实例
+func NewMsgContent(t MsgType) MsgContent {
 	if factory, exists := JsonDecoderMap[t]; exists {
 		return factory()
 	}

@@ -32,7 +32,7 @@ func (repo *MessageRepo) Create(logHead string, row *model.Message) (err error) 
 		logging.Errorf(logHead+"Create fail err=%v", err)
 		return
 	}
-	logging.Infof(logHead+"Create success,rowId=%v", row.ID)
+	logging.Infof(logHead+"Create success(%v,%v),rowId=%v", dbName, tbName, row.ID)
 
 	return
 }

@@ -19,7 +19,7 @@ func TestMessageFetchBetweenUser(t *testing.T) {
 		FetchType: gmodel.FetchTypeForward,
 		VersionId: 0,
 		Owner:     gmodel.NewUserComponentId(1001),
-		Peer:      gmodel.NewGroupComponentId(10001),
+		Peer:      gmodel.NewUserComponentId(10001),
 	})
 
 	if err != nil {
@@ -45,8 +45,8 @@ func TestFetchBetweenUserAndRobot(t *testing.T) {
 		//VersionID: 1705766012000002,
 		FetchType: gmodel.FetchTypeForward,
 		VersionId: 0,
-		Owner:     gmodel.NewUserComponentId(1003),
-		Peer:      gmodel.NewGroupComponentId(10003),
+		Owner:     gmodel.NewUserComponentId(1001),
+		Peer:      gmodel.NewRobotComponentId(10004),
 	})
 
 	if err != nil {

@@ -97,10 +97,36 @@ func (s SessionId) Parse() (result *ParseResult, err error) {
 	return
 }
 
-// 通过sender
-func (s SessionId) ParseUserSessionId(sender *ComponentId) (receiver *ComponentId, err error) {
+// ParsePeerId 解析出对方的id
+func (s SessionId) ParsePeerId(sender *ComponentId) (receiver *ComponentId, err error) {
+	// parse session
+	parseResult, err := s.Parse()
+	if err != nil {
+		err = fmt.Errorf("parse session id error: %w", err)
+		return
+	}
 
-	return
+	// check case
+	switch parseResult.Prefix {
+	case PrefixPair: // 1对1的timeline
+		switch {
+		case parseResult.Ids[0].Equal(sender):
+			receiver = parseResult.Ids[1]
+			return
+		case parseResult.Ids[1].Equal(sender):
+			receiver = parseResult.Ids[0]
+			return
+		default:
+			err = errors.New("can not find peer")
+			return
+		}
+	case PrefixGroup: // 群组的timeline
+		receiver = parseResult.Ids[0]
+		return
+	default:
+		err = errors.New("can not find peer")
+		return
+	}
 }
 
 func (s SessionId) parseOuter(src string) (dst []string, err error) {

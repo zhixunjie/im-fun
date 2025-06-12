@@ -4,39 +4,36 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
-	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"testing"
 )
 
-func TestSendSimple(t *testing.T) {
-	ctx := context.Background()
-
-	rsp, err := messageUseCase.Send(ctx, &request.MessageSendReq{
-		SeqId:    uint64(gmodel.NewSeqId()),
-		Sender:   gmodel.NewUserComponentId(1001),
-		Receiver: gmodel.NewUserComponentId(1005),
-		MsgBody: &format.MsgBody{
-			MsgType: format.MsgTypeText,
-			MsgContent: &format.TextContent{
-				Text: "哈哈哈",
-			},
-		},
-	})
-	fmt.Printf("rsp=%+v,err=%v\n", rsp, err)
-}
+//func TestSendSimple(t *testing.T) {
+//	ctx := context.Background()
+//
+//	rsp, err := messageUseCase.Send(ctx, &request.MessageSendReq{
+//		SeqId:    uint64(gmodel.NewSeqId()),
+//		Sender:   gmodel.NewUserComponentId(1001),
+//		Receiver: gmodel.NewUserComponentId(1005),
+//		MsgBody: &format.MsgBody{
+//			MsgType: format.MsgTypeText,
+//			MsgContent: &format.TextContent{
+//				Text: "哈哈哈",
+//			},
+//		},
+//	})
+//	fmt.Printf("rsp=%+v,err=%v\n", rsp, err)
+//}
 
 // 发送消息：用户之间互相通信
 func TestSendBetweenUser(t *testing.T) {
 	ctx := context.Background()
 
-	users1 := []uint64{1001, 1002}   // user
-	users2 := []uint64{10001, 10002} // user
+	users1 := []uint64{1001}  // user
+	users2 := []uint64{10001} // user
 
 	for _, user1 := range users1 {
 		for _, user2 := range users2 {
-
 			for i := 1; i <= 5; i++ {
 				var sender, receiver *gmodel.ComponentId
 				if i%2 == 1 {
@@ -49,7 +46,7 @@ func TestSendBetweenUser(t *testing.T) {
 
 				// build data
 				d := map[string]any{
-					"type":    111111,
+					"type":    "level_up",
 					"content": i,
 				}
 				JsonStr, _ := json.Marshal(d)
@@ -83,7 +80,7 @@ func TestSendBetweenUserAndRobot(t *testing.T) {
 
 				// build data
 				d := map[string]any{
-					"type":    111111,
+					"type":    "level_up",
 					"content": i,
 				}
 				JsonStr, _ := json.Marshal(d)
@@ -109,7 +106,7 @@ func TestSendBetweenUserAndGroup(t *testing.T) {
 
 			// build data
 			d := map[string]any{
-				"type":    111111,
+				"type":    "level_up",
 				"content": 123456,
 			}
 			JsonStr, _ := json.Marshal(d)

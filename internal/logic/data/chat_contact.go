@@ -204,7 +204,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 }
 
 // UpdateLastDelMsg 更新contact的最后一条已删除的消息（清空聊天记录）
-func (repo *ContactRepo) UpdateLastDelMsg(lastDelMsgId model.BigIntType, versionId uint64, ownerId, peerId *gmodel.ComponentId) (affectedRow int64, err error) {
+func (repo *ContactRepo) UpdateLastDelMsg(lastDelMsgId model.BigIntType, versionId uint64, ownerId, peerId *gmodel.ComponentId) (err error) {
 	dbName, tbName := model.TbNameContact(ownerId.Id())
 	master := repo.Master(dbName).Contact.Table(tbName)
 
@@ -221,7 +221,10 @@ func (repo *ContactRepo) UpdateLastDelMsg(lastDelMsgId model.BigIntType, version
 	if err != nil {
 		return
 	}
-	affectedRow = res.RowsAffected
+	if res.RowsAffected == 0 {
+		err = errors.New("affectedRow not allow")
+		return
+	}
 
 	return
 }

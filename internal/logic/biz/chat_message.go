@@ -205,9 +205,10 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 		}
 
 		// build message list
-		body := new(format.MsgBody)
+		body := &format.MsgBody{MsgContent: format.NewMsgContent(format.MsgType(item.MsgType))}
 		tmpErr := json.Unmarshal([]byte(item.Content), body)
 		if tmpErr != nil {
+			logging.Error(logHead+"unmarshal msg body fail,err=%v", err)
 			continue
 		}
 		retList = append(retList, &response.MsgEntity{
@@ -271,7 +272,7 @@ func (b *MessageUseCase) Recall(ctx context.Context, req *request.MessageRecallR
 	return
 }
 
-// DelBothSide 某条消息删除（两边的聊天记录都需要删除）
+// DelBothSide 删除一条消息（两边的聊天记录都需要删除）
 // 核心：更新status和version_id（需要通知对方，所以需要更新version_id）
 func (b *MessageUseCase) DelBothSide(ctx context.Context, req *request.MessageDelBothSideReq) (rsp response.DelBothSideRsp, err error) {
 	logHead := "DelBothSide|"
@@ -285,9 +286,55 @@ func (b *MessageUseCase) DelBothSide(ctx context.Context, req *request.MessageDe
 	return
 }
 
-// DelOneSide 某条消息删除（只有一边的聊天记录是不可见，另外一边可见）
+// DelOneSide 删除一条消息（只有一边的聊天记录是不可见，另外一边可见）
 // 核心：更新 invisible_list
 func (b *MessageUseCase) DelOneSide(ctx context.Context, req *request.MessageDelOneSideReq) (rsp response.DelOneSideRsp, err error) {
+	return
+}
+
+func (b *MessageUseCase) checkParamsClearHistory(ctx context.Context, req *request.ClearHistoryReq) (lastDelMsgId uint64, err error) {
+	owner := req.Owner
+	peer := req.Peer
+	lastDelMsgId = req.MsgID
+
+	// 此接口不适合群聊场景
+	if owner.IsGroup() || peer.IsGroup() {
+		err = errors.New("clear history not allow group")
+		return
+	}
+
+	// 聊天记录的清空：
+	// 1. 如果指定 msgId，则对该 msgId 为界限进行清空；
+	// 2. 如果没有指定，则通过 contact 记录的最后一条消息进行清空（通信双方都有各自的 last_msg_id 和 last_del_msg_id）；
+	if lastDelMsgId > 0 {
+		var msgInfo *model.Message
+		msgInfo, err = b.repoMessage.Info(lastDelMsgId)
+		if err != nil {
+			err = fmt.Errorf("get message info error: %w", err)
+			return
+		}
+		// check: 是否属于通信双方的信息
+		var receiver *gmodel.ComponentId
+		receiver, err = gmodel.SessionId(msgInfo.SessionID).ParsePeerId(owner)
+		if err != nil {
+			err = errors.New("parse session id error")
+			return
+		}
+		if !receiver.Equal(peer) {
+			err = errors.New("lastDelMsgId not match peer")
+			return
+		}
+	} else {
+		// get: contact info
+		var contactInfo *model.Contact
+		contactInfo, err = b.repoContact.Info(owner, peer)
+		if err != nil {
+			err = fmt.Errorf("get contact info error: %w", err)
+			return
+		}
+		lastDelMsgId = contactInfo.LastMsgID
+	}
+
 	return
 }
 
@@ -296,36 +343,15 @@ func (b *MessageUseCase) DelOneSide(ctx context.Context, req *request.MessageDel
 // 核心：更新Contact的 last_del_msg_id 为 last_msg_id
 func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.ClearHistoryReq) (rsp response.ClearHistoryRsp, err error) {
 	logHead := fmt.Sprintf("ClearHistory|")
-	lastDelMsgId := req.MsgID
 	owner := req.Owner
 	peer := req.Peer
 	mem := b.repoMessage.RedisClient
 
-	// 聊天记录的清空：
-	// 1. 指定msgId进行清空；
-	// 2. 如果没有指定，则通过 contact 记录的最后一条消息进行清空
-	if lastDelMsgId > 0 {
-		var msgInfo *model.Message
-		msgInfo, err = b.repoMessage.Info(lastDelMsgId)
-		if err != nil {
-			logging.Error(logHead+"repoMessage Info,err=%v", err)
-			return
-		}
-		var parseResult *gmodel.ParseResult
-		parseResult, err = gmodel.SessionId(msgInfo.SessionID).Parse()
-		if err != nil {
-			err = errors.New("parse session id error")
-			return
-		}
-	} else {
-		// get: contact info
-		var contactInfo *model.Contact
-		contactInfo, err = b.repoContact.Info(owner, peer)
-		if err != nil {
-			logging.Error(logHead+"repoContact Info,err=%v", err)
-			return
-		}
-		lastDelMsgId = contactInfo.LastMsgID
+	// check params
+	lastDelMsgId, err := b.checkParamsClearHistory(ctx, req)
+	if err != nil {
+		logging.Error(logHead+"checkParamsClearHistory error", err)
+		return
 	}
 
 	// contact: gen version_id
@@ -339,16 +365,12 @@ func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.ClearHis
 	}
 
 	// update to db
-	affectedRow, err := b.repoContact.UpdateLastDelMsg(lastDelMsgId, versionId, owner, peer)
+	err = b.repoContact.UpdateLastDelMsg(lastDelMsgId, versionId, owner, peer)
 	if err != nil {
 		logging.Errorf(logHead+"UpdateLastDelMsg error=%v", err)
 		return
 	}
-	if affectedRow == 0 {
-		err = errors.New("affectedRow not allow")
-		logging.Errorf(logHead+"UpdateLastDelMsg error=%v", err)
-		return
-	}
+	rsp.LastDelMsgID = lastDelMsgId
 
 	return
 }
@@ -615,28 +637,9 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 	mem := b.repoMessage.RedisClient
 
 	// 提取: 接收者的信息
-	var receiverId *gmodel.ComponentId
-	parseResult, err := gmodel.SessionId(sessionId).Parse()
+	receiver, err := gmodel.SessionId(sessionId).ParsePeerId(sender)
 	if err != nil {
-		err = errors.New("parse session id error")
-		return
-	}
-
-	switch parseResult.Prefix {
-	case gmodel.PrefixPair: // 1对1的timeline
-		switch {
-		case parseResult.Ids[0].Equal(sender):
-			receiverId = parseResult.Ids[1]
-		case parseResult.Ids[1].Equal(sender):
-			receiverId = parseResult.Ids[0]
-		default:
-			err = errors.New("can not find peer")
-			return
-		}
-	case gmodel.PrefixGroup: // 群组的timeline
-		receiverId = parseResult.Ids[0]
-	default:
-		err = errors.New("can not find peer")
+		err = fmt.Errorf("ParsePeerId failed: %w", err)
 		return
 	}
 
@@ -654,7 +657,7 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 	versionId, err := gen_id.NewMsgVersionId(ctx, &gen_id.MsgVerParams{
 		Mem: mem,
 		Id1: sender,
-		Id2: receiverId,
+		Id2: receiver,
 	})
 	if err != nil {
 		logging.Errorf(logHead+"gen VersionID error=%v", err)

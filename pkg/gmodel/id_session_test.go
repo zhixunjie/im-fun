@@ -47,3 +47,35 @@ func TestParseSessionId(t *testing.T) {
 	}
 	fmt.Println(result, result.Ids[0], result.Ids[1])
 }
+
+func TestParsePeerId(t *testing.T) {
+	// 提取: 接收者的信息
+	sender := NewUserComponentId(1001)
+	sessionId := NewSessionId(sender, NewGroupComponentId(100000000001))
+	receiver, err := sessionId.ParsePeerId(sender)
+	if err != nil {
+		err = fmt.Errorf("ParsePeerId failed: %w", err)
+		return
+	}
+	fmt.Println(receiver)
+
+	// 提取: 接收者的信息
+	sender = NewUserComponentId(1001)
+	sessionId = NewSessionId(sender, NewUserComponentId(1002))
+	receiver, err = sessionId.ParsePeerId(sender)
+	if err != nil {
+		err = fmt.Errorf("ParsePeerId failed: %w", err)
+		return
+	}
+	fmt.Println(receiver)
+
+	// 提取: 接收者的信息
+	sender = NewUserComponentId(1002)
+	sessionId = NewSessionId(NewUserComponentId(1001), sender)
+	receiver, err = sessionId.ParsePeerId(sender)
+	if err != nil {
+		err = fmt.Errorf("ParsePeerId failed: %w", err)
+		return
+	}
+	fmt.Println(receiver)
+}
