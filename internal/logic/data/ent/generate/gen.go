@@ -8,7 +8,7 @@ import (
 // DB 调试：tail -f /var/log/mysql/general_query.log
 var DB, _ = gomysql.CreatePool(&gomysql.Config{
 	Addr:     "127.0.0.1",
-	Port:     "3306",
+	Port:     "13306",
 	UserName: "root",
 	Password: "",
 	Database: "im",
@@ -32,6 +32,7 @@ func applyTableNames(g *gen.Generator) {
 		g.GenerateModel("message"),
 		g.GenerateModel("user"),
 		g.GenerateModel("robot"),
+		g.GenerateModel("chat_id_counter"),
 		g.GenerateModel("chat_group"),
 		g.GenerateModel("chat_group_user"),
 	)

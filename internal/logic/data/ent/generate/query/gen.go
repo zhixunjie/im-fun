@@ -19,6 +19,7 @@ var (
 	Q             = new(Query)
 	ChatGroup     *chatGroup
 	ChatGroupUser *chatGroupUser
+	ChatIDCounter *chatIDCounter
 	Contact       *contact
 	Message       *message
 	Robot         *robot
@@ -29,6 +30,7 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
 	ChatGroup = &Q.ChatGroup
 	ChatGroupUser = &Q.ChatGroupUser
+	ChatIDCounter = &Q.ChatIDCounter
 	Contact = &Q.Contact
 	Message = &Q.Message
 	Robot = &Q.Robot
@@ -40,6 +42,7 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		db:            db,
 		ChatGroup:     newChatGroup(db, opts...),
 		ChatGroupUser: newChatGroupUser(db, opts...),
+		ChatIDCounter: newChatIDCounter(db, opts...),
 		Contact:       newContact(db, opts...),
 		Message:       newMessage(db, opts...),
 		Robot:         newRobot(db, opts...),
@@ -52,6 +55,7 @@ type Query struct {
 
 	ChatGroup     chatGroup
 	ChatGroupUser chatGroupUser
+	ChatIDCounter chatIDCounter
 	Contact       contact
 	Message       message
 	Robot         robot
@@ -65,6 +69,7 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		db:            db,
 		ChatGroup:     q.ChatGroup.clone(db),
 		ChatGroupUser: q.ChatGroupUser.clone(db),
+		ChatIDCounter: q.ChatIDCounter.clone(db),
 		Contact:       q.Contact.clone(db),
 		Message:       q.Message.clone(db),
 		Robot:         q.Robot.clone(db),
@@ -85,6 +90,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		db:            db,
 		ChatGroup:     q.ChatGroup.replaceDB(db),
 		ChatGroupUser: q.ChatGroupUser.replaceDB(db),
+		ChatIDCounter: q.ChatIDCounter.replaceDB(db),
 		Contact:       q.Contact.replaceDB(db),
 		Message:       q.Message.replaceDB(db),
 		Robot:         q.Robot.replaceDB(db),
@@ -95,6 +101,7 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 type queryCtx struct {
 	ChatGroup     IChatGroupDo
 	ChatGroupUser IChatGroupUserDo
+	ChatIDCounter IChatIDCounterDo
 	Contact       IContactDo
 	Message       IMessageDo
 	Robot         IRobotDo
@@ -105,6 +112,7 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
 		ChatGroup:     q.ChatGroup.WithContext(ctx),
 		ChatGroupUser: q.ChatGroupUser.WithContext(ctx),
+		ChatIDCounter: q.ChatIDCounter.WithContext(ctx),
 		Contact:       q.Contact.WithContext(ctx),
 		Message:       q.Message.WithContext(ctx),
 		Robot:         q.Robot.WithContext(ctx),
