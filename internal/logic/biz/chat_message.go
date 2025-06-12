@@ -302,9 +302,22 @@ func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.ClearHis
 	mem := b.repoMessage.RedisClient
 
 	// 聊天记录的清空：
-	// 1. 指定msgId进行清空
-	// 2. 获取contact记录的最后一条消息进行清空
-	if lastDelMsgId == 0 {
+	// 1. 指定msgId进行清空；
+	// 2. 如果没有指定，则通过 contact 记录的最后一条消息进行清空
+	if lastDelMsgId > 0 {
+		var msgInfo *model.Message
+		msgInfo, err = b.repoMessage.Info(lastDelMsgId)
+		if err != nil {
+			logging.Error(logHead+"repoMessage Info,err=%v", err)
+			return
+		}
+		var parseResult *gmodel.ParseResult
+		parseResult, err = gmodel.SessionId(msgInfo.SessionID).Parse()
+		if err != nil {
+			err = errors.New("parse session id error")
+			return
+		}
+	} else {
 		// get: contact info
 		var contactInfo *model.Contact
 		contactInfo, err = b.repoContact.Info(owner, peer)
@@ -601,9 +614,14 @@ type Fn func(versionId uint64) (err error)
 func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, sessionId string, sender *gmodel.ComponentId, fn Fn) (err error) {
 	mem := b.repoMessage.RedisClient
 
-	// get: 接收者的信息
+	// 提取: 接收者的信息
 	var receiverId *gmodel.ComponentId
-	parseResult := gmodel.SessionId(sessionId).Parse()
+	parseResult, err := gmodel.SessionId(sessionId).Parse()
+	if err != nil {
+		err = errors.New("parse session id error")
+		return
+	}
+
 	switch parseResult.Prefix {
 	case gmodel.PrefixPair: // 1对1的timeline
 		switch {

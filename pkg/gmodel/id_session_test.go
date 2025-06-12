@@ -2,6 +2,7 @@ package gmodel
 
 import (
 	"fmt"
+	"log"
 	"testing"
 )
 
@@ -26,14 +27,23 @@ func TestSort(t *testing.T) {
 
 func TestParseSessionId(t *testing.T) {
 	sessionId := NewSessionId(NewUserComponentId(1001), NewGroupComponentId(100000000001))
-	result := sessionId.Parse()
+	result, err := sessionId.Parse()
+	if err != nil {
+		log.Fatalln()
+	}
 	fmt.Println(result, result.Ids[0])
 
 	sessionId = NewSessionId(NewUserComponentId(1001), NewUserComponentId(1002))
-	result = sessionId.Parse()
+	result, err = sessionId.Parse()
+	if err != nil {
+		log.Fatalln()
+	}
 	fmt.Println(result, result.Ids[0], result.Ids[1])
 
 	sessionId = NewSessionId(NewUserComponentId(1001), NewRobotComponentId(111111))
-	result = sessionId.Parse()
+	result, err = sessionId.Parse()
+	if err != nil {
+		log.Fatalln()
+	}
 	fmt.Println(result, result.Ids[0], result.Ids[1])
 }

@@ -1,6 +1,7 @@
 package gmodel
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spf13/cast"
 	"strings"
@@ -48,24 +49,74 @@ type ParseResult struct {
 }
 
 // Parse 解析SessionId
-func (s SessionId) Parse() (result *ParseResult) {
-	slice := strings.Split(string(s), ":")
+func (s SessionId) Parse() (result *ParseResult, err error) {
 	result = new(ParseResult)
 
-	if len(slice) > 0 {
-		result.Prefix = slice[0]
-		switch slice[0] {
-		case PrefixPair: // 单聊
-			v := strings.Split(slice[1], "_")
-			result.Ids = append(result.Ids, NewComponentId(cast.ToUint64(v[1]), ContactIdType(cast.ToUint32(v[0]))))
+	// first time parse
+	slice, err := s.parseOuter(string(s))
+	if err != nil {
+		return
+	}
+	result.Prefix = slice[0]
 
-			v = strings.Split(slice[2], "_")
-			result.Ids = append(result.Ids, NewComponentId(cast.ToUint64(v[1]), ContactIdType(cast.ToUint32(v[0]))))
-		case PrefixGroup: // 群聊
-			val := strings.Split(slice[1], "_")
-			result.Ids = append(result.Ids, NewComponentId(cast.ToUint64(val[1]), ContactIdType(cast.ToUint32(val[0]))))
+	// check case
+	var v []string
+	switch slice[0] {
+	case PrefixPair: // 单聊
+		if len(slice) != 3 {
+			err = errors.New("invalid session id format(outer)")
+			return
 		}
+		// parse inner
+		v, err = s.parseInner(slice[1])
+		if err != nil {
+			return
+		}
+		result.Ids = append(result.Ids, NewComponentId(cast.ToUint64(v[1]), ContactIdType(cast.ToUint32(v[0]))))
+		// parse inner
+		v, err = s.parseInner(slice[2])
+		if err != nil {
+			return
+		}
+		result.Ids = append(result.Ids, NewComponentId(cast.ToUint64(v[1]), ContactIdType(cast.ToUint32(v[0]))))
+		return
+	case PrefixGroup: // 群聊
+		if len(slice) != 2 {
+			err = errors.New("invalid session id format(outer)")
+			return
+		}
+		// parse inner
+		v, err = s.parseInner(slice[1])
+		if err != nil {
+			return
+		}
+		result.Ids = append(result.Ids, NewComponentId(cast.ToUint64(v[1]), ContactIdType(cast.ToUint32(v[0]))))
+		return
 	}
 
+	return
+}
+
+// 通过sender
+func (s SessionId) ParseUserSessionId(sender *ComponentId) (receiver *ComponentId, err error) {
+
+	return
+}
+
+func (s SessionId) parseOuter(src string) (dst []string, err error) {
+	dst = strings.Split(src, ":")
+	if len(dst) == 0 {
+		err = errors.New("invalid session id format(outer)")
+		return
+	}
+	return
+}
+
+func (s SessionId) parseInner(src string) (dst []string, err error) {
+	dst = strings.Split(src, "_")
+	if len(dst) != 2 {
+		err = errors.New("invalid session id format(inner)")
+		return
+	}
 	return
 }
