@@ -43,7 +43,7 @@ type MessageDelOneSideReq struct {
 
 // ClearHistoryReq 清空聊天记录
 type ClearHistoryReq struct {
-	MsgID model.BigIntType    `json:"msg_id,string"` // 从哪一条消息开始，进行聊天记录的清空
+	MsgID model.BigIntType    `json:"msg_id,string"` // 从哪一条消息开始，进行聊天记录的清空（如果不知道，则传0）
 	Owner *gmodel.ComponentId `json:"owner"`         // 会话拥有者
 	Peer  *gmodel.ComponentId `json:"peer"`          // 会话联系人（对方）
 }
