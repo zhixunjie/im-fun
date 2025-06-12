@@ -29,9 +29,9 @@ type (
 		Data *GroupFetchMsgData `json:"data"`
 	}
 	GroupFetchMsgData struct {
-		HasMore       bool         `json:"has_more"`
-		NextVersionId uint64       `json:"next_version_id,string"` // 最大的版本id
-		MsgList       []*MsgEntity `json:"msg_list"`               // 消息列表
+		HasMore       bool              `json:"has_more"`
+		NextVersionId uint64            `json:"next_version_id,string"` // 最大的版本id
+		MsgList       []*GroupMsgEntity `json:"msg_list"`               // 消息列表
 	}
 	// GroupMsgEntity 消息实体
 	GroupMsgEntity struct {

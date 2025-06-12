@@ -172,7 +172,7 @@ func (b *GroupMessageUseCase) Fetch(ctx context.Context, req *request.GroupMessa
 	}
 
 	// rebuild list
-	var retList []*response.MsgEntity
+	var retList []*response.GroupMsgEntity
 	minVersionId := uint64(math.MaxUint64)
 	maxVersionId := uint64(0)
 	var tmpList []uint64
@@ -199,7 +199,7 @@ func (b *GroupMessageUseCase) Fetch(ctx context.Context, req *request.GroupMessa
 			logging.Error(logHead+"unmarshal msg body fail,err=%v", err)
 			continue
 		}
-		retList = append(retList, &response.MsgEntity{
+		retList = append(retList, &response.GroupMsgEntity{
 			MsgID:     item.MsgID,
 			SeqID:     item.SeqID,
 			MsgBody:   body,
