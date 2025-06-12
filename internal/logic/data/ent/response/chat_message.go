@@ -48,8 +48,8 @@ type MsgEntity struct {
 	UpdatedAt time.Time            `json:"updated_at"` // 更新时间
 }
 
-// MessageWithdrawRsp 撤回消息
-type MessageWithdrawRsp struct {
+// MessageRecallRsp 撤回消息
+type MessageRecallRsp struct {
 	Base
 }
 
