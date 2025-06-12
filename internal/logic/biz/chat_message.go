@@ -297,6 +297,20 @@ func (b *MessageUseCase) checkParamsClearHistory(ctx context.Context, req *reque
 	peer := req.Peer
 	lastDelMsgId = req.MsgID
 
+	// check: user
+	if req.Owner == nil || req.Peer == nil {
+		err = api.ErrSenderOrReceiverNotAllow
+		return
+	}
+	if req.Owner.Id() == 0 || req.Peer.Id() == 0 {
+		err = api.ErrSenderOrReceiverNotAllow
+		return
+	}
+	if req.Owner.Equal(req.Peer) {
+		err = fmt.Errorf("ID equal %w", api.ErrSenderOrReceiverNotAllow)
+		return
+	}
+
 	// 此接口不适合群聊场景
 	if owner.IsGroup() || peer.IsGroup() {
 		err = errors.New("clear history not allow group")
@@ -478,14 +492,14 @@ func (b *MessageUseCase) needCreateContact(logHead string, id *gmodel.ComponentI
 
 // 限制：发送者和接受者的类型
 func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.MessageSendReq) error {
-	// check: sender
+	// check: user
 	if req.Sender == nil || req.Receiver == nil {
 		return api.ErrSenderOrReceiverNotAllow
 	}
 	if req.Sender.Id() == 0 || req.Receiver.Id() == 0 {
 		return api.ErrSenderOrReceiverNotAllow
 	}
-	if req.Sender.Id() == req.Receiver.Id() {
+	if req.Sender.Equal(req.Receiver) {
 		return fmt.Errorf("ID equal %w", api.ErrSenderOrReceiverNotAllow)
 	}
 
@@ -570,12 +584,15 @@ func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.Messa
 }
 
 func (b *MessageUseCase) checkParamsFetch(ctx context.Context, req *request.MessageFetchReq) error {
-	// check: sender
+	// check: user
 	if req.Owner == nil || req.Peer == nil {
 		return api.ErrSenderOrReceiverNotAllow
 	}
 	if req.Owner.Id() == 0 || req.Peer.Id() == 0 {
 		return api.ErrSenderOrReceiverNotAllow
+	}
+	if req.Owner.Equal(req.Peer) {
+		return fmt.Errorf("ID equal %w", api.ErrSenderOrReceiverNotAllow)
 	}
 
 	//allowOwnerType := []gen_id.ContactIdType{
