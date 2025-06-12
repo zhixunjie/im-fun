@@ -26,7 +26,7 @@ type Server struct {
 	BzGroupMessage *biz.GroupMessageUseCase
 }
 
-func NewServer(conf *conf.Config, bz *biz.Biz, bzContact *biz.ContactUseCase, bzMessage *biz.MessageUseCase) *Server {
+func NewServer(conf *conf.Config, bz *biz.Biz, bzContact *biz.ContactUseCase, bzMessage *biz.MessageUseCase, bzGroupMessage *biz.GroupMessageUseCase) *Server {
 	if conf.Debug {
 		gin.SetMode(gin.DebugMode)
 	} else {
@@ -45,11 +45,12 @@ func NewServer(conf *conf.Config, bz *biz.Biz, bzContact *biz.ContactUseCase, bz
 
 	// set Server
 	srv := &Server{
-		engine:     engine,
-		httpServer: httpServer,
-		bz:         bz,
-		BzContact:  bzContact,
-		BzMessage:  bzMessage,
+		engine:         engine,
+		httpServer:     httpServer,
+		bz:             bz,
+		BzContact:      bzContact,
+		BzMessage:      bzMessage,
+		BzGroupMessage: bzGroupMessage,
 	}
 	// 设置-路由
 	srv.SetupRouter()

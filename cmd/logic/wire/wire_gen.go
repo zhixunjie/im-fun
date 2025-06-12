@@ -41,7 +41,9 @@ func InitHttp(c *conf.Config) *http.Server {
 	messageRepo := data.NewMessageRepo(dataData)
 	contactUseCase := biz.NewContactUseCase(contactRepo, messageRepo)
 	messageUseCase := biz.NewMessageUseCase(messageRepo, contactRepo)
-	server := http.NewServer(c, bizBiz, contactUseCase, messageUseCase)
+	groupMessageRepo := data.NewGroupMessageRepo(dataData)
+	groupMessageUseCase := biz.NewGroupMessageUseCase(groupMessageRepo, contactRepo, messageRepo)
+	server := http.NewServer(c, bizBiz, contactUseCase, messageUseCase, groupMessageUseCase)
 	return server
 }
 

@@ -34,10 +34,11 @@ type GroupMessageUseCase struct {
 	repoMessageHelper *data.MessageRepo
 }
 
-func NewGroupMessageUseCase(repoGroupMessage *data.GroupMessageRepo, repoContact *data.ContactRepo) *GroupMessageUseCase {
+func NewGroupMessageUseCase(repoGroupMessage *data.GroupMessageRepo, repoContact *data.ContactRepo, repoMessageHelper *data.MessageRepo) *GroupMessageUseCase {
 	return &GroupMessageUseCase{
-		repoGroupMessage: repoGroupMessage,
-		repoContact:      repoContact,
+		repoGroupMessage:  repoGroupMessage,
+		repoContact:       repoContact,
+		repoMessageHelper: repoMessageHelper,
 	}
 }
 
