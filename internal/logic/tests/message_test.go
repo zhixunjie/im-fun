@@ -11,7 +11,7 @@ import (
 
 func TestClearHistory(t *testing.T) {
 	ctx := context.Background()
-	rsp, err := messageUseCase.ClearHistory(ctx, &request.ClearHistoryReq{
+	rsp, err := messageUseCase.ClearHistory(ctx, &request.MessageClearHistoryReq{
 		MsgID: 726942620000030001,
 		Owner: gmodel.NewUserComponentId(1001),
 		Peer:  gmodel.NewUserComponentId(10001),

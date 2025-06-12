@@ -63,7 +63,7 @@ type DelOneSideRsp struct {
 	Base
 }
 
-type ClearHistoryRsp struct {
+type MessageClearHistoryRsp struct {
 	Base
 	LastDelMsgID uint64 `json:"last_del_msg_id,string"` // 最后一条删除的消息id
 }

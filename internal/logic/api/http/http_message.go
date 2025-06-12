@@ -50,7 +50,7 @@ func (s *Server) MessageFetch(ctx *gin.Context) {
 
 func (s *Server) MessageClearHistory(ctx *gin.Context) {
 	// request
-	var req request.ClearHistoryReq
+	var req request.MessageClearHistoryReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		response.JsonError(ctx, err)
 		return
