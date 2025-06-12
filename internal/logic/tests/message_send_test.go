@@ -4,26 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/response"
 	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"testing"
 )
-
-//func TestSendSimple(t *testing.T) {
-//	ctx := context.Background()
-//
-//	rsp, err := messageUseCase.Send(ctx, &request.MessageSendReq{
-//		SeqId:    uint64(gmodel.NewSeqId()),
-//		Sender:   gmodel.NewUserComponentId(1001),
-//		Receiver: gmodel.NewUserComponentId(1005),
-//		MsgBody: &format.MsgBody{
-//			MsgType: format.MsgTypeText,
-//			MsgContent: &format.TextContent{
-//				Text: "哈哈哈",
-//			},
-//		},
-//	})
-//	fmt.Printf("rsp=%+v,err=%v\n", rsp, err)
-//}
 
 // 发送消息：用户之间互相通信
 func TestSendBetweenUser(t *testing.T) {
@@ -51,7 +37,7 @@ func TestSendBetweenUser(t *testing.T) {
 				}
 				JsonStr, _ := json.Marshal(d)
 
-				rsp, err := messageUseCase.SendSimpleCustomMessage(ctx, sender, receiver, string(JsonStr))
+				rsp, err := SendSimpleCustomMessage(ctx, sender, receiver, string(JsonStr))
 				fmt.Printf("rsp=%+v,err=%v\n", rsp, err)
 			}
 		}
@@ -85,7 +71,7 @@ func TestSendBetweenUserAndRobot(t *testing.T) {
 				}
 				JsonStr, _ := json.Marshal(d)
 
-				rsp, err := messageUseCase.SendSimpleCustomMessage(ctx, sender, receiver, string(JsonStr))
+				rsp, err := SendSimpleCustomMessage(ctx, sender, receiver, string(JsonStr))
 				fmt.Printf("rsp=%+v,err=%v\n", rsp, err)
 			}
 		}
@@ -111,8 +97,40 @@ func TestSendBetweenUserAndGroup(t *testing.T) {
 			}
 			JsonStr, _ := json.Marshal(d)
 
-			rsp, err := messageUseCase.SendSimpleCustomMessage(ctx, sender, receiver, string(JsonStr))
+			rsp, err := SendSimpleCustomMessage(ctx, sender, receiver, string(JsonStr))
 			fmt.Printf("rsp=%+v,err=%v\n", rsp, err)
 		}
 	}
+}
+
+//func TestSendSimple(t *testing.T) {
+//	ctx := context.Background()
+//
+//	rsp, err := messageUseCase.Send(ctx, &request.MessageSendReq{
+//		SeqId:    uint64(gmodel.NewSeqId()),
+//		Sender:   gmodel.NewUserComponentId(1001),
+//		Receiver: gmodel.NewUserComponentId(1005),
+//		MsgBody: &format.MsgBody{
+//			MsgType: format.MsgTypeText,
+//			MsgContent: &format.TextContent{
+//				Text: "哈哈哈",
+//			},
+//		},
+//	})
+//	fmt.Printf("rsp=%+v,err=%v\n", rsp, err)
+//}
+
+// SendSimpleCustomMessage 简化接口：发送自定义消息
+func SendSimpleCustomMessage(ctx context.Context, sender, receiver *gmodel.ComponentId, d string) (rsp *response.MessageSendRsp, err error) {
+	return messageUseCase.Send(ctx, &request.MessageSendReq{
+		SeqId:    uint64(gmodel.NewSeqId()),
+		Sender:   sender,
+		Receiver: receiver,
+		MsgBody: &format.MsgBody{
+			MsgType: format.MsgTypeCustom,
+			MsgContent: &format.CustomContent{
+				Data: d,
+			},
+		},
+	})
 }

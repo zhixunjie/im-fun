@@ -40,21 +40,6 @@ func NewMessageUseCase(repoMessage *data.MessageRepo, repoContact *data.ContactR
 	}
 }
 
-// SendSimpleCustomMessage 简化接口：发送自定义消息
-func (b *MessageUseCase) SendSimpleCustomMessage(ctx context.Context, sender, receiver *gmodel.ComponentId, d string) (rsp *response.MessageSendRsp, err error) {
-	return b.Send(ctx, &request.MessageSendReq{
-		SeqId:    uint64(gmodel.NewSeqId()),
-		Sender:   sender,
-		Receiver: receiver,
-		MsgBody: &format.MsgBody{
-			MsgType: format.MsgTypeCustom,
-			MsgContent: &format.CustomContent{
-				Data: d,
-			},
-		},
-	})
-}
-
 // Send 发送消息
 func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) (rsp *response.MessageSendRsp, err error) {
 	rsp = new(response.MessageSendRsp)
