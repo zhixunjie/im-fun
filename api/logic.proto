@@ -8,17 +8,17 @@ import "protocol.proto";
 
 service Logic {
   // 建立TCP连接，并且auth后，保存映射关系
-  rpc Connect(ConnectReq) returns (ConnectReply);
+  rpc Connect(ConnectReq) returns (ConnectResp);
   // 断开TCP连接，删除映射关系
-  rpc Disconnect(DisconnectReq) returns (DisconnectReply);
+  rpc Disconnect(DisconnectReq) returns (DisconnectResp);
   // Heartbeat
-  rpc Heartbeat(HeartbeatReq) returns (HeartbeatReply);
+  rpc Heartbeat(HeartbeatReq) returns (HeartbeatResp);
   // RenewOnline
-  rpc RenewOnline(OnlineReq) returns (OnlineReply);
+  rpc RenewOnline(OnlineReq) returns (OnlineResp);
   // Receive
-  rpc Receive(ReceiveReq) returns (ReceiveReply);
+  rpc Receive(ReceiveReq) returns (ReceiveResp);
   // ServerList
-  rpc Nodes(NodesReq) returns (NodesReply);
+  rpc Nodes(NodesReq) returns (NodesResp);
 }
 
 message KafkaSendMsg {
@@ -50,7 +50,7 @@ message ConnectReq {
   Platform platform = 6;
 }
 
-message ConnectReply {
+message ConnectResp {
   HbCfg hb_cfg = 1;
 }
 
@@ -64,7 +64,7 @@ message DisconnectReq {
   ConnectCommon comm = 1;
 }
 
-message DisconnectReply {
+message DisconnectResp {
   bool has = 1;
 }
 
@@ -72,7 +72,7 @@ message HeartbeatReq {
   ConnectCommon comm = 1;
 }
 
-message HeartbeatReply {
+message HeartbeatResp {
   bool has = 1;
 }
 
@@ -81,7 +81,7 @@ message OnlineReq {
   map<string, int32> roomCount = 2;
 }
 
-message OnlineReply {
+message OnlineResp {
   map<string, int32> allRoomCount = 1;
 }
 
@@ -90,7 +90,7 @@ message ReceiveReq {
   imfun.protocol.Proto proto = 2;
 }
 
-message ReceiveReply {
+message ReceiveResp {
 }
 
 message NodesReq {
@@ -98,7 +98,7 @@ message NodesReq {
   string clientIP = 2;
 }
 
-message NodesReply {
+message NodesResp {
   string domain = 1;
   int32 tcp_port = 2;
   int32 ws_port = 3;

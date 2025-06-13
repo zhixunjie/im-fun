@@ -12,7 +12,7 @@ const (
 
 	// OpHeartbeat heartbeat
 	OpHeartbeat
-	OpHeartbeatReply
+	OpHeartbeatResp
 
 	// OpSendMsg send message
 	OpSendMsg
@@ -23,7 +23,7 @@ const (
 
 	// OpAuth auth connect
 	OpAuth
-	OpAuthReply
+	OpAuthResp
 
 	// OpBatchMsg batch messages / raw messages
 	OpBatchMsg
@@ -35,7 +35,7 @@ const (
 
 	// OpChangeRoom change room
 	OpChangeRoom
-	OpChangeRoomReply
+	OpChangeRoomResp
 
 	// OpSub subscribe message
 	OpSub

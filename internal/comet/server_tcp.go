@@ -283,7 +283,7 @@ func (s *TcpServer) auth(ctx context.Context, logHead string, ch *channel.Channe
 	logging.Infof(logHead+"update user info after Connect[%v]", ch.UserInfo)
 
 	// TCP响应：下发TCP消息给给客户端（授权结果）
-	proto.Op = int32(protocol.OpAuthReply)
+	proto.Op = int32(protocol.OpAuthResp)
 	proto.Seq = gmodel.NewSeqId32()
 	proto.Body = nil
 	if err = ch.ConnReadWriter.WriteProto(proto); err != nil {

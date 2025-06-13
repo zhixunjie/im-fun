@@ -17,7 +17,7 @@ func (s *TcpServer) handleClientMsg(ctx context.Context, logHead string, proto *
 
 	switch protocol.Operation(proto.Op) {
 	case protocol.OpHeartbeat: // 心跳上报
-		proto.Op = int32(protocol.OpHeartbeatReply)
+		proto.Op = int32(protocol.OpHeartbeatResp)
 		proto.Ver = protocol.ProtoVersion
 		proto.Seq = gmodel.NewSeqId32()
 		proto.Body = nil
@@ -41,7 +41,7 @@ func (s *TcpServer) handleClientMsg(ctx context.Context, logHead string, proto *
 			logging.Errorf(logHead+"bucket.ChangeRoom(%s) error(%v)", proto.Body, err)
 			return
 		}
-		proto.Op = int32(protocol.OpChangeRoomReply)
+		proto.Op = int32(protocol.OpChangeRoomResp)
 	case protocol.OpSub: // 订阅
 		// TBD
 	case protocol.OpUnsub: // 取消订阅
@@ -60,7 +60,7 @@ func (s *TcpServer) handleClientMsg(ctx context.Context, logHead string, proto *
 
 func (s *TcpServer) Connect(ctx context.Context, params *channel.AuthParams) (hbCfg *pb.HbCfg, err error) {
 	userInfo := params.UserInfo
-	reply, err := s.rpcToLogic.Connect(ctx, &pb.ConnectReq{
+	resp, err := s.rpcToLogic.Connect(ctx, &pb.ConnectReq{
 		Comm: &pb.ConnectCommon{
 			ServerId:     s.serverId,
 			UserId:       userInfo.TcpSessionId.UserId,
@@ -75,7 +75,7 @@ func (s *TcpServer) Connect(ctx context.Context, params *channel.AuthParams) (hb
 		return
 	}
 	logging.Infof("RPC Connect success")
-	hbCfg = reply.HbCfg
+	hbCfg = resp.HbCfg
 
 	return
 }
@@ -115,14 +115,14 @@ func (s *TcpServer) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (
 
 // RenewOnline renew room online.
 //func (s *TcpServer) RenewOnline(ctx context.Context, serverID string, roomCount map[string]int32) (allRoom map[string]int32, err error) {
-//	reply, err := s.rpcToLogic.RenewOnline(ctx, &logic.OnlineReq{
+//	resp, err := s.rpcToLogic.RenewOnline(ctx, &logic.OnlineReq{
 //		TcpServer:    s.serverID,
 //		RoomCount: roomCount,
 //	}, grpc.UseCompressor(gzip.Name))
 //	if err != nil {
 //		return
 //	}
-//	return reply.AllRoomCount, nil
+//	return resp.AllRoomCount, nil
 //}
 
 // Receive receive a message.

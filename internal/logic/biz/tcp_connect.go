@@ -18,8 +18,8 @@ import (
 //}
 
 // Connect connected a conn.
-func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (reply *pb.ConnectReply, err error) {
-	reply = new(pb.ConnectReply)
+func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (resp *pb.ConnectResp, err error) {
+	resp = new(pb.ConnectResp)
 	rr := req.Comm
 	expire := bz.GetHeartbeatExpire()
 	logHead := fmt.Sprintf("Connect,req.Comm=%v,expire=%v|", rr, expire)
@@ -32,7 +32,7 @@ func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (reply *pb.Conne
 	// return hb
 	hbConf := bz.conf.Node.Heartbeat
 	interval := int64(hbConf.Interval)
-	reply.HbCfg = &pb.HbCfg{
+	resp.HbCfg = &pb.HbCfg{
 		Interval:  interval,
 		FailCount: hbConf.FailCount,
 	}
@@ -42,12 +42,12 @@ func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (reply *pb.Conne
 }
 
 // Disconnect disconnect a conn.
-func (bz *Biz) Disconnect(ctx context.Context, req *pb.DisconnectReq) (reply *pb.DisconnectReply, err error) {
-	reply = new(pb.DisconnectReply)
+func (bz *Biz) Disconnect(ctx context.Context, req *pb.DisconnectReq) (resp *pb.DisconnectResp, err error) {
+	resp = new(pb.DisconnectResp)
 	rr := req.Comm
 	logHead := fmt.Sprintf("Disconnect,req.Comm=%v|", rr)
 
-	reply.Has, err = bz.data.SessionDel(ctx, logHead, rr)
+	resp.Has, err = bz.data.SessionDel(ctx, logHead, rr)
 	if err != nil {
 		logging.Errorf(logHead+"SessionDel fail,error=%v", err, rr.UserId, rr.TcpSessionId)
 
@@ -59,20 +59,20 @@ func (bz *Biz) Disconnect(ctx context.Context, req *pb.DisconnectReq) (reply *pb
 }
 
 // Heartbeat heartbeat a conn.
-func (bz *Biz) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (reply *pb.HeartbeatReply, err error) {
-	reply = new(pb.HeartbeatReply)
+func (bz *Biz) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (resp *pb.HeartbeatResp, err error) {
+	resp = new(pb.HeartbeatResp)
 	rr := req.Comm
 	logHead := fmt.Sprintf("Heartbeat,req.Comm=%v|", rr)
 
 	// 续约KEY
 	expire := bz.GetHeartbeatExpire()
-	reply.Has, err = bz.data.SessionLease(ctx, logHead, rr, expire)
+	resp.Has, err = bz.data.SessionLease(ctx, logHead, rr, expire)
 	if err != nil {
 		logging.Errorf(logHead+"SessionLease fail,error=%v", err)
 		return
 	}
 	// 重新建立绑定关系
-	if !reply.Has {
+	if !resp.Has {
 		if err = bz.data.SessionBinding(ctx, logHead, rr, expire); err != nil {
 			logging.Errorf(logHead+"SessionBinding fail,error=%v", err)
 			return
@@ -84,8 +84,8 @@ func (bz *Biz) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (reply *pb.H
 }
 
 // RenewOnline renew a server online.
-func (bz *Biz) RenewOnline(ctx context.Context, serverId string, roomCount map[string]int32) (reply *pb.OnlineReply, err error) {
-	reply = new(pb.OnlineReply)
+func (bz *Biz) RenewOnline(ctx context.Context, serverId string, roomCount map[string]int32) (resp *pb.OnlineResp, err error) {
+	resp = new(pb.OnlineResp)
 	//online := &model.Online{
 	//	Server:    serverId,
 	//	RoomCount: roomCount,
@@ -95,7 +95,7 @@ func (bz *Biz) RenewOnline(ctx context.Context, serverId string, roomCount map[s
 	//	return nil, err
 	//}
 
-	reply.AllRoomCount = map[string]int32{}
+	resp.AllRoomCount = map[string]int32{}
 
 	return
 }
@@ -112,10 +112,10 @@ func (bz *Biz) Receive(ctx context.Context, userId int64, proto *protocol.Proto)
 // - 对于comet来说，用于建立TCP服务器、WS服务器、WSS服务器
 // - 对于客户端来说，用于建立TCP客户端、WS客户端、WSS客户端
 // - 可以配合一定的负载均衡算法，实现节点的负载（根据每个节点的连接数进行负载分发）
-func (bz *Biz) Nodes(ctx context.Context, req *pb.NodesReq) (reply *pb.NodesReply, err error) {
+func (bz *Biz) Nodes(ctx context.Context, req *pb.NodesReq) (resp *pb.NodesResp, err error) {
 	nodeConf := bz.conf.Node
 	backoffConf := bz.conf.Backoff
-	reply = &pb.NodesReply{
+	resp = &pb.NodesResp{
 		Domain:  nodeConf.DefaultDomain,
 		TcpPort: nodeConf.TCPPort,
 		WsPort:  nodeConf.WSPort,
@@ -135,12 +135,12 @@ func (bz *Biz) Nodes(ctx context.Context, req *pb.NodesReq) (reply *pb.NodesRepl
 	// TODO 获取Nodes配置
 	switch req.Platform {
 	case pb.Platform_Platform_Web: // Web平台
-		reply.Nodes = []string{}
+		resp.Nodes = []string{}
 	default:
-		reply.Nodes = []string{}
+		resp.Nodes = []string{}
 	}
-	if len(reply.Nodes) == 0 {
-		reply.Nodes = []string{nodeConf.DefaultDomain}
+	if len(resp.Nodes) == 0 {
+		resp.Nodes = []string{nodeConf.DefaultDomain}
 	}
 
 	return

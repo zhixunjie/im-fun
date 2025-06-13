@@ -20,7 +20,7 @@ type server struct {
 
 var _ pb.LogicServer = &server{}
 
-func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (reply *pb.ConnectReply, err error) {
+func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (resp *pb.ConnectResp, err error) {
 	defer func() {
 		if err != nil {
 			logging.Errorf("err=%v,req=%+v", err, req)
@@ -41,7 +41,7 @@ func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (reply *pb.Con
 	}
 
 	// invoke svc
-	reply, err = s.bz.Connect(ctx, req)
+	resp, err = s.bz.Connect(ctx, req)
 	if err != nil {
 		return
 	}
@@ -49,9 +49,9 @@ func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (reply *pb.Con
 	return
 }
 
-func (s *server) Disconnect(ctx context.Context, req *pb.DisconnectReq) (reply *pb.DisconnectReply, err error) {
+func (s *server) Disconnect(ctx context.Context, req *pb.DisconnectReq) (resp *pb.DisconnectResp, err error) {
 	// invoke svc
-	reply, err = s.bz.Disconnect(ctx, req)
+	resp, err = s.bz.Disconnect(ctx, req)
 	if err != nil {
 		return
 	}
@@ -59,9 +59,9 @@ func (s *server) Disconnect(ctx context.Context, req *pb.DisconnectReq) (reply *
 	return
 }
 
-func (s *server) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (reply *pb.HeartbeatReply, err error) {
+func (s *server) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (resp *pb.HeartbeatResp, err error) {
 	// invoke svc
-	reply, err = s.bz.Heartbeat(ctx, req)
+	resp, err = s.bz.Heartbeat(ctx, req)
 	if err != nil {
 		return
 	}
@@ -69,9 +69,9 @@ func (s *server) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (reply *pb
 	return
 }
 
-func (s *server) RenewOnline(ctx context.Context, req *pb.OnlineReq) (reply *pb.OnlineReply, err error) {
+func (s *server) RenewOnline(ctx context.Context, req *pb.OnlineReq) (resp *pb.OnlineResp, err error) {
 	// invoke svc
-	reply, err = s.bz.RenewOnline(ctx, req.ServerId, req.RoomCount)
+	resp, err = s.bz.RenewOnline(ctx, req.ServerId, req.RoomCount)
 	if err != nil {
 		return
 	}
@@ -79,20 +79,20 @@ func (s *server) RenewOnline(ctx context.Context, req *pb.OnlineReq) (reply *pb.
 	return
 }
 
-func (s *server) Receive(ctx context.Context, req *pb.ReceiveReq) (reply *pb.ReceiveReply, err error) {
-	reply = new(pb.ReceiveReply)
+func (s *server) Receive(ctx context.Context, req *pb.ReceiveReq) (resp *pb.ReceiveResp, err error) {
+	resp = new(pb.ReceiveResp)
 
 	//if err := s.svc.Receive(ctx, req.Mid, req.Proto); err != nil {
-	//	return &pb.ReceiveReply{}, err
+	//	return &pb.ReceiveResp{}, err
 	//}
 	return
 }
 
-func (s *server) Nodes(ctx context.Context, req *pb.NodesReq) (reply *pb.NodesReply, err error) {
-	reply = new(pb.NodesReply)
+func (s *server) Nodes(ctx context.Context, req *pb.NodesReq) (resp *pb.NodesResp, err error) {
+	resp = new(pb.NodesResp)
 
 	// invoke svc
-	reply, err = s.bz.Nodes(ctx, req)
+	resp, err = s.bz.Nodes(ctx, req)
 	if err != nil {
 		return
 	}

@@ -8,13 +8,13 @@ import "protocol.proto";
 
 service Comet {
   // send msg: to some user
-  rpc SendToUsers(SendToUsersReq) returns (SendToUsersReply);
+  rpc SendToUsers(SendToUsersReq) returns (SendToUsersResp);
   // send msg: to room's user
-  rpc SendToRoom(SendToRoomReq) returns (SendToRoomReply);
+  rpc SendToRoom(SendToRoomReq) returns (SendToRoomResp);
   // send msg: to every user in the app
-  rpc SendToAll(SendToAllReq) returns (SendToAllReply);
+  rpc SendToAll(SendToAllReq) returns (SendToAllResp);
   // get all rooms
-  rpc GetAllRoomId(GetAllRoomIdReq) returns (GetAllRoomIdReply);
+  rpc GetAllRoomId(GetAllRoomIdReq) returns (GetAllRoomIdResp);
 }
 
 // users
@@ -24,7 +24,7 @@ message SendToUsersReq {
   int32 subId = 3;
 }
 
-message SendToUsersReply {}
+message SendToUsersResp {}
 
 // all users
 message SendToAllReq{
@@ -33,7 +33,7 @@ message SendToAllReq{
   int32 speed = 3;
 }
 
-message SendToAllReply{}
+message SendToAllResp{}
 
 // room users
 message SendToRoomReq {
@@ -42,11 +42,11 @@ message SendToRoomReq {
   int32 subId = 3;
 }
 
-message SendToRoomReply{}
+message SendToRoomResp{}
 
 // room's
 message GetAllRoomIdReq{}
 
-message GetAllRoomIdReply {
+message GetAllRoomIdResp {
   map<string, bool> rooms = 1;
 }

@@ -87,7 +87,7 @@ func ProtoReady(logHead string, ch *channel.Channel) (err error) {
 		}
 		// 2. check proto
 		switch protocol.Operation(proto.Op) {
-		case protocol.OpHeartbeatReply: // 下发心跳响应消息给客户端
+		case protocol.OpHeartbeatResp: // 下发心跳响应消息给客户端
 			if ch.Room != nil {
 				online = ch.Room.OnlineNum()
 			}
