@@ -13,6 +13,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/biz"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
+	"github.com/zhixunjie/im-fun/internal/logic/data/cache"
 	"google.golang.org/grpc"
 )
 
@@ -43,7 +44,12 @@ func InitHttp(c *conf.Config) *http.Server {
 	messageUseCase := biz.NewMessageUseCase(messageRepo, contactRepo)
 	groupMessageRepo := data.NewGroupMessageRepo(dataData)
 	groupMessageUseCase := biz.NewGroupMessageUseCase(groupMessageRepo, contactRepo, messageRepo)
-	server := http.NewServer(c, bizBiz, contactUseCase, messageUseCase, groupMessageUseCase)
+	userRepo := data.NewUserRepo(dataData)
+	userCache := cache.NewUserCache(userRepo)
+	userUseCase := biz.NewUserUseCase(userRepo, userCache)
+	userGroupRepo := data.NewUserGroupRepo(dataData)
+	userGroupUseCase := biz.NewUserGroupUseCase(userGroupRepo)
+	server := http.NewServer(c, bizBiz, contactUseCase, messageUseCase, groupMessageUseCase, userUseCase, userGroupUseCase)
 	return server
 }
 

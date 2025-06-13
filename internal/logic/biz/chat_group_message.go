@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cast"
 	"github.com/zhixunjie/im-fun/internal/logic/api"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
-	"github.com/zhixunjie/im-fun/internal/logic/data/cache"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
@@ -106,7 +105,7 @@ func (b *GroupMessageUseCase) Send(ctx context.Context, req *request.GroupMessag
 		}
 	})
 
-	rsp.Data = &response.GroupSendMsgRespData{
+	rsp.Data = &response.GroupMessageSendData{
 		MsgID:       msg.MsgID,
 		SeqID:       msg.SeqID,
 		VersionID:   msg.VersionID,
@@ -238,7 +237,7 @@ func (b *GroupMessageUseCase) Fetch(ctx context.Context, req *request.GroupMessa
 		return retList[i].VersionID < retList[j].VersionID
 	})
 
-	rsp.Data = &response.GroupFetchMsgData{
+	rsp.Data = &response.GroupMessageFetchData{
 		MsgList:       retList,
 		NextVersionId: nextVersionId,
 		HasMore:       len(list) == limit,
@@ -276,7 +275,7 @@ func (b *GroupMessageUseCase) createMessage(ctx context.Context, logHead string,
 
 	// note: 同一个消息timeline的版本变动，需要加锁
 	// 保证数据库记录中的 msg_id 与 session_id 是递增的
-	lockKey := cache.TimelineMessageLock.Format(k.M{"session_id": sessionId})
+	lockKey := data.TimelineMessageLock.Format(k.M{"session_id": sessionId})
 	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 50 * time.Millisecond, Times: 40})
 	if err = redisSpinLock.AcquireWithTimes(); err != nil {
 		logging.Errorf(logHead+"acquire fail,lockKey=%v,err=%v", lockKey, err)

@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 	"github.com/sirupsen/logrus"
@@ -24,9 +25,14 @@ type Server struct {
 	BzContact      *biz.ContactUseCase
 	BzMessage      *biz.MessageUseCase
 	BzGroupMessage *biz.GroupMessageUseCase
+	BzUser         *biz.UserUseCase
+	BzUserGroup    *biz.UserGroupUseCase
 }
 
-func NewServer(conf *conf.Config, bz *biz.Biz, bzContact *biz.ContactUseCase, bzMessage *biz.MessageUseCase, bzGroupMessage *biz.GroupMessageUseCase) *Server {
+func NewServer(conf *conf.Config, bz *biz.Biz,
+	bzContact *biz.ContactUseCase, bzMessage *biz.MessageUseCase, bzGroupMessage *biz.GroupMessageUseCase,
+	bzUser *biz.UserUseCase, bzUserGroup *biz.UserGroupUseCase,
+) *Server {
 	if conf.Debug {
 		gin.SetMode(gin.DebugMode)
 	} else {
@@ -51,6 +57,8 @@ func NewServer(conf *conf.Config, bz *biz.Biz, bzContact *biz.ContactUseCase, bz
 		BzContact:      bzContact,
 		BzMessage:      bzMessage,
 		BzGroupMessage: bzGroupMessage,
+		BzUser:         bzUser,
+		BzUserGroup:    bzUserGroup,
 	}
 	// 设置-路由
 	srv.SetupRouter()
@@ -58,7 +66,7 @@ func NewServer(conf *conf.Config, bz *biz.Biz, bzContact *biz.ContactUseCase, bz
 	// begin to listen
 	logging.Infof("HTTP server is listening：%v", addr)
 	go func() {
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logrus.Fatalf("ListenAndServe,err=%v", err)
 		}
 	}()

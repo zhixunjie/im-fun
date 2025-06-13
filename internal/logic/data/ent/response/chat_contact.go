@@ -7,16 +7,17 @@ import (
 )
 
 // ContactFetchRsp 拉取会话列表（by version_id）
-type ContactFetchRsp struct {
-	Base
-	Data *FetchContactData `json:"data"`
-}
-
-type FetchContactData struct {
-	HasMore       bool             `json:"has_more"`
-	NextVersionId model.BigIntType `json:"next_version_id,string"` // 最大的版本ID
-	ContactList   []*ContactEntity `json:"contact_list"`           // 联系人列表
-}
+type (
+	ContactFetchRsp struct {
+		Base
+		Data *ContactFetchData `json:"data"`
+	}
+	ContactFetchData struct {
+		HasMore       bool             `json:"has_more"`
+		NextVersionId model.BigIntType `json:"next_version_id,string"` // 最大的版本ID
+		ContactList   []*ContactEntity `json:"contact_list"`           // 联系人列表
+	}
+)
 
 type ContactEntity struct {
 	OwnerID      model.BigIntType     `json:"owner_id"`

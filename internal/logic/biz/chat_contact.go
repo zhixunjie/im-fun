@@ -129,7 +129,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 		return retList[i].VersionID < retList[j].VersionID
 	})
 
-	rsp.Data = &response.FetchContactData{
+	rsp.Data = &response.ContactFetchData{
 		ContactList:   retList,
 		NextVersionId: maxVersionId,
 		HasMore:       len(list) == limit,

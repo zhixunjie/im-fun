@@ -10,9 +10,9 @@ type (
 	// MessageSendRsp 发送消息给某个用户
 	MessageSendRsp struct {
 		Base
-		Data *SendMsgRespData `json:"data"`
+		Data *MessageSendData `json:"data"`
 	}
-	SendMsgRespData struct {
+	MessageSendData struct {
 		MsgID       uint64 `json:"msg_id,string"`
 		SeqID       uint64 `json:"seq_id,string"`
 		VersionID   uint64 `json:"version_id,string"`
@@ -26,9 +26,9 @@ type (
 	// MessageFetchRsp 拉取消息列表（by version_id）
 	MessageFetchRsp struct {
 		Base
-		Data *FetchMsgData `json:"data"`
+		Data *MessageFetchData `json:"data"`
 	}
-	FetchMsgData struct {
+	MessageFetchData struct {
 		HasMore       bool         `json:"has_more"`
 		NextVersionId uint64       `json:"next_version_id,string"` // 最大的版本id
 		MsgList       []*MsgEntity `json:"msg_list"`               // 消息列表
@@ -68,6 +68,9 @@ type DelOneSideRsp struct {
 type (
 	MessageClearHistoryRsp struct {
 		Base
+		Data *MessageClearHistoryData `json:"data"`
+	}
+	MessageClearHistoryData struct {
 		LastDelMsgID uint64 `json:"last_del_msg_id,string"` // 最后一条删除的消息id
 	}
 )

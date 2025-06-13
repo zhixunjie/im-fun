@@ -13,6 +13,7 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/biz"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
+	"github.com/zhixunjie/im-fun/internal/logic/data/cache"
 	google_grpc "google.golang.org/grpc"
 )
 
@@ -23,7 +24,7 @@ func InitGrpc(ctx context.Context, c *conf.Config) (*google_grpc.Server, func(),
 }
 
 func InitHttp(c *conf.Config) *http.Server {
-	wire.Build(http.ProviderSet, data.ProviderSet, biz.ProviderSet)
+	wire.Build(http.ProviderSet, biz.ProviderSet, data.ProviderSet, cache.ProviderSet)
 
 	return nil
 }

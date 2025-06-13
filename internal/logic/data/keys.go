@@ -1,4 +1,4 @@
-package cache
+package data
 
 import k "github.com/zhixunjie/im-fun/pkg/goredis/key"
 
@@ -10,4 +10,8 @@ const Prefix = "im:logic:"
 const (
 	TimelineMessageLock k.Key = Prefix + "timeline:message:lock:{session_id}"
 	TimelineContactLock k.Key = Prefix + "timeline:contact:lock:{contact_id}"
+)
+
+const (
+	UserToken k.Key = Prefix + "user:token:{uid}"
 )

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/zhixunjie/im-fun/internal/logic/data/cache"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/gmodel"
@@ -165,7 +164,7 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 	master := repo.Master(dbName).ChatContact.Table(tbName)
 
 	// note: 同一用户的会话timeline的版本变动，需要加锁
-	lockKey := cache.TimelineContactLock.Format(k.M{"contact_id": contactId})
+	lockKey := TimelineContactLock.Format(k.M{"contact_id": contactId})
 	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 50 * time.Millisecond, Times: 40})
 	if err = redisSpinLock.AcquireWithTimes(); err != nil {
 		logging.Errorf(logHead+"acquire fail,lockKey=%v,err=%v", lockKey, err)

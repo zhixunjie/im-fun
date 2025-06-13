@@ -4,19 +4,20 @@
 
 package model
 
-import (
-	"time"
-)
-
 const TableNameUser = "user"
 
 // User 用户表
 type User struct {
-	ID        uint64    `gorm:"column:id;primaryKey;autoIncrement:true;comment:自增id,主键" json:"id"`                   // 自增id,主键
-	Name      string    `gorm:"column:name;not null;comment:用户" json:"name"`                                         // 用户
-	Avatar    string    `gorm:"column:avatar;not null;comment:用户头像" json:"avatar"`                                   // 用户头像
-	CreatedAt time.Time `gorm:"column:created_at;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"` // 创建时间
-	UpdatedAt time.Time `gorm:"column:updated_at;not null;default:CURRENT_TIMESTAMP;comment:更新时间" json:"updated_at"` // 更新时间
+	ID          uint64 `gorm:"column:id;primaryKey;autoIncrement:true;comment:自增id,主键" json:"id"` // 自增id,主键
+	UserType    uint32 `gorm:"column:user_type;not null;comment:用户类型" json:"user_type"`           // 用户类型
+	AccountType uint32 `gorm:"column:account_type;not null;comment:账号类型" json:"account_type"`     // 账号类型
+	AccountID   string `gorm:"column:account_id;not null;comment:账号ID" json:"account_id"`         // 账号ID
+	Nickname    string `gorm:"column:nickname;not null;comment:昵称" json:"nickname"`               // 昵称
+	Avatar      string `gorm:"column:avatar;not null;comment:头像" json:"avatar"`                   // 头像
+	Sex         uint32 `gorm:"column:sex;not null;comment:性别" json:"sex"`                         // 性别
+	CreatedAt   uint64 `gorm:"column:created_at;not null;comment:创建时间" json:"created_at"`         // 创建时间
+	UpdatedAt   uint64 `gorm:"column:updated_at;not null;comment:更新时间" json:"updated_at"`         // 更新时间
+	DeletedAt   uint64 `gorm:"column:deleted_at;not null;comment:删除时间" json:"deleted_at"`         // 删除时间
 }
 
 // TableName User's table name

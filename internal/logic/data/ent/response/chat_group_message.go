@@ -10,9 +10,9 @@ type (
 	// GroupMessageSendRsp 发送消息给某个用户
 	GroupMessageSendRsp struct {
 		Base
-		Data *GroupSendMsgRespData `json:"data"`
+		Data *GroupMessageSendData `json:"data"`
 	}
-	GroupSendMsgRespData struct {
+	GroupMessageSendData struct {
 		MsgID       uint64 `json:"msg_id,string"`
 		SeqID       uint64 `json:"seq_id,string"`
 		VersionID   uint64 `json:"version_id,string"`
@@ -26,9 +26,9 @@ type (
 	// GroupMessageFetchRsp 拉取消息列表（by version_id）
 	GroupMessageFetchRsp struct {
 		Base
-		Data *GroupFetchMsgData `json:"data"`
+		Data *GroupMessageFetchData `json:"data"`
 	}
-	GroupFetchMsgData struct {
+	GroupMessageFetchData struct {
 		HasMore       bool              `json:"has_more"`
 		NextVersionId uint64            `json:"next_version_id,string"` // 最大的版本id
 		MsgList       []*GroupMsgEntity `json:"msg_list"`               // 消息列表

@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cast"
 	"github.com/zhixunjie/im-fun/internal/logic/api"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
-	"github.com/zhixunjie/im-fun/internal/logic/data/cache"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/format"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
@@ -103,7 +102,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 		}
 	})
 
-	rsp.Data = &response.SendMsgRespData{
+	rsp.Data = &response.MessageSendData{
 		MsgID:       msg.MsgID,
 		SeqID:       msg.SeqID,
 		VersionID:   msg.VersionID,
@@ -234,7 +233,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 		return retList[i].VersionID < retList[j].VersionID
 	})
 
-	rsp.Data = &response.FetchMsgData{
+	rsp.Data = &response.MessageFetchData{
 		MsgList:       retList,
 		NextVersionId: nextVersionId,
 		HasMore:       len(list) == limit,
@@ -372,7 +371,9 @@ func (b *MessageUseCase) ClearHistory(ctx context.Context, req *request.MessageC
 		logging.Errorf(logHead+"UpdateLastDelMsg error=%v", err)
 		return
 	}
-	rsp.LastDelMsgID = lastDelMsgId
+	rsp.Data = &response.MessageClearHistoryData{
+		LastDelMsgID: lastDelMsgId,
+	}
 
 	return
 }
@@ -406,7 +407,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 
 	// note: 同一个消息timeline的版本变动，需要加锁
 	// 保证数据库记录中的 msg_id 与 session_id 是递增的
-	lockKey := cache.TimelineMessageLock.Format(k.M{"session_id": sessionId})
+	lockKey := data.TimelineMessageLock.Format(k.M{"session_id": sessionId})
 	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 50 * time.Millisecond, Times: 40})
 	if err = redisSpinLock.AcquireWithTimes(); err != nil {
 		logging.Errorf(logHead+"acquire fail,lockKey=%v,err=%v", lockKey, err)
@@ -656,7 +657,7 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 	}
 
 	// note: 同一个消息timeline的版本变动，需要加锁
-	lockKey := cache.TimelineMessageLock.Format(k.M{"session_id": sessionId})
+	lockKey := data.TimelineMessageLock.Format(k.M{"session_id": sessionId})
 	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 50 * time.Millisecond, Times: 40})
 	if err = redisSpinLock.AcquireWithTimes(); err != nil {
 		logging.Errorf(logHead+"acquire fail,lockKey=%v,err=%v", lockKey, err)
