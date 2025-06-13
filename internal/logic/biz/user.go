@@ -175,6 +175,7 @@ func (b *UserUseCase) genToken(uid uint64) (string, error) {
 }
 
 // checkToken 检查 token 是否有效
+// TODO: use gin middleware to check token
 func (b *UserUseCase) checkToken(tokenStr string) (*gmodel.AuthClaims, error) {
 	// parse token
 	key := []byte("Kfv5opY4i6bYuUG")
