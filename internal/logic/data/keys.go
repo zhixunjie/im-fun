@@ -1,6 +1,8 @@
 package data
 
-import k "github.com/zhixunjie/im-fun/pkg/goredis/key"
+import (
+	k "github.com/zhixunjie/im-fun/pkg/goredis/key"
+)
 
 // 待划分：划分出cache操作层（需要wire上Redis对象）
 
@@ -14,4 +16,21 @@ const (
 
 const (
 	UserToken k.Key = Prefix + "user:token:{uid}"
+)
+
+const (
+	KeyExpire = 3600
+)
+
+// mark tcp connection
+const (
+	// TcpUserAllSession Hash：
+	// 格式：userId -> [ tcpSessionId : serverId ]
+	TcpUserAllSession k.Key = Prefix + "tcp:user:all:session:{uid}"
+	// TcpSessionToSrv String
+	// 格式：tcpSessionId -> serverId
+	TcpSessionToSrv k.Key = Prefix + "tcp:session:to:srv:{tcp_session_id}"
+	// TcpServerOnline String
+	// 格式：serverId -> online
+	TcpServerOnline k.Key = Prefix + "tcp:server:online:{server_id}"
 )

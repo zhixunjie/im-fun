@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"github.com/redis/go-redis/v9"
+	k "github.com/zhixunjie/im-fun/pkg/goredis/key"
 )
 
 // GetServerIds 获取TcpSessionId对应的ServerId
@@ -13,7 +14,7 @@ func (d *Data) GetServerIds(ctx context.Context, tcpSessionIds []string) (res []
 	var cmds []redis.Cmder
 	cmds, err = mem.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		for i := 0; i < len(tcpSessionIds); i++ {
-			pipe.Get(ctx, keyStringTcpSessionId(tcpSessionIds[i]))
+			pipe.Get(ctx, TcpSessionToSrv.Format(k.M{"tcp_session_id": tcpSessionIds[i]}))
 		}
 		return nil
 	})
@@ -37,7 +38,7 @@ func (d *Data) GetSessionByUserIds(ctx context.Context, userIds []uint64) (res m
 	var cmds []redis.Cmder
 	cmds, err = mem.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		for i := 0; i < len(userIds); i++ {
-			pipe.HGetAll(ctx, keyHashUserId(userIds[i]))
+			pipe.HGetAll(ctx, TcpUserAllSession.Format(k.M{"uid": userIds[i]}))
 		}
 		return nil
 	})
