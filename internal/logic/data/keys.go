@@ -29,7 +29,7 @@ const (
 	TcpUserAllSession k.Key = Prefix + "tcp:user:all:session:{uid}"
 	// TcpSessionToSrv String
 	// 格式：tcpSessionId -> serverId
-	TcpSessionToSrv k.Key = Prefix + "tcp:session:to:srv:{tcp_session_id}"
+	TcpSessionToSrv k.Key = Prefix + "tcp:session:to:server:{tcp_session_id}"
 	// TcpServerOnline String
 	// 格式：serverId -> online
 	TcpServerOnline k.Key = Prefix + "tcp:server:online:{server_id}"
