@@ -43,16 +43,16 @@ func (repo *MessageRepo) IncrUnreadAfterSend(ctx context.Context, logHead string
 	}
 
 	// clean before add
-	err = repo.checkBeforeIncrTotalUnread(ctx, logHead, receiver)
-	if err != nil {
-		return
-	}
+	//err = repo.checkBeforeIncrTotalUnread(ctx, logHead, receiver)
+	//if err != nil {
+	//	return
+	//}
 
 	// 增加：总未读数（全部会话）
-	_, err = repo.incrTotalUnread(ctx, logHead, receiver, incr)
-	if err != nil {
-		return
-	}
+	//_, err = repo.incrTotalUnread(ctx, logHead, receiver, incr)
+	//if err != nil {
+	//	return
+	//}
 
 	return
 }
@@ -66,10 +66,10 @@ func (repo *MessageRepo) DecrUnreadAfterFetch(ctx context.Context, logHead strin
 	}
 
 	// 减少：总未读数
-	_, err = repo.incrTotalUnread(ctx, logHead, owner, -decr)
-	if err != nil {
-		return
-	}
+	//_, err = repo.incrTotalUnread(ctx, logHead, owner, -decr)
+	//if err != nil {
+	//	return
+	//}
 
 	return
 }
@@ -210,7 +210,7 @@ func (repo *MessageRepo) GetTotalUnread(ctx context.Context, logHead string, id 
 
 	// HGet
 	res := mem.Get(ctx, key)
-	if tErr := res.Err(); tErr != nil && tErr != redis.Nil {
+	if tErr := res.Err(); tErr != nil && !errors.Is(tErr, redis.Nil) {
 		err = tErr
 		logging.Errorf(logHead+"Get error=%v", err)
 		return
