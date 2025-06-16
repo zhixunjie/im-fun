@@ -102,8 +102,8 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 
 		// supply last msg info
 		if v, ok := lastMsgMap[item.LastMsgID]; ok {
-			body := &format.MsgBody{MsgContent: format.NewMsgContent(format.MsgType(v.MsgType))}
-			tmpErr := json.Unmarshal([]byte(v.Content), &body)
+			body := new(format.MsgBody)
+			tmpErr := json.Unmarshal([]byte(v.Content), body)
 			if tmpErr == nil {
 				row.LastMsg = &response.MsgEntity{
 					MsgID:     v.MsgID,

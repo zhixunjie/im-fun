@@ -4,8 +4,7 @@ import "encoding/json"
 
 // ImageContent 图片消息
 type ImageContent struct {
-	ImageInfos []Image `json:"image_infos,omitempty"` // 图片列表
-
+	ImageInfos []*Image `json:"image_infos,omitempty"` // 图片列表
 }
 
 type Image struct {

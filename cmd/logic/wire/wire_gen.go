@@ -25,7 +25,8 @@ func InitGrpc(ctx context.Context, c *conf.Config) (*grpc.Server, func(), error)
 	contactRepo := data.NewContactRepo(dataData)
 	messageRepo := data.NewMessageRepo(dataData)
 	contactUseCase := biz.NewContactUseCase(contactRepo, messageRepo)
-	messageUseCase := biz.NewMessageUseCase(messageRepo, contactRepo)
+	messageFilterUseCase := biz.NewMessageFilterUseCase()
+	messageUseCase := biz.NewMessageUseCase(messageRepo, contactRepo, messageFilterUseCase)
 	server, cleanup, err := grpc2.NewServer(ctx, c, bizBiz, contactUseCase, messageUseCase)
 	if err != nil {
 		return nil, nil, err
@@ -41,9 +42,10 @@ func InitHttp(c *conf.Config) *http.Server {
 	contactRepo := data.NewContactRepo(dataData)
 	messageRepo := data.NewMessageRepo(dataData)
 	contactUseCase := biz.NewContactUseCase(contactRepo, messageRepo)
-	messageUseCase := biz.NewMessageUseCase(messageRepo, contactRepo)
+	messageFilterUseCase := biz.NewMessageFilterUseCase()
+	messageUseCase := biz.NewMessageUseCase(messageRepo, contactRepo, messageFilterUseCase)
 	groupMessageRepo := data.NewGroupMessageRepo(dataData)
-	groupMessageUseCase := biz.NewGroupMessageUseCase(groupMessageRepo, contactRepo, messageRepo)
+	groupMessageUseCase := biz.NewGroupMessageUseCase(groupMessageRepo, contactRepo, messageRepo, messageFilterUseCase)
 	userRepo := data.NewUserRepo(dataData)
 	userCache := cache.NewUserCache(userRepo)
 	userUseCase := biz.NewUserUseCase(userRepo, userCache)
@@ -69,7 +71,8 @@ func GetMessageUseCase(c *conf.Config) *biz.MessageUseCase {
 	dataData := data.NewData(c)
 	messageRepo := data.NewMessageRepo(dataData)
 	contactRepo := data.NewContactRepo(dataData)
-	messageUseCase := biz.NewMessageUseCase(messageRepo, contactRepo)
+	messageFilterUseCase := biz.NewMessageFilterUseCase()
+	messageUseCase := biz.NewMessageUseCase(messageRepo, contactRepo, messageFilterUseCase)
 	return messageUseCase
 }
 

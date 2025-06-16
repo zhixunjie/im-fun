@@ -1,18 +1,12 @@
 package format
 
-import "encoding/json"
-
 // CustomContent 自定义消息
 type CustomContent struct {
 	Data string `json:"data,omitempty"` // 自定义消息（一般会采用JSON格式）
 }
 
-func (c CustomContent) GetType() MsgType {
+func (c *CustomContent) GetType() MsgType {
 	return MsgTypeCustom
-}
-
-func (c CustomContent) Decode(buf []byte) error {
-	return json.Unmarshal(buf, &c)
 }
 
 type CustomEvent struct {

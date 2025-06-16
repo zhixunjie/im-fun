@@ -1,7 +1,5 @@
 package format
 
-import "encoding/json"
-
 // AudioContent 音频消息
 type AudioContent struct {
 	Url    string `json:"url,omitempty"`    // 音频：链接
@@ -10,10 +8,6 @@ type AudioContent struct {
 	Text   string `json:"text,omitempty"`   // 音频：附带文本
 }
 
-func (c AudioContent) GetType() MsgType {
+func (c *AudioContent) GetType() MsgType {
 	return MsgTypeAudio
-}
-
-func (c AudioContent) Decode(buf []byte) error {
-	return json.Unmarshal(buf, &c)
 }

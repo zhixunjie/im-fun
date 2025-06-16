@@ -24,18 +24,22 @@ import (
 	"math"
 	"sort"
 	"time"
-	"unicode/utf8"
 )
 
 type MessageUseCase struct {
-	repoMessage *data.MessageRepo
-	repoContact *data.ContactRepo
+	repoMessage          *data.MessageRepo
+	repoContact          *data.ContactRepo
+	useCaseMessageFilter *MessageFilterUseCase
 }
 
-func NewMessageUseCase(repoMessage *data.MessageRepo, repoContact *data.ContactRepo) *MessageUseCase {
+func NewMessageUseCase(
+	repoMessage *data.MessageRepo, repoContact *data.ContactRepo,
+	useCaseMessageFilter *MessageFilterUseCase) *MessageUseCase {
+
 	return &MessageUseCase{
-		repoMessage: repoMessage,
-		repoContact: repoContact,
+		repoMessage:          repoMessage,
+		repoContact:          repoContact,
+		useCaseMessageFilter: useCaseMessageFilter,
 	}
 }
 
@@ -189,7 +193,7 @@ func (b *MessageUseCase) Fetch(ctx context.Context, req *request.MessageFetchReq
 		}
 
 		// build message list
-		body := &format.MsgBody{MsgContent: format.NewMsgContent(format.MsgType(item.MsgType))}
+		body := new(format.MsgBody)
 		tmpErr := json.Unmarshal([]byte(item.Content), body)
 		if tmpErr != nil {
 			logging.Error(logHead+"unmarshal msg body fail,err=%v", err)
@@ -480,7 +484,7 @@ func (b *MessageUseCase) needCreateContact(logHead string, id *gmodel.ComponentI
 }
 
 // 限制：发送者和接受者的类型
-func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.MessageSendReq) error {
+func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.MessageSendReq) (err error) {
 	// check: user
 	if req.Sender == nil || req.Receiver == nil {
 		return api.ErrSenderOrReceiverNotAllow
@@ -516,58 +520,10 @@ func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.Messa
 	//	return api.ErrReceiverTypeNotAllow
 	//}
 
-	// check: message body
-	if req.MsgBody == nil {
-		return api.ErrMessageBodyNotAllow
-	}
-
-	// check: message length
-	content, err := json.Marshal(req.MsgBody)
-	if utf8.RuneCount(content) > 2048 {
-		return fmt.Errorf("%v(content is too long)", api.ErrMessageContentNotAllowed)
-	}
-
-	// check: message type
-	typeLimit := []format.MsgType{
-		format.MsgTypeCustom,
-		format.MsgTypeText,
-		format.MsgTypeImage,
-		format.MsgTypeVideo,
-		format.MsgTypeTips,
-	}
-	if !lo.Contains(typeLimit, req.MsgBody.MsgType) {
-		return api.ErrMessageTypeNotAllowed
-	}
-
-	// check: message content
-	msgContent, err := format.DecodeMsgBody(req.MsgBody)
+	// check message
+	err = b.useCaseMessageFilter.FilterMsgContent(req.MsgBody)
 	if err != nil {
-		return api.ErrMessageBodyDecodedFailed
-	}
-	switch v := msgContent.(type) {
-	case *format.CustomContent:
-		if v.Data == "" {
-			return fmt.Errorf("%v(text is empty)", api.ErrMessageContentNotAllowed)
-		}
-	case *format.TextContent:
-		if v.Text == "" {
-			return fmt.Errorf("%v(text is empty)", api.ErrMessageContentNotAllowed)
-		}
-	case *format.ImageContent:
-		if len(v.ImageInfos) == 0 {
-			return fmt.Errorf("%v(image array is empty)", api.ErrMessageContentNotAllowed)
-		}
-	case *format.VideoContent:
-		if v.VideoUrl == "" {
-			return fmt.Errorf("%v(video url is empty)", api.ErrMessageContentNotAllowed)
-		}
-		if v.VideoSecond == 0 {
-			return fmt.Errorf("%v(video second is zero)", api.ErrMessageContentNotAllowed)
-		}
-	case *format.TipsContent:
-		if v.Text == "" {
-			return fmt.Errorf("%v(tip's text is empty)", api.ErrMessageContentNotAllowed)
-		}
+		return
 	}
 
 	// TODO: 频率控制、敏感词控制

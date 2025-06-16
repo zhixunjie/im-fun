@@ -1,7 +1,5 @@
 package format
 
-import "encoding/json"
-
 // VideoContent 视频消息
 type VideoContent struct {
 	VideoUrl    string `json:"video_url,omitempty"`    // 视频：链接
@@ -15,10 +13,6 @@ type VideoContent struct {
 	ThumbSize   int32  `json:"thumb_size"`             // 视频封面：大小
 }
 
-func (c VideoContent) GetType() MsgType {
+func (c *VideoContent) GetType() MsgType {
 	return MsgTypeVideo
-}
-
-func (c VideoContent) Decode(buf []byte) error {
-	return json.Unmarshal(buf, &c)
 }
