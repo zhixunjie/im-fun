@@ -18,14 +18,14 @@ const (
 	KeyTotalUnreadExpire   = 86400 * 15
 )
 
-// Hash：owner -> [ peer : serverId ]
+// Hash：owner -> [ peer : number ]
 func keyHashSessionUnread(u *gmodel.ComponentId) string {
-	return fmt.Sprintf("hash_session_unread:%v", u.ToString())
+	return fmt.Sprintf(Prefix+"unread:session:%v", u.ToString())
 }
 
-// String：owner -> 1000
+// String：owner -> number
 func keyStringTotalUnread(u *gmodel.ComponentId) string {
-	return fmt.Sprintf("string_total_unread:%v", u.ToString())
+	return fmt.Sprintf(Prefix+"unread:total:%v", u.ToString())
 }
 
 // IncrUnreadAfterSend 发送消息后，增加未读数
@@ -114,14 +114,14 @@ func (repo *MessageRepo) checkBeforeIncrTotalUnread(ctx context.Context, logHead
 ////////////////////// 会话未读数
 
 // incrSessionUnread 增减未读数（会话未读数）
-func (repo *MessageRepo) incrSessionUnread(ctx context.Context, logHead string, id1, id2 *gmodel.ComponentId, incr int64) (afterIncr int64, err error) {
+func (repo *MessageRepo) incrSessionUnread(ctx context.Context, logHead string, owner, peer *gmodel.ComponentId, incr int64) (afterIncr int64, err error) {
 	mem := repo.RedisClient
-	key := keyHashSessionUnread(id1)
+	key := keyHashSessionUnread(owner)
 	expire := KeySessionUnreadExpire * time.Second
 	logHead += fmt.Sprintf("incrSessionUnread,key=%v|", key)
 
 	// HIncrBy
-	res := mem.HIncrBy(ctx, key, id2.ToString(), incr)
+	res := mem.HIncrBy(ctx, key, peer.ToString(), incr)
 	if err = res.Err(); err != nil {
 		logging.Errorf(logHead+"HIncrBy error=%v", err)
 		return
@@ -139,13 +139,13 @@ func (repo *MessageRepo) incrSessionUnread(ctx context.Context, logHead string, 
 }
 
 // MGetSessionUnread 获取未读数（会话未读数）
-func (repo *MessageRepo) MGetSessionUnread(ctx context.Context, logHead string, id1 *gmodel.ComponentId, id2Arr []*gmodel.ComponentId) (retMap map[string]int64, err error) {
+func (repo *MessageRepo) MGetSessionUnread(ctx context.Context, logHead string, owner *gmodel.ComponentId, peers []*gmodel.ComponentId) (retMap map[string]int64, err error) {
 	mem := repo.RedisClient
-	key := keyHashSessionUnread(id1)
+	key := keyHashSessionUnread(owner)
 	logHead += fmt.Sprintf("MGetSessionUnread,key=%v|", key)
 
-	retMap = make(map[string]int64, len(id2Arr))
-	for _, id2 := range id2Arr {
+	retMap = make(map[string]int64, len(peers))
+	for _, id2 := range peers {
 		// HGet
 		res, tErr := mem.HGet(ctx, key, id2.ToString()).Result()
 		if tErr != nil && !errors.Is(tErr, redis.Nil) {
