@@ -13,12 +13,11 @@ type (
 		Data *GroupMessageSendData `json:"data"`
 	}
 	GroupMessageSendData struct {
-		MsgID       uint64 `json:"msg_id,string"`
-		SeqID       uint64 `json:"seq_id,string"`
-		VersionID   uint64 `json:"version_id,string"`
-		SortKey     uint64 `json:"sort_key,string"`
-		SessionId   string `json:"session_id"`
-		UnreadCount int64  `json:"unread_count"`
+		MsgID     uint64 `json:"msg_id,string"`
+		SeqID     uint64 `json:"seq_id,string"`
+		VersionID uint64 `json:"version_id,string"`
+		SortKey   uint64 `json:"sort_key,string"`
+		SessionId string `json:"session_id"`
 	}
 )
 

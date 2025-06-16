@@ -82,6 +82,13 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	}
 	currMsgId := msg.MsgID
 
+	rsp.Data = &response.MessageSendData{
+		MsgID:     msg.MsgID,
+		SeqID:     msg.SeqID,
+		VersionID: msg.VersionID,
+		SortKey:   msg.SortKey,
+		SessionId: msg.SessionID,
+	}
 	routine.Go(ctx, func() {
 		// 增加未读数: 先save db，再incr cache，保证尽快执行
 		if !lo.Contains(req.InvisibleList, cast.ToString(req.Receiver.GetId())) {
@@ -105,15 +112,6 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 			}
 		}
 	})
-
-	rsp.Data = &response.MessageSendData{
-		MsgID:       msg.MsgID,
-		SeqID:       msg.SeqID,
-		VersionID:   msg.VersionID,
-		SortKey:     msg.SortKey,
-		SessionId:   msg.SessionID,
-		UnreadCount: 0,
-	}
 	return
 }
 
