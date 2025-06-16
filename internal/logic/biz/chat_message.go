@@ -485,40 +485,16 @@ func (b *MessageUseCase) needCreateContact(logHead string, id *gmodel.ComponentI
 
 // 限制：发送者和接受者的类型
 func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.MessageSendReq) (err error) {
-	// check: user
-	if req.Sender == nil || req.Receiver == nil {
-		return api.ErrSenderOrReceiverNotAllow
+	// check user
+	err = b.useCaseMessageFilter.FilterMessageUser(req.Sender, req.Receiver)
+	if err != nil {
+		return
 	}
-	if req.Sender.GetId() == 0 || req.Receiver.GetId() == 0 {
-		return api.ErrSenderOrReceiverNotAllow
+	// check user type
+	err = b.useCaseMessageFilter.FilterSendUserType(req.Sender, req.Receiver)
+	if err != nil {
+		return
 	}
-	if req.Sender.Equal(req.Receiver) {
-		return fmt.Errorf("ID equal %w", api.ErrSenderOrReceiverNotAllow)
-	}
-	// 此接口不适合群聊场景
-	if req.Sender.IsGroup() || req.Receiver.IsGroup() {
-		return fmt.Errorf("group not allowed %w", api.ErrSenderOrReceiverNotAllow)
-	}
-	//allowSenderType := []gen_id.ContactIdType{
-	//	gen_id.TypeUser,
-	//	gen_id.TypeRobot,
-	//	gen_id.TypeSystem,
-	//}
-	//
-	//allowReceiverType := []gen_id.ContactIdType{
-	//	gen_id.TypeUser,
-	//	gen_id.TypeRobot,
-	//	gen_id.TypeGroup,
-	//}
-	//
-	//// check: sender type
-	//if !lo.Contains(allowSenderType, req.Sender.GetType()) {
-	//	return api.ErrSenderTypeNotAllow
-	//}
-	//// check: receiver type
-	//if !lo.Contains(allowReceiverType, req.Receiver.GetType()) {
-	//	return api.ErrReceiverTypeNotAllow
-	//}
 
 	// check message
 	err = b.useCaseMessageFilter.FilterMsgContent(req.MsgBody)
@@ -528,45 +504,22 @@ func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.Messa
 
 	// TODO: 频率控制、敏感词控制
 
-	return nil
+	return
 }
 
-func (b *MessageUseCase) checkParamsFetch(ctx context.Context, req *request.MessageFetchReq) error {
-	// check: user
-	if req.Owner == nil || req.Peer == nil {
-		return api.ErrSenderOrReceiverNotAllow
+func (b *MessageUseCase) checkParamsFetch(ctx context.Context, req *request.MessageFetchReq) (err error) {
+	// check user
+	err = b.useCaseMessageFilter.FilterMessageUser(req.Owner, req.Peer)
+	if err != nil {
+		return
 	}
-	if req.Owner.GetId() == 0 || req.Peer.GetId() == 0 {
-		return api.ErrSenderOrReceiverNotAllow
-	}
-	if req.Owner.Equal(req.Peer) {
-		return fmt.Errorf("ID equal %w", api.ErrSenderOrReceiverNotAllow)
-	}
-	// 此接口不适合群聊场景
-	if req.Owner.IsGroup() || req.Peer.IsGroup() {
-		return fmt.Errorf("group not allowed %w", api.ErrSenderOrReceiverNotAllow)
+	// check user type
+	err = b.useCaseMessageFilter.FilterFetchUserType(req.Owner, req.Peer)
+	if err != nil {
+		return
 	}
 
-	//allowOwnerType := []gen_id.ContactIdType{
-	//	gen_id.TypeUser,
-	//}
-	//
-	//allowPeerType := []gen_id.ContactIdType{
-	//	gen_id.TypeUser,
-	//	gen_id.TypeRobot,
-	//	gen_id.TypeGroup,
-	//}
-	//
-	//// check: owner type
-	//if !lo.Contains(allowOwnerType, req.Owner.GetType()) {
-	//	return api.ErrSenderTypeNotAllow
-	//}
-	//// check: peer type
-	//if !lo.Contains(allowPeerType, req.Peer.GetType()) {
-	//	return api.ErrReceiverTypeNotAllow
-	//}
-
-	return nil
+	return
 }
 
 // updateMsgIdStatus 通用的方法，用于更新消息的状态和版本ID

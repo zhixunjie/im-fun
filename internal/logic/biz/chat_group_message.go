@@ -354,39 +354,10 @@ func (b *GroupMessageUseCase) needCreateContact(logHead string, id *gmodel.Compo
 // 限制：发送者和接受者的类型
 func (b *GroupMessageUseCase) checkParamsSend(ctx context.Context, req *request.GroupMessageSendReq) (err error) {
 	// check: user
-	if req.Sender == nil || req.Receiver == nil {
-		return api.ErrSenderOrReceiverNotAllow
+	err = b.useCaseMessageFilter.FilterGroupMessageUser(req.Sender, req.Receiver)
+	if err != nil {
+		return
 	}
-	if req.Sender.GetId() == 0 || req.Receiver.GetId() == 0 {
-		return api.ErrSenderOrReceiverNotAllow
-	}
-	if req.Sender.Equal(req.Receiver) {
-		return fmt.Errorf("ID equal %w", api.ErrSenderOrReceiverNotAllow)
-	}
-	if !req.Sender.IsGroup() && !req.Receiver.IsGroup() {
-		return fmt.Errorf("group not allowed %w", api.ErrSenderOrReceiverNotAllow)
-	}
-
-	//allowSenderType := []gen_id.ContactIdType{
-	//	gen_id.TypeUser,
-	//	gen_id.TypeRobot,
-	//	gen_id.TypeSystem,
-	//}
-	//
-	//allowReceiverType := []gen_id.ContactIdType{
-	//	gen_id.TypeUser,
-	//	gen_id.TypeRobot,
-	//	gen_id.TypeGroup,
-	//}
-	//
-	//// check: sender type
-	//if !lo.Contains(allowSenderType, req.Sender.GetType()) {
-	//	return api.ErrSenderTypeNotAllow
-	//}
-	//// check: receiver type
-	//if !lo.Contains(allowReceiverType, req.Receiver.GetType()) {
-	//	return api.ErrReceiverTypeNotAllow
-	//}
 
 	// check message
 	err = b.useCaseMessageFilter.FilterMsgContent(req.MsgBody)
@@ -399,39 +370,12 @@ func (b *GroupMessageUseCase) checkParamsSend(ctx context.Context, req *request.
 	return nil
 }
 
-func (b *GroupMessageUseCase) checkParamsFetch(ctx context.Context, req *request.GroupMessageFetchReq) error {
-	// check: user
-	if req.Owner == nil || req.Peer == nil {
-		return api.ErrSenderOrReceiverNotAllow
+func (b *GroupMessageUseCase) checkParamsFetch(ctx context.Context, req *request.GroupMessageFetchReq) (err error) {
+	// check user
+	err = b.useCaseMessageFilter.FilterGroupMessageUser(req.Owner, req.Peer)
+	if err != nil {
+		return
 	}
-	if req.Owner.GetId() == 0 || req.Peer.GetId() == 0 {
-		return api.ErrSenderOrReceiverNotAllow
-	}
-	if req.Owner.Equal(req.Peer) {
-		return fmt.Errorf("ID equal %w", api.ErrSenderOrReceiverNotAllow)
-	}
-	if !req.Owner.IsGroup() && !req.Peer.IsGroup() {
-		return fmt.Errorf("group not allowed %w", api.ErrSenderOrReceiverNotAllow)
-	}
-
-	//allowOwnerType := []gen_id.ContactIdType{
-	//	gen_id.TypeUser,
-	//}
-	//
-	//allowPeerType := []gen_id.ContactIdType{
-	//	gen_id.TypeUser,
-	//	gen_id.TypeRobot,
-	//	gen_id.TypeGroup,
-	//}
-	//
-	//// check: owner type
-	//if !lo.Contains(allowOwnerType, req.Owner.GetType()) {
-	//	return api.ErrSenderTypeNotAllow
-	//}
-	//// check: peer type
-	//if !lo.Contains(allowPeerType, req.Peer.GetType()) {
-	//	return api.ErrReceiverTypeNotAllow
-	//}
 
 	return nil
 }
