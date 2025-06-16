@@ -81,7 +81,7 @@ func (repo *MessageRepo) checkSessionUnread(ctx context.Context, logHead string,
 		return
 	}
 
-	// check result map
+	// 兼容错误：当遇到错误的数据时，把未读数据进行重置
 	srcVal, ok := retMap[sender.ToString()]
 	if ok && srcVal < 0 {
 		err = repo.cleanSessionUnread(ctx, logHead, receiver, sender)
