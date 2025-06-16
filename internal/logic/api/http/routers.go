@@ -39,9 +39,9 @@ func (s *Server) SetupRouter() {
 	// push
 	im := s.engine.Group("/im")
 	{
-		im.POST("/send/to/users", s.sendToUsers)             // 发送：给指定的用户key
-		im.POST("/send/to/users/by/ids", s.sendToUsersByIds) // 发送：给指定的用户id
-		im.POST("/send/to/room", s.sendToRoom)               // 广播：给房间的所有用户
-		im.POST("/send/to/all", s.sendToAll)                 // 广播：给所有用户
+		im.POST("/send/to/users", s.sendToUsers)             // ✅发送：给指定的用户key
+		im.POST("/send/to/users/by/ids", s.sendToUsersByIds) // ✅发送：给指定的用户id
+		im.POST("/send/to/room", s.sendToRoom)               // ✅广播：给房间的所有用户
+		im.POST("/send/to/all", s.sendToAll)                 // ✅广播：给所有用户
 	}
 }
