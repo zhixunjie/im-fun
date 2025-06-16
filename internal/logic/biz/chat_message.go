@@ -287,21 +287,8 @@ func (b *MessageUseCase) checkParamsClearHistory(ctx context.Context, req *reque
 	lastDelMsgId = req.MsgID
 
 	// check: user
-	if req.Owner == nil || req.Peer == nil {
-		err = api.ErrSenderOrReceiverNotAllow
-		return
-	}
-	if req.Owner.GetId() == 0 || req.Peer.GetId() == 0 {
-		err = api.ErrSenderOrReceiverNotAllow
-		return
-	}
-	if req.Owner.Equal(req.Peer) {
-		err = fmt.Errorf("ID equal %w", api.ErrSenderOrReceiverNotAllow)
-		return
-	}
-	// 此接口不适合群聊场景
-	if req.Owner.IsGroup() || req.Peer.IsGroup() {
-		err = fmt.Errorf("group not allowed %w", api.ErrSenderOrReceiverNotAllow)
+	err = b.useCaseMessageFilter.FilterMessageUser(req.Owner, req.Peer)
+	if err != nil {
 		return
 	}
 
