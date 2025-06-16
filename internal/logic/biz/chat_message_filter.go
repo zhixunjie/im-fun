@@ -15,7 +15,7 @@ func NewMessageFilterUseCase() *MessageFilterUseCase {
 	return &MessageFilterUseCase{}
 }
 
-// FilterMessageUser 过滤发送者
+// FilterMessageUser 过滤：发送者和接收者的数值
 func (b *MessageFilterUseCase) FilterMessageUser(id1, id2 *gmodel.ComponentId) (err error) {
 	if id1 == nil || id2 == nil {
 		err = fmt.Errorf("%w,id not exists", api.ErrSenderOrReceiverNotAllow)
@@ -37,7 +37,7 @@ func (b *MessageFilterUseCase) FilterMessageUser(id1, id2 *gmodel.ComponentId) (
 	return
 }
 
-// FilterGroupMessageUser 过滤发送者（群聊场景）
+// FilterGroupMessageUser 过滤：发送者和接收者的数值（群聊场景）
 func (b *MessageFilterUseCase) FilterGroupMessageUser(id1, id2 *gmodel.ComponentId) (err error) {
 	if id1 == nil || id2 == nil {
 		err = fmt.Errorf("%w,id not exists", api.ErrSenderOrReceiverNotAllow)
