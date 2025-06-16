@@ -18,7 +18,7 @@ import (
 )
 
 func InitGrpc(ctx context.Context, c *conf.Config) (*google_grpc.Server, func(), error) {
-	wire.Build(grpc.ProviderSet, biz.ProviderSet, data.ProviderSet)
+	wire.Build(grpc.ProviderSet, biz.ProviderSet, data.ProviderSet, cache.ProviderSet)
 
 	return &google_grpc.Server{}, nil, nil
 }

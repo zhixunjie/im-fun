@@ -27,19 +27,19 @@ import (
 )
 
 type MessageUseCase struct {
-	repoMessage          *data.MessageRepo
-	repoContact          *data.ContactRepo
-	useCaseMessageFilter *MessageFilterUseCase
+	repoMessage              *data.MessageRepo
+	repoContact              *data.ContactRepo
+	userUseCaseMessageFilter *MessageFilterUseCase
 }
 
 func NewMessageUseCase(
 	repoMessage *data.MessageRepo, repoContact *data.ContactRepo,
-	useCaseMessageFilter *MessageFilterUseCase) *MessageUseCase {
+	userUseCaseMessageFilter *MessageFilterUseCase) *MessageUseCase {
 
 	return &MessageUseCase{
-		repoMessage:          repoMessage,
-		repoContact:          repoContact,
-		useCaseMessageFilter: useCaseMessageFilter,
+		repoMessage:              repoMessage,
+		repoContact:              repoContact,
+		userUseCaseMessageFilter: userUseCaseMessageFilter,
 	}
 }
 
@@ -287,7 +287,7 @@ func (b *MessageUseCase) checkParamsClearHistory(ctx context.Context, req *reque
 	lastDelMsgId = req.MsgID
 
 	// check: user
-	err = b.useCaseMessageFilter.FilterMessageUser(req.Owner, req.Peer)
+	err = b.userUseCaseMessageFilter.FilterMessageUser(req.Owner, req.Peer)
 	if err != nil {
 		return
 	}
@@ -471,18 +471,18 @@ func (b *MessageUseCase) needCreateContact(logHead string, id *gmodel.ComponentI
 // 限制：发送者和接受者的类型
 func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.MessageSendReq) (err error) {
 	// check user
-	err = b.useCaseMessageFilter.FilterMessageUser(req.Sender, req.Receiver)
+	err = b.userUseCaseMessageFilter.FilterMessageUser(req.Sender, req.Receiver)
 	if err != nil {
 		return
 	}
 	// check user type
-	err = b.useCaseMessageFilter.FilterSendUserType(req.Sender, req.Receiver)
+	err = b.userUseCaseMessageFilter.FilterSendUserType(req.Sender, req.Receiver)
 	if err != nil {
 		return
 	}
 
 	// check message
-	err = b.useCaseMessageFilter.FilterMsgContent(req.MsgBody)
+	err = b.userUseCaseMessageFilter.FilterMsgContent(req.MsgBody)
 	if err != nil {
 		return
 	}
@@ -494,12 +494,12 @@ func (b *MessageUseCase) checkParamsSend(ctx context.Context, req *request.Messa
 
 func (b *MessageUseCase) checkParamsFetch(ctx context.Context, req *request.MessageFetchReq) (err error) {
 	// check user
-	err = b.useCaseMessageFilter.FilterMessageUser(req.Owner, req.Peer)
+	err = b.userUseCaseMessageFilter.FilterMessageUser(req.Owner, req.Peer)
 	if err != nil {
 		return
 	}
 	// check user type
-	err = b.useCaseMessageFilter.FilterFetchUserType(req.Owner, req.Peer)
+	err = b.userUseCaseMessageFilter.FilterFetchUserType(req.Owner, req.Peer)
 	if err != nil {
 		return
 	}

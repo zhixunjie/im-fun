@@ -28,15 +28,27 @@ func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (resp *pb.Connec
 		logging.Errorf(logHead+"SessionBinding fail,error=%v", err)
 		return
 	}
+	// check token
+	claims, err := bz.userUseCase.checkToken(req.Token)
+	if err != nil {
+		logging.Errorf(logHead+"checkToken fail,error=%v", err)
+		return
+	}
+	if claims.Uid != rr.UserId {
+		err = fmt.Errorf("token not allows")
+		logging.Errorf(logHead + "UserId err")
+		return
+	}
 
 	// return hb
-	hbConf := bz.conf.Node.Heartbeat
-	interval := int64(hbConf.Interval)
-	resp.HbCfg = &pb.HbCfg{
-		Interval:  interval,
-		FailCount: hbConf.FailCount,
+	hbCfg := bz.conf.Node.Heartbeat
+	resp = &pb.ConnectResp{
+		HbCfg: &pb.HbCfg{
+			Interval:  int64(hbCfg.Interval),
+			FailCount: hbCfg.FailCount,
+		},
 	}
-	logging.Infof(logHead + "success")
+	logging.Infof(logHead+"success,hbCfg=%+v", hbCfg)
 
 	return
 }
@@ -148,7 +160,7 @@ func (bz *Biz) Nodes(ctx context.Context, req *pb.NodesReq) (resp *pb.NodesResp,
 
 func (bz *Biz) GetHeartbeatExpire() (result time.Duration) {
 	nodeConf := bz.conf.Node
-	result = time.Duration(nodeConf.Heartbeat.Interval) * time.Duration(nodeConf.Heartbeat.FailCount)
+	result = time.Duration(nodeConf.Heartbeat.Interval)*time.Duration(nodeConf.Heartbeat.FailCount) + 10*time.Second
 
 	return
 }

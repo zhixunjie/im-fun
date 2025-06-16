@@ -16,17 +16,19 @@ var ProviderSet = wire.NewSet(
 
 // Biz 通用的对象
 type Biz struct {
-	conf *conf.Config
-	data *data.Data
-	lb   *LoadBalance // 暂无使用（比较复杂）
+	conf        *conf.Config
+	data        *data.Data
+	lb          *LoadBalance // 暂无使用（比较复杂）
+	userUseCase *UserUseCase
 }
 
-func NewBiz(conf *conf.Config) *Biz {
+func NewBiz(conf *conf.Config, userUseCase *UserUseCase) *Biz {
 	// TODO：负载均衡机制（结合Job的watch机制+配置中心：https://go-kratos.dev/docs/component/config）
 	return &Biz{
-		conf: conf,
-		data: data.NewData(conf),
-		lb:   NewLoadBalance(conf),
+		conf:        conf,
+		data:        data.NewData(conf),
+		lb:          NewLoadBalance(conf),
+		userUseCase: userUseCase,
 	}
 }
 
