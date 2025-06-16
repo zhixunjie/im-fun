@@ -94,22 +94,22 @@ func (repo *MessageRepo) checkBeforeIncrSessionUnread(ctx context.Context, logHe
 }
 
 // clean before add
-func (repo *MessageRepo) checkBeforeIncrTotalUnread(ctx context.Context, logHead string, receiverId *gmodel.ComponentId) (err error) {
-	srcVal, err := repo.GetTotalUnread(ctx, logHead, receiverId)
-	if err != nil {
-		return
-	}
-
-	// 兼容错误：当遇到错误的数据时，把未读数据进行重置
-	if srcVal < 0 {
-		err = repo.cleanTotalUnread(ctx, logHead, receiverId)
-		if err != nil {
-			return
-		}
-	}
-
-	return
-}
+//func (repo *MessageRepo) checkBeforeIncrTotalUnread(ctx context.Context, logHead string, receiverId *gmodel.ComponentId) (err error) {
+//	srcVal, err := repo.GetTotalUnread(ctx, logHead, receiverId)
+//	if err != nil {
+//		return
+//	}
+//
+//	// 兼容错误：当遇到错误的数据时，把未读数据进行重置
+//	if srcVal < 0 {
+//		err = repo.cleanTotalUnread(ctx, logHead, receiverId)
+//		if err != nil {
+//			return
+//		}
+//	}
+//
+//	return
+//}
 
 ////////////////////// 会话未读数
 
@@ -177,61 +177,61 @@ func (repo *MessageRepo) cleanSessionUnread(ctx context.Context, logHead string,
 
 ////////////////////// 总未读数
 
-// incrTotalUnread 增减未读数（总未读数）
-func (repo *MessageRepo) incrTotalUnread(ctx context.Context, logHead string, id *gmodel.ComponentId, incr int64) (afterIncr int64, err error) {
-	mem := repo.RedisClient
-	key := keyStringTotalUnread(id)
-	expire := KeyTotalUnreadExpire * time.Second
-	logHead += fmt.Sprintf("incrTotalUnread,key=%v|", key)
-
-	// IncrBy()
-	res := mem.IncrBy(ctx, key, incr)
-	if err = res.Err(); err != nil {
-		logging.Errorf(logHead+"IncrBy error=%v", err)
-		return
-	}
-	afterIncr = res.Val()
-	logging.Infof(logHead+"IncrBy success,afterIncr=%v", afterIncr)
-
-	// Expire
-	if err = mem.Expire(ctx, key, expire).Err(); err != nil {
-		logging.Errorf(logHead+"Expire error=%v", err)
-		return
-	}
-
-	return
-}
-
-// GetTotalUnread 获取未读数（总未读数）
-func (repo *MessageRepo) GetTotalUnread(ctx context.Context, logHead string, id *gmodel.ComponentId) (val int64, err error) {
-	mem := repo.RedisClient
-	key := keyStringTotalUnread(id)
-	logHead += fmt.Sprintf("GetTotalUnread,key=%v|", key)
-
-	// HGet
-	res := mem.Get(ctx, key)
-	if tErr := res.Err(); tErr != nil && !errors.Is(tErr, redis.Nil) {
-		err = tErr
-		logging.Errorf(logHead+"Get error=%v", err)
-		return
-	}
-	val = cast.ToInt64(res.Val())
-
-	return
-}
-
-// cleanTotalUnread 清空所有的未读数（总未读数）
-func (repo *MessageRepo) cleanTotalUnread(ctx context.Context, logHead string, id *gmodel.ComponentId) (err error) {
-	mem := repo.RedisClient
-	key := keyStringTotalUnread(id)
-	logHead += fmt.Sprintf("cleanTotalUnread,key=%v|", key)
-
-	// HDel
-	if err = mem.Del(ctx, key).Err(); err != nil {
-		logging.Errorf(logHead+"Del error=%v", err)
-		return
-	}
-	logging.Infof(logHead + "Del success")
-
-	return
-}
+//// incrTotalUnread 增减未读数（总未读数）
+//func (repo *MessageRepo) incrTotalUnread(ctx context.Context, logHead string, id *gmodel.ComponentId, incr int64) (afterIncr int64, err error) {
+//	mem := repo.RedisClient
+//	key := keyStringTotalUnread(id)
+//	expire := KeyTotalUnreadExpire * time.Second
+//	logHead += fmt.Sprintf("incrTotalUnread,key=%v|", key)
+//
+//	// IncrBy()
+//	res := mem.IncrBy(ctx, key, incr)
+//	if err = res.Err(); err != nil {
+//		logging.Errorf(logHead+"IncrBy error=%v", err)
+//		return
+//	}
+//	afterIncr = res.Val()
+//	logging.Infof(logHead+"IncrBy success,afterIncr=%v", afterIncr)
+//
+//	// Expire
+//	if err = mem.Expire(ctx, key, expire).Err(); err != nil {
+//		logging.Errorf(logHead+"Expire error=%v", err)
+//		return
+//	}
+//
+//	return
+//}
+//
+//// GetTotalUnread 获取未读数（总未读数）
+//func (repo *MessageRepo) GetTotalUnread(ctx context.Context, logHead string, id *gmodel.ComponentId) (val int64, err error) {
+//	mem := repo.RedisClient
+//	key := keyStringTotalUnread(id)
+//	logHead += fmt.Sprintf("GetTotalUnread,key=%v|", key)
+//
+//	// HGet
+//	res := mem.Get(ctx, key)
+//	if tErr := res.Err(); tErr != nil && !errors.Is(tErr, redis.Nil) {
+//		err = tErr
+//		logging.Errorf(logHead+"Get error=%v", err)
+//		return
+//	}
+//	val = cast.ToInt64(res.Val())
+//
+//	return
+//}
+//
+//// cleanTotalUnread 清空所有的未读数（总未读数）
+//func (repo *MessageRepo) cleanTotalUnread(ctx context.Context, logHead string, id *gmodel.ComponentId) (err error) {
+//	mem := repo.RedisClient
+//	key := keyStringTotalUnread(id)
+//	logHead += fmt.Sprintf("cleanTotalUnread,key=%v|", key)
+//
+//	// HDel
+//	if err = mem.Del(ctx, key).Err(); err != nil {
+//		logging.Errorf(logHead+"Del error=%v", err)
+//		return
+//	}
+//	logging.Infof(logHead + "Del success")
+//
+//	return
+//}
