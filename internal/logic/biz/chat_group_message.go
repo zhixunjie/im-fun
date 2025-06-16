@@ -231,7 +231,6 @@ func (b *GroupMessageUseCase) Fetch(ctx context.Context, req *request.GroupMessa
 
 	routine.Go(ctx, func() {
 		// 减少未读数: 先read db，再decr cache
-		// TODO: 确定群聊场景没有问题
 		_ = b.repoMessageHelper.DecrUnreadAfterFetch(ctx, logHead, owner, peer, int64(len(retList)))
 	})
 
