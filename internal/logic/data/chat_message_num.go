@@ -29,27 +29,27 @@ func keyStringTotalUnread(u *gmodel.ComponentId) string {
 }
 
 // IncrUnreadAfterSend 发送消息后，增加未读数
-func (repo *MessageRepo) IncrUnreadAfterSend(ctx context.Context, logHead string, receiverId, senderId *gmodel.ComponentId, incr int64) (err error) {
+func (repo *MessageRepo) IncrUnreadAfterSend(ctx context.Context, logHead string, receiver, sender *gmodel.ComponentId, incr int64) (err error) {
 	// clean before add
-	err = repo.checkBeforeIncrSessionUnread(ctx, logHead, receiverId, senderId)
+	err = repo.checkBeforeIncrSessionUnread(ctx, logHead, receiver, sender)
 	if err != nil {
 		return
 	}
 
 	// 增加：会话未读数
-	_, err = repo.incrSessionUnread(ctx, logHead, receiverId, senderId, incr)
+	_, err = repo.incrSessionUnread(ctx, logHead, receiver, sender, incr)
 	if err != nil {
 		return
 	}
 
 	// clean before add
-	err = repo.checkBeforeIncrTotalUnread(ctx, logHead, receiverId)
+	err = repo.checkBeforeIncrTotalUnread(ctx, logHead, receiver)
 	if err != nil {
 		return
 	}
 
 	// 增加：总未读数（全部会话）
-	_, err = repo.incrTotalUnread(ctx, logHead, receiverId, incr)
+	_, err = repo.incrTotalUnread(ctx, logHead, receiver, incr)
 	if err != nil {
 		return
 	}
@@ -75,16 +75,16 @@ func (repo *MessageRepo) DecrUnreadAfterFetch(ctx context.Context, logHead strin
 }
 
 // clean before add
-func (repo *MessageRepo) checkBeforeIncrSessionUnread(ctx context.Context, logHead string, receiverId, senderId *gmodel.ComponentId) (err error) {
-	retMap, err := repo.MGetSessionUnread(ctx, logHead, receiverId, []*gmodel.ComponentId{senderId})
+func (repo *MessageRepo) checkBeforeIncrSessionUnread(ctx context.Context, logHead string, receiver, sender *gmodel.ComponentId) (err error) {
+	retMap, err := repo.MGetSessionUnread(ctx, logHead, receiver, []*gmodel.ComponentId{sender})
 	if err != nil {
 		return
 	}
 
 	// check result map
-	srcVal, ok := retMap[senderId.ToString()]
+	srcVal, ok := retMap[sender.ToString()]
 	if ok && srcVal < 0 {
-		err = repo.cleanSessionUnread(ctx, logHead, receiverId, senderId)
+		err = repo.cleanSessionUnread(ctx, logHead, receiver, sender)
 		if err != nil {
 			return
 		}
