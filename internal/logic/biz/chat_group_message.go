@@ -86,7 +86,6 @@ func (b *GroupMessageUseCase) Send(ctx context.Context, req *request.GroupMessag
 
 	routine.Go(ctx, func() {
 		// 增加未读数: 先save db，再incr cache，保证尽快执行
-		// TODO: 确定群聊场景没有问题
 		if !lo.Contains(req.InvisibleList, cast.ToString(req.Receiver.GetId())) {
 			_ = b.repoMessageHelper.IncrUnreadAfterSend(ctx, logHead, receiver, sender, 1)
 		}
