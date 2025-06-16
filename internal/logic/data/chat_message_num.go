@@ -14,8 +14,8 @@ import (
 // 维护：消息未读数（会话未读数、总未读数）
 
 const (
-	KeySessionUnreadExpire = 86400 * 15
-	KeyTotalUnreadExpire   = 86400 * 15
+	KeySessionUnreadExpire = 86400 * 15 * time.Second
+	KeyTotalUnreadExpire   = 86400 * 15 * time.Second
 )
 
 // Hash：owner -> [ peer : number ]
@@ -117,7 +117,6 @@ func (repo *MessageRepo) checkBeforeIncrSessionUnread(ctx context.Context, logHe
 func (repo *MessageRepo) incrSessionUnread(ctx context.Context, logHead string, owner, peer *gmodel.ComponentId, incr int64) (afterIncr int64, err error) {
 	mem := repo.RedisClient
 	key := keyHashSessionUnread(owner)
-	expire := KeySessionUnreadExpire * time.Second
 	logHead += fmt.Sprintf("incrSessionUnread,key=%v|", key)
 
 	// HIncrBy
@@ -130,7 +129,7 @@ func (repo *MessageRepo) incrSessionUnread(ctx context.Context, logHead string, 
 	logging.Infof(logHead+"HIncrBy success,afterIncr=%v", afterIncr)
 
 	// Expire
-	if err = mem.Expire(ctx, key, expire).Err(); err != nil {
+	if err = mem.Expire(ctx, key, KeySessionUnreadExpire).Err(); err != nil {
 		logging.Errorf(logHead+"Expire error=%v", err)
 		return
 	}
@@ -181,7 +180,6 @@ func (repo *MessageRepo) cleanSessionUnread(ctx context.Context, logHead string,
 //func (repo *MessageRepo) incrTotalUnread(ctx context.Context, logHead string, id *gmodel.ComponentId, incr int64) (afterIncr int64, err error) {
 //	mem := repo.RedisClient
 //	key := keyStringTotalUnread(id)
-//	expire := KeyTotalUnreadExpire * time.Second
 //	logHead += fmt.Sprintf("incrTotalUnread,key=%v|", key)
 //
 //	// IncrBy()
@@ -194,7 +192,7 @@ func (repo *MessageRepo) cleanSessionUnread(ctx context.Context, logHead string,
 //	logging.Infof(logHead+"IncrBy success,afterIncr=%v", afterIncr)
 //
 //	// Expire
-//	if err = mem.Expire(ctx, key, expire).Err(); err != nil {
+//	if err = mem.Expire(ctx, key, KeyTotalUnreadExpire).Err(); err != nil {
 //		logging.Errorf(logHead+"Expire error=%v", err)
 //		return
 //	}
