@@ -143,7 +143,7 @@ func (b *ContactUseCase) checkParamsFetch(ctx context.Context, req *request.Cont
 	if req.Owner == nil {
 		return api.ErrSenderOrReceiverNotAllow
 	}
-	if req.Owner.Id() == 0 {
+	if req.Owner.GetId() == 0 {
 		return api.ErrSenderOrReceiverNotAllow
 	}
 
@@ -152,7 +152,7 @@ func (b *ContactUseCase) checkParamsFetch(ctx context.Context, req *request.Cont
 	//}
 	//
 	//// check: owner type
-	//if !lo.Contains(allowOwnerType, req.Owner.Type()) {
+	//if !lo.Contains(allowOwnerType, req.Owner.GetType()) {
 	//	return api.ErrSenderTypeNotAllow
 	//}
 

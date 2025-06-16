@@ -17,12 +17,12 @@ func NewMsgId(ctx context.Context, params *MsgIdParams) (msgId uint64, err error
 
 	switch {
 	case id1.IsGroup(): // 群聊
-		msgId, err = genMsgId(ctx, mem, id1.Id())
+		msgId, err = genMsgId(ctx, mem, id1.GetId())
 	case id2.IsGroup(): // 群聊
-		msgId, err = genMsgId(ctx, mem, id2.Id())
+		msgId, err = genMsgId(ctx, mem, id2.GetId())
 	default: // 单聊
 		_, largerId := id1.Sort(id2)
-		msgId, err = genMsgId(ctx, mem, largerId.Id())
+		msgId, err = genMsgId(ctx, mem, largerId.GetId())
 	}
 
 	return

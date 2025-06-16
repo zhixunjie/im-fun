@@ -18,30 +18,30 @@ const (
 
 // ComponentId 组合ID
 type ComponentId struct {
-	id     uint64
-	idType ContactIdType
+	Id     uint64        `json:"id"`
+	IdType ContactIdType `json:"id_type"`
 }
 
 func (c *ComponentId) ToString() string {
-	return fmt.Sprintf("%d_%d", c.idType, c.id)
+	return fmt.Sprintf("%d_%d", c.IdType, c.Id)
 }
 
-func (c *ComponentId) Id() uint64 {
-	return c.id
+func (c *ComponentId) GetId() uint64 {
+	return c.Id
 }
 
-func (c *ComponentId) Type() ContactIdType {
-	return c.idType
+func (c *ComponentId) GetType() ContactIdType {
+	return c.IdType
 }
 
 func (c *ComponentId) IsGroup() bool {
 	typeArr := []ContactIdType{TypeGroup}
 
-	return lo.Contains(typeArr, c.idType)
+	return lo.Contains(typeArr, c.IdType)
 }
 
 func (c *ComponentId) Equal(b *ComponentId) bool {
-	if c.Id() == b.Id() && c.Type() == b.Type() {
+	if c.Id == b.Id && c.IdType == b.IdType {
 		return true
 	}
 	return false
@@ -49,17 +49,17 @@ func (c *ComponentId) Equal(b *ComponentId) bool {
 
 // Sort 小的id在前，大的id在后
 func (c *ComponentId) Sort(b *ComponentId) (*ComponentId, *ComponentId) {
-	if c.id < b.id {
+	if c.Id < b.Id {
 		return c, b
 	}
 
 	return b, c
 }
 
-func NewComponentId(id uint64, idType ContactIdType) *ComponentId {
+func NewComponentId(Id uint64, IdType ContactIdType) *ComponentId {
 	return &ComponentId{
-		id:     id,
-		idType: idType,
+		Id:     Id,
+		IdType: IdType,
 	}
 }
 

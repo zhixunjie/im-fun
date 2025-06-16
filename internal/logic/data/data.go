@@ -4,13 +4,11 @@ import (
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
-	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/query"
 	"github.com/zhixunjie/im-fun/pkg/gomysql"
 	"github.com/zhixunjie/im-fun/pkg/goredis"
 	"github.com/zhixunjie/im-fun/pkg/kafka"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-	"github.com/zhixunjie/im-fun/pkg/utils"
 	"gorm.io/gorm"
 )
 
@@ -87,8 +85,8 @@ func (d *Data) CreateOrDrop() {
 		if item.IsDefault {
 			continue
 		}
-		utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameChatMessage, int64(model.DBNum()))
-		utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameChatGroupMessage, int64(model.DBNum()))
-		utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameChatContact, int64(model.DBNum()))
+		//utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameChatMessage, int64(model.DBNum()))
+		//utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameChatGroupMessage, int64(model.DBNum()))
+		//utils.CreateOrDrop(gomysql.Master(item.Name), "create", model.TableNameChatContact, int64(model.DBNum()))
 	}
 }

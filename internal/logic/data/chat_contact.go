@@ -35,14 +35,14 @@ func (repo *ContactRepo) InfoWithCache(ownerId, peerId *gmodel.ComponentId) (*mo
 
 // Info 查询某个会话的信息
 func (repo *ContactRepo) Info(ownerId, peerId *gmodel.ComponentId) (row *model.ChatContact, err error) {
-	dbName, tbName := model.TbNameContact(ownerId.Id())
+	dbName, tbName := model.TbNameContact(ownerId.GetId())
 	slave := repo.Slave(dbName).ChatContact.Table(tbName)
 
 	row, err = slave.Where(
-		slave.OwnerID.Eq(ownerId.Id()),
-		slave.OwnerType.Eq(uint32(ownerId.Type())),
-		slave.PeerID.Eq(peerId.Id()),
-		slave.PeerType.Eq(uint32(peerId.Type())),
+		slave.OwnerID.Eq(ownerId.GetId()),
+		slave.OwnerType.Eq(uint32(ownerId.GetType())),
+		slave.PeerID.Eq(peerId.GetId()),
+		slave.PeerType.Eq(uint32(peerId.GetType())),
 	).Take()
 	if err != nil {
 		return
@@ -80,7 +80,7 @@ func (repo *ContactRepo) Info(ownerId, peerId *gmodel.ComponentId) (row *model.C
 // CreateNotExists 创建会话
 func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildContactParams) (contact *model.ChatContact, err error) {
 	logHead += "CreateNotExists|"
-	dbName, tbName := model.TbNameContact(params.Owner.Id())
+	dbName, tbName := model.TbNameContact(params.Owner.GetId())
 	master := repo.Master(dbName).ChatContact.Table(tbName)
 
 	// TODO: 使用 redis hash/string 进行优化（支持同时查两个contact）
@@ -96,10 +96,10 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 	// insert if not exists
 	if errors.Is(tmpErr, gorm.ErrRecordNotFound) {
 		contact = &model.ChatContact{
-			OwnerID:   params.Owner.Id(),
-			OwnerType: uint32(params.Owner.Type()),
-			PeerID:    params.Peer.Id(),
-			PeerType:  uint32(params.Peer.Type()),
+			OwnerID:   params.Owner.GetId(),
+			OwnerType: uint32(params.Owner.GetType()),
+			PeerID:    params.Peer.GetId(),
+			PeerType:  uint32(params.Peer.GetType()),
 			PeerAck:   uint32(gmodel.PeerNotAck),
 			Status:    uint32(gmodel.ContactStatusNormal),
 		}
@@ -117,7 +117,7 @@ func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildCont
 
 // RangeList 获取一定范围的会话列表
 func (repo *ContactRepo) RangeList(params *model.FetchContactRangeParams) (list []*model.ChatContact, err error) {
-	dbName, tbName := model.TbNameContact(params.Owner.Id())
+	dbName, tbName := model.TbNameContact(params.Owner.GetId())
 	slave := repo.Slave(dbName).ChatContact.Table(tbName)
 
 	pivotVersionId := params.PivotVersionId
@@ -130,8 +130,8 @@ func (repo *ContactRepo) RangeList(params *model.FetchContactRangeParams) (list 
 			pivotVersionId = math.MaxInt64
 		}
 		list, err = slave.Where(
-			slave.OwnerID.Eq(ownerId.Id()),
-			slave.OwnerType.Eq(uint32(ownerId.Type())),
+			slave.OwnerID.Eq(ownerId.GetId()),
+			slave.OwnerType.Eq(uint32(ownerId.GetType())),
 			slave.VersionID.Lt(pivotVersionId),
 		).Limit(params.Limit).Order(slave.VersionID.Desc()).Find()
 		if err != nil {
@@ -140,8 +140,8 @@ func (repo *ContactRepo) RangeList(params *model.FetchContactRangeParams) (list 
 		}
 	case gmodel.FetchTypeForward: // 拉取最新消息，范围为：（pivotVersionId, 正无穷）
 		list, err = slave.Where(
-			slave.OwnerID.Eq(ownerId.Id()),
-			slave.OwnerType.Eq(uint32(ownerId.Type())),
+			slave.OwnerID.Eq(ownerId.GetId()),
+			slave.OwnerType.Eq(uint32(ownerId.GetType())),
 			slave.VersionID.Gt(pivotVersionId),
 		).Limit(params.Limit).Order(slave.VersionID).Find()
 		if err != nil {
@@ -160,7 +160,7 @@ func (repo *ContactRepo) RangeList(params *model.FetchContactRangeParams) (list 
 func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, contactId uint64, owner *gmodel.ComponentId, lastMsgId uint64, peerAck gmodel.PeerAckStatus) (err error) {
 	logHead += "UpdateLastMsgId|"
 	mem := repo.RedisClient
-	dbName, tbName := model.TbNameContact(owner.Id())
+	dbName, tbName := model.TbNameContact(owner.GetId())
 	master := repo.Master(dbName).ChatContact.Table(tbName)
 
 	// note: 同一用户的会话timeline的版本变动，需要加锁
@@ -204,15 +204,15 @@ func (repo *ContactRepo) UpdateLastMsgId(ctx context.Context, logHead string, co
 
 // UpdateLastDelMsg 更新contact的最后一条已删除的消息（清空聊天记录）
 func (repo *ContactRepo) UpdateLastDelMsg(lastDelMsgId model.BigIntType, versionId uint64, ownerId, peerId *gmodel.ComponentId) (err error) {
-	dbName, tbName := model.TbNameContact(ownerId.Id())
+	dbName, tbName := model.TbNameContact(ownerId.GetId())
 	master := repo.Master(dbName).ChatContact.Table(tbName)
 
 	var res gen.ResultInfo
 	res, err = master.Where(
-		master.OwnerID.Eq(ownerId.Id()),
-		master.OwnerType.Eq(uint32(ownerId.Type())),
-		master.PeerID.Eq(peerId.Id()),
-		master.PeerType.Eq(uint32(peerId.Type())),
+		master.OwnerID.Eq(ownerId.GetId()),
+		master.OwnerType.Eq(uint32(ownerId.GetType())),
+		master.PeerID.Eq(peerId.GetId()),
+		master.PeerType.Eq(uint32(peerId.GetType())),
 	).Limit(1).Updates(&model.ChatContact{
 		LastDelMsgID: lastDelMsgId,
 		VersionID:    versionId,

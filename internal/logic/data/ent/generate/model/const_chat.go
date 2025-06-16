@@ -54,12 +54,12 @@ func TbNameContact(ownerId uint64) (dbName string, tbName string) {
 func TbNameMessageByCId(id1, id2 *gmodel.ComponentId) (dbName string, tbName string) {
 	switch {
 	case id1.IsGroup(): // 群聊
-		dbName, tbName = TbNameMessage(id1.Id())
+		dbName, tbName = TbNameMessage(id1.GetId())
 	case id2.IsGroup(): // 群聊
-		dbName, tbName = TbNameMessage(id2.Id())
+		dbName, tbName = TbNameMessage(id2.GetId())
 	default: // 单聊
 		_, largerId := id1.Sort(id2)
-		dbName, tbName = TbNameMessage(largerId.Id())
+		dbName, tbName = TbNameMessage(largerId.GetId())
 	}
 
 	return
@@ -124,12 +124,12 @@ func TbNameGroupMessage(id uint64) (dbName string, tbName string) {
 func TbNameGroupMessageByCId(id1, id2 *gmodel.ComponentId) (dbName string, tbName string) {
 	switch {
 	case id1.IsGroup(): // 群聊
-		dbName, tbName = TbNameGroupMessage(id1.Id())
+		dbName, tbName = TbNameGroupMessage(id1.GetId())
 	case id2.IsGroup(): // 群聊
-		dbName, tbName = TbNameGroupMessage(id2.Id())
+		dbName, tbName = TbNameGroupMessage(id2.GetId())
 	default: // 单聊
 		_, largerId := id1.Sort(id2)
-		dbName, tbName = TbNameGroupMessage(largerId.Id())
+		dbName, tbName = TbNameGroupMessage(largerId.GetId())
 	}
 
 	return

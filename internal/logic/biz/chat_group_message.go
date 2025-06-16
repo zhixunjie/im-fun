@@ -57,7 +57,7 @@ func (b *GroupMessageUseCase) Send(ctx context.Context, req *request.GroupMessag
 	// 1. create sender's contact if not exists
 	var senderContact, receiverContact *model.ChatContact
 	if b.needCreateContact(logHead, sender) {
-		if !lo.Contains(req.InvisibleList, cast.ToString(req.Sender.Id())) {
+		if !lo.Contains(req.InvisibleList, cast.ToString(req.Sender.GetId())) {
 			senderContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{Owner: sender, Peer: receiver})
 			if err != nil {
 				return
@@ -66,7 +66,7 @@ func (b *GroupMessageUseCase) Send(ctx context.Context, req *request.GroupMessag
 	}
 	// 2. create receiver's contact if not exists
 	if b.needCreateContact(logHead, receiver) {
-		if !lo.Contains(req.InvisibleList, cast.ToString(req.Receiver.Id())) {
+		if !lo.Contains(req.InvisibleList, cast.ToString(req.Receiver.GetId())) {
 			receiverContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{Owner: receiver, Peer: sender})
 			if err != nil {
 				return
@@ -83,7 +83,7 @@ func (b *GroupMessageUseCase) Send(ctx context.Context, req *request.GroupMessag
 	routine.Go(ctx, func() {
 		// 增加未读数: 先save db，再incr cache，保证尽快执行
 		// TODO: 确定群聊场景没有问题
-		if !lo.Contains(req.InvisibleList, cast.ToString(req.Receiver.Id())) {
+		if !lo.Contains(req.InvisibleList, cast.ToString(req.Receiver.GetId())) {
 			_ = b.repoMessageHelper.IncrUnreadAfterSend(ctx, logHead, receiver, sender, 1)
 		}
 		// update contact's info（写扩散）
@@ -186,7 +186,7 @@ func (b *GroupMessageUseCase) Fetch(ctx context.Context, req *request.GroupMessa
 				continue
 			}
 
-			if lo.Contains(tmpList, req.Owner.Id()) {
+			if lo.Contains(tmpList, req.Owner.GetId()) {
 				continue
 			}
 		}
@@ -313,8 +313,8 @@ func (b *GroupMessageUseCase) createMessage(ctx context.Context, logHead string,
 		MsgType:       uint32(req.MsgBody.MsgType),    // 消息类型
 		Content:       string(content),                // 消息内容
 		SessionID:     string(sessionId),              // 会话ID
-		SenderID:      req.Sender.Id(),                // 发送者ID
-		SenderType:    uint32(req.Sender.Type()),      // 发送者的用户类型
+		SenderID:      req.Sender.GetId(),             // 发送者ID
+		SenderType:    uint32(req.Sender.GetType()),   // 发送者的用户类型
 		VersionID:     versionId,                      // 版本ID
 		SortKey:       versionId,                      // sort_key的值等同于version_id
 		Status:        uint32(gmodel.MsgStatusNormal), // 状态正常
@@ -339,7 +339,7 @@ func (b *GroupMessageUseCase) needCreateContact(logHead string, id *gmodel.Compo
 	}
 
 	// 如果用户是指定类型，那么不需要创建他的contact信息（比如：机器人）
-	if lo.Contains(noNeedCreate, id.Type()) || id.IsGroup() {
+	if lo.Contains(noNeedCreate, id.GetType()) || id.IsGroup() {
 		logging.Info(logHead + "do not need create contact")
 		return false
 	}
@@ -353,7 +353,7 @@ func (b *GroupMessageUseCase) checkParamsSend(ctx context.Context, req *request.
 	if req.Sender == nil || req.Receiver == nil {
 		return api.ErrSenderOrReceiverNotAllow
 	}
-	if req.Sender.Id() == 0 || req.Receiver.Id() == 0 {
+	if req.Sender.GetId() == 0 || req.Receiver.GetId() == 0 {
 		return api.ErrSenderOrReceiverNotAllow
 	}
 	if req.Sender.Equal(req.Receiver) {
@@ -376,11 +376,11 @@ func (b *GroupMessageUseCase) checkParamsSend(ctx context.Context, req *request.
 	//}
 	//
 	//// check: sender type
-	//if !lo.Contains(allowSenderType, req.Sender.Type()) {
+	//if !lo.Contains(allowSenderType, req.Sender.GetType()) {
 	//	return api.ErrSenderTypeNotAllow
 	//}
 	//// check: receiver type
-	//if !lo.Contains(allowReceiverType, req.Receiver.Type()) {
+	//if !lo.Contains(allowReceiverType, req.Receiver.GetType()) {
 	//	return api.ErrReceiverTypeNotAllow
 	//}
 
@@ -448,7 +448,7 @@ func (b *GroupMessageUseCase) checkParamsFetch(ctx context.Context, req *request
 	if req.Owner == nil || req.Peer == nil {
 		return api.ErrSenderOrReceiverNotAllow
 	}
-	if req.Owner.Id() == 0 || req.Peer.Id() == 0 {
+	if req.Owner.GetId() == 0 || req.Peer.GetId() == 0 {
 		return api.ErrSenderOrReceiverNotAllow
 	}
 	if req.Owner.Equal(req.Peer) {
@@ -469,11 +469,11 @@ func (b *GroupMessageUseCase) checkParamsFetch(ctx context.Context, req *request
 	//}
 	//
 	//// check: owner type
-	//if !lo.Contains(allowOwnerType, req.Owner.Type()) {
+	//if !lo.Contains(allowOwnerType, req.Owner.GetType()) {
 	//	return api.ErrSenderTypeNotAllow
 	//}
 	//// check: peer type
-	//if !lo.Contains(allowPeerType, req.Peer.Type()) {
+	//if !lo.Contains(allowPeerType, req.Peer.GetType()) {
 	//	return api.ErrReceiverTypeNotAllow
 	//}
 
