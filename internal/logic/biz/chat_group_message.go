@@ -62,7 +62,7 @@ func (b *GroupMessageUseCase) Send(ctx context.Context, req *request.GroupMessag
 	var senderContact, receiverContact *model.ChatContact
 	if b.needCreateContact(logHead, sender) {
 		if !lo.Contains(req.InvisibleList, cast.ToString(req.Sender.GetId())) {
-			senderContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{Owner: sender, Peer: receiver})
+			senderContact, err = b.repoContact.CreateNotExists(ctx, logHead, &model.BuildContactParams{Owner: sender, Peer: receiver})
 			if err != nil {
 				return
 			}
@@ -71,7 +71,7 @@ func (b *GroupMessageUseCase) Send(ctx context.Context, req *request.GroupMessag
 	// 2. create receiver's contact if not exists
 	if b.needCreateContact(logHead, receiver) {
 		if !lo.Contains(req.InvisibleList, cast.ToString(req.Receiver.GetId())) {
-			receiverContact, err = b.repoContact.CreateNotExists(logHead, &model.BuildContactParams{Owner: receiver, Peer: sender})
+			receiverContact, err = b.repoContact.CreateNotExists(ctx, logHead, &model.BuildContactParams{Owner: receiver, Peer: sender})
 			if err != nil {
 				return
 			}

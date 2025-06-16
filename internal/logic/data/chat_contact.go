@@ -78,13 +78,12 @@ func (repo *ContactRepo) Info(ownerId, peerId *gmodel.ComponentId) (row *model.C
 //}
 
 // CreateNotExists 创建会话
-func (repo *ContactRepo) CreateNotExists(logHead string, params *model.BuildContactParams) (contact *model.ChatContact, err error) {
+func (repo *ContactRepo) CreateNotExists(ctx context.Context, logHead string, params *model.BuildContactParams) (contact *model.ChatContact, err error) {
 	logHead += "CreateNotExists|"
 	dbName, tbName := model.TbNameContact(params.Owner.GetId())
 	master := repo.Master(dbName).ChatContact.Table(tbName)
 
 	// TODO: 使用 redis hash/string 进行优化（支持同时查两个contact）
-	// TODO：使用 local cache 的 bitmap 进行优化
 	// query contact
 	contact, tmpErr := repo.Info(params.Owner, params.Peer)
 	if tmpErr != nil && !errors.Is(tmpErr, gorm.ErrRecordNotFound) {
