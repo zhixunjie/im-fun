@@ -20,8 +20,11 @@ import (
 // Injectors from wire.go:
 
 func InitGrpc(ctx context.Context, c *conf.Config) (*grpc.Server, func(), error) {
-	bizBiz := biz.NewBiz(c)
 	dataData := data.NewData(c)
+	userRepo := data.NewUserRepo(dataData)
+	userCache := cache.NewUserCache(userRepo)
+	userUseCase := biz.NewUserUseCase(userRepo, userCache)
+	bizBiz := biz.NewBiz(c, userUseCase)
 	contactRepo := data.NewContactRepo(dataData)
 	messageRepo := data.NewMessageRepo(dataData)
 	contactUseCase := biz.NewContactUseCase(contactRepo, messageRepo)
@@ -37,8 +40,11 @@ func InitGrpc(ctx context.Context, c *conf.Config) (*grpc.Server, func(), error)
 }
 
 func InitHttp(c *conf.Config) *http.Server {
-	bizBiz := biz.NewBiz(c)
 	dataData := data.NewData(c)
+	userRepo := data.NewUserRepo(dataData)
+	userCache := cache.NewUserCache(userRepo)
+	userUseCase := biz.NewUserUseCase(userRepo, userCache)
+	bizBiz := biz.NewBiz(c, userUseCase)
 	contactRepo := data.NewContactRepo(dataData)
 	messageRepo := data.NewMessageRepo(dataData)
 	contactUseCase := biz.NewContactUseCase(contactRepo, messageRepo)
@@ -46,9 +52,6 @@ func InitHttp(c *conf.Config) *http.Server {
 	messageUseCase := biz.NewMessageUseCase(messageRepo, contactRepo, messageFilterUseCase)
 	groupMessageRepo := data.NewGroupMessageRepo(dataData)
 	groupMessageUseCase := biz.NewGroupMessageUseCase(groupMessageRepo, contactRepo, messageRepo, messageFilterUseCase)
-	userRepo := data.NewUserRepo(dataData)
-	userCache := cache.NewUserCache(userRepo)
-	userUseCase := biz.NewUserUseCase(userRepo, userCache)
 	userGroupRepo := data.NewUserGroupRepo(dataData)
 	userGroupUseCase := biz.NewUserGroupUseCase(userGroupRepo)
 	server := http.NewServer(c, bizBiz, contactUseCase, messageUseCase, groupMessageUseCase, userUseCase, userGroupUseCase)
