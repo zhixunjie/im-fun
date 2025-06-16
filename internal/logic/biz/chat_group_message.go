@@ -302,7 +302,7 @@ func (b *GroupMessageUseCase) createMessage(ctx context.Context, logHead string,
 		Id2: receiver,
 	})
 	if err != nil {
-		logging.Errorf(logHead+"gen VersionID error=%v", err)
+		logging.Errorf(logHead+"NewMsgVersionId error=%v", err)
 		return
 	}
 

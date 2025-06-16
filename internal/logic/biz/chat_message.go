@@ -436,7 +436,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 		Id2: receiver,
 	})
 	if err != nil {
-		logging.Errorf(logHead+"gen VersionID error=%v", err)
+		logging.Errorf(logHead+"NewMsgVersionId error=%v", err)
 		return
 	}
 
@@ -580,7 +580,7 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 		Id2: receiver,
 	})
 	if err != nil {
-		logging.Errorf(logHead+"gen VersionID error=%v", err)
+		logging.Errorf(logHead+"NewMsgVersionId error=%v", err)
 		return
 	}
 
