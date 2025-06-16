@@ -31,7 +31,7 @@ func keyStringTotalUnread(u *gmodel.ComponentId) string {
 // IncrUnreadAfterSend 发送消息后，增加未读数
 func (repo *MessageRepo) IncrUnreadAfterSend(ctx context.Context, logHead string, receiver, sender *gmodel.ComponentId, incr int64) (err error) {
 	// clean before add
-	err = repo.checkBeforeIncrSessionUnread(ctx, logHead, receiver, sender)
+	err = repo.checkSessionUnread(ctx, logHead, receiver, sender)
 	if err != nil {
 		return
 	}
@@ -43,7 +43,7 @@ func (repo *MessageRepo) IncrUnreadAfterSend(ctx context.Context, logHead string
 	}
 
 	// clean before add
-	//err = repo.checkBeforeIncrTotalUnread(ctx, logHead, receiver)
+	//err = repo.checkTotalUnread(ctx, logHead, receiver)
 	//if err != nil {
 	//	return
 	//}
@@ -75,7 +75,7 @@ func (repo *MessageRepo) DecrUnreadAfterFetch(ctx context.Context, logHead strin
 }
 
 // clean before add
-func (repo *MessageRepo) checkBeforeIncrSessionUnread(ctx context.Context, logHead string, receiver, sender *gmodel.ComponentId) (err error) {
+func (repo *MessageRepo) checkSessionUnread(ctx context.Context, logHead string, receiver, sender *gmodel.ComponentId) (err error) {
 	retMap, err := repo.MGetSessionUnread(ctx, logHead, receiver, []*gmodel.ComponentId{sender})
 	if err != nil {
 		return
@@ -94,7 +94,7 @@ func (repo *MessageRepo) checkBeforeIncrSessionUnread(ctx context.Context, logHe
 }
 
 // clean before add
-//func (repo *MessageRepo) checkBeforeIncrTotalUnread(ctx context.Context, logHead string, receiverId *gmodel.ComponentId) (err error) {
+//func (repo *MessageRepo) checkTotalUnread(ctx context.Context, logHead string, receiverId *gmodel.ComponentId) (err error) {
 //	srcVal, err := repo.GetTotalUnread(ctx, logHead, receiverId)
 //	if err != nil {
 //		return
