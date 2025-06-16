@@ -13,7 +13,7 @@ const (
 	TypeUser   ContactIdType = 1   // 对方是普通用户
 	TypeRobot  ContactIdType = 2   // 对方是机器人
 	TypeSystem ContactIdType = 100 // 对方是系统用户
-	TypeGroup  ContactIdType = 101 // 对方是群组
+	TypeGroup  ContactIdType = 200 // 对方是群组
 )
 
 // ComponentId 组合ID

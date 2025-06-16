@@ -22,10 +22,10 @@ func NewGroupMessageRepo(data *Data) *GroupMessageRepo {
 	}
 }
 
-func (repo *GroupMessageRepo) Create(logHead string, row *model.ChatMessage) (err error) {
+func (repo *GroupMessageRepo) Create(logHead string, row *model.ChatGroupMessage) (err error) {
 	logHead += "Create|"
 	dbName, tbName := model.TbNameGroupMessage(row.MsgID)
-	master := repo.Master(dbName).ChatMessage.Table(tbName)
+	master := repo.Master(dbName).ChatGroupMessage.Table(tbName)
 
 	err = master.Create(row)
 	if err != nil {
@@ -38,16 +38,16 @@ func (repo *GroupMessageRepo) Create(logHead string, row *model.ChatMessage) (er
 }
 
 // InfoWithCache 查询某条消息的详情
-func (repo *GroupMessageRepo) InfoWithCache(msgId uint64) (*model.ChatMessage, error) {
+func (repo *GroupMessageRepo) InfoWithCache(msgId uint64) (*model.ChatGroupMessage, error) {
 	// todo 先从cache拿，拿不到再从DB拿
 
 	return repo.Info(msgId)
 }
 
 // Info 查询某条消息的详情
-func (repo *GroupMessageRepo) Info(msgId uint64) (row *model.ChatMessage, err error) {
+func (repo *GroupMessageRepo) Info(msgId uint64) (row *model.ChatGroupMessage, err error) {
 	dbName, tbName := model.TbNameGroupMessage(msgId)
-	slave := repo.Slave(dbName).ChatMessage.Table(tbName)
+	slave := repo.Slave(dbName).ChatGroupMessage.Table(tbName)
 
 	row, err = slave.Where(slave.MsgID.Eq(msgId)).Take()
 	if err != nil {
@@ -57,9 +57,9 @@ func (repo *GroupMessageRepo) Info(msgId uint64) (row *model.ChatMessage, err er
 }
 
 // RangeList 获取一定范围的消息列表
-func (repo *GroupMessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*model.ChatMessage, err error) {
+func (repo *GroupMessageRepo) RangeList(params *model.FetchMsgRangeParams) (list []*model.ChatGroupMessage, err error) {
 	dbName, tbName := model.TbNameGroupMessageByCId(params.Owner, params.Peer)
-	slave := repo.Slave(dbName).ChatMessage.Table(tbName)
+	slave := repo.Slave(dbName).ChatGroupMessage.Table(tbName)
 
 	// get id
 	delVersionId := params.LastDelMsgVersionId
@@ -105,7 +105,7 @@ func (repo *GroupMessageRepo) RangeList(params *model.FetchMsgRangeParams) (list
 func (repo *GroupMessageRepo) UpdateMsgVerAndStatus(logHead string, msgId, versionId model.BigIntType, status gmodel.MsgStatus) (err error) {
 	logHead += fmt.Sprintf("UpdateMsgVerAndStatus,msgId=%v,versionId=%v,status=%v|", msgId, versionId, status)
 	dbName, tbName := model.TbNameGroupMessage(msgId)
-	master := repo.Master(dbName).ChatMessage.Table(tbName)
+	master := repo.Master(dbName).ChatGroupMessage.Table(tbName)
 
 	// status
 	srcStatus := uint32(gmodel.MsgStatusNormal)
@@ -115,7 +115,7 @@ func (repo *GroupMessageRepo) UpdateMsgVerAndStatus(logHead string, msgId, versi
 	var res gen.ResultInfo
 	res, err = master.
 		Where(master.MsgID.Eq(msgId), master.Status.Eq(srcStatus)).Limit(1).
-		Updates(&model.ChatMessage{
+		Updates(&model.ChatGroupMessage{
 			VersionID: versionId,
 			Status:    dstStatus,
 		})
@@ -132,7 +132,7 @@ func (repo *GroupMessageRepo) UpdateMsgVerAndStatus(logHead string, msgId, versi
 	return
 }
 
-func (repo *GroupMessageRepo) BatchGetByMsgIds(ctx context.Context, msgIds []uint64) (retMap map[uint64]*model.ChatMessage, err error) {
+func (repo *GroupMessageRepo) BatchGetByMsgIds(ctx context.Context, msgIds []uint64) (retMap map[uint64]*model.ChatGroupMessage, err error) {
 	tbNames := map[string][]uint64{}
 	for _, msgId := range msgIds {
 		dbName, tbName := model.TbNameGroupMessage(msgId)
@@ -140,15 +140,15 @@ func (repo *GroupMessageRepo) BatchGetByMsgIds(ctx context.Context, msgIds []uin
 		tbNames[key] = append(tbNames[key], msgId)
 	}
 
-	list := make([]*model.ChatMessage, 0, len(msgIds))
-	tmpList := make([]*model.ChatMessage, 0, len(msgIds))
+	list := make([]*model.ChatGroupMessage, 0, len(msgIds))
+	tmpList := make([]*model.ChatGroupMessage, 0, len(msgIds))
 	for key, ids := range tbNames {
 		res := strings.Split(key, "_")
 		if len(res) != 2 {
 			continue
 		}
 		dbName, tbName := res[0], res[1]
-		slave := repo.Slave(dbName).ChatMessage.Table(tbName)
+		slave := repo.Slave(dbName).ChatGroupMessage.Table(tbName)
 		// find it
 		tmpList, err = slave.Where(slave.MsgID.In(ids...)).Find()
 		if err != nil {

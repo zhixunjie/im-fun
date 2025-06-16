@@ -144,7 +144,7 @@ func (b *GroupMessageUseCase) Fetch(ctx context.Context, req *request.GroupMessa
 
 	// get: last msg info
 	var lastDelMsgVersionId uint64
-	var messageInfo *model.ChatMessage
+	var messageInfo *model.ChatGroupMessage
 	if contactInfo.LastDelMsgID > 0 {
 		messageInfo, err = b.repoGroupMessage.Info(contactInfo.LastDelMsgID)
 		if err != nil {
@@ -175,22 +175,9 @@ func (b *GroupMessageUseCase) Fetch(ctx context.Context, req *request.GroupMessa
 	var retList []*response.GroupMsgEntity
 	minVersionId := uint64(math.MaxUint64)
 	maxVersionId := uint64(0)
-	var tmpList []uint64
 	for _, item := range list {
 		minVersionId = utils.Min(minVersionId, item.VersionID)
 		maxVersionId = utils.Max(maxVersionId, item.VersionID)
-
-		// 过滤：invisible list
-		if len(item.InvisibleList) > 0 {
-			err = json.Unmarshal([]byte(item.InvisibleList), &tmpList)
-			if err != nil {
-				continue
-			}
-
-			if lo.Contains(tmpList, req.Owner.GetId()) {
-				continue
-			}
-		}
 
 		// build message list
 		body := new(format.MsgBody)
@@ -247,21 +234,11 @@ func (b *GroupMessageUseCase) Fetch(ctx context.Context, req *request.GroupMessa
 }
 
 // createMessage 构建消息体
-func (b *GroupMessageUseCase) createMessage(ctx context.Context, logHead string, req *request.GroupMessageSendReq) (msg *model.ChatMessage, err error) {
+func (b *GroupMessageUseCase) createMessage(ctx context.Context, logHead string, req *request.GroupMessageSendReq) (msg *model.ChatGroupMessage, err error) {
 	logHead += "createMessage|"
 	mem := b.repoMessageHelper.RedisClient
 	sender := req.Sender
 	receiver := req.Receiver
-
-	// exchange：InvisibleList
-	var bInvisibleList []byte
-	if len(req.InvisibleList) > 0 {
-		bInvisibleList, err = json.Marshal(req.InvisibleList)
-		if err != nil {
-			logging.Errorf(logHead+"Marshal error=%v", err)
-			return
-		}
-	}
 
 	// exchange：MsgContent
 	content, err := json.Marshal(req.MsgBody)
@@ -307,19 +284,18 @@ func (b *GroupMessageUseCase) createMessage(ctx context.Context, logHead string,
 	}
 
 	// build message
-	msg = &model.ChatMessage{
-		MsgID:         msgId,                          // 唯一id（服务端）
-		SeqID:         req.SeqId,                      // 唯一id（客户端）
-		MsgType:       uint32(req.MsgBody.MsgType),    // 消息类型
-		Content:       string(content),                // 消息内容
-		SessionID:     string(sessionId),              // 会话ID
-		SenderID:      req.Sender.GetId(),             // 发送者ID
-		SenderType:    uint32(req.Sender.GetType()),   // 发送者的用户类型
-		VersionID:     versionId,                      // 版本ID
-		SortKey:       versionId,                      // sort_key的值等同于version_id
-		Status:        uint32(gmodel.MsgStatusNormal), // 状态正常
-		HasRead:       uint32(gmodel.MsgRead),         // TODO: 已读（功能还没做好）
-		InvisibleList: string(bInvisibleList),         // 不可见的列表
+	msg = &model.ChatGroupMessage{
+		MsgID:      msgId,                          // 唯一id（服务端）
+		SeqID:      req.SeqId,                      // 唯一id（客户端）
+		MsgType:    uint32(req.MsgBody.MsgType),    // 消息类型
+		Content:    string(content),                // 消息内容
+		SessionID:  string(sessionId),              // 会话ID
+		SenderID:   req.Sender.GetId(),             // 发送者ID
+		SenderType: uint32(req.Sender.GetType()),   // 发送者的用户类型
+		VersionID:  versionId,                      // 版本ID
+		SortKey:    versionId,                      // sort_key的值等同于version_id
+		Status:     uint32(gmodel.MsgStatusNormal), // 状态正常
+		HasRead:    uint32(gmodel.MsgRead),         // TODO: 已读（功能还没做好）
 	}
 	err = b.repoGroupMessage.Create(logHead, msg)
 	if err != nil {
