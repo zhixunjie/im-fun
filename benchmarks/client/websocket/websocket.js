@@ -119,8 +119,7 @@ class WebsocketOp {
                 case this.Op.HEARTBEAT_REPLY:
                     appendToDialog('server: 回复心跳信息');
                     break;
-                case this.Op.BATCH_MSG:
-                    // batch message
+                case this.Op.BATCH_MSG:// 解析批量消息
                     // 因为在switch之前已经解过一次包，所以offset的值从rawHeaderLen开始
                     for (let offset = rawHeaderLen; offset < data.byteLength; offset += packetLen) {
                         let packetLen = dataView.getInt32(offset);
