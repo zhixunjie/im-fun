@@ -1,13 +1,14 @@
 /**
  * 输出信息到 textarea
+ * @param from
  * @param {string} content
  */
-function appendToDialog(content) {
+function appendToDialog(from, content) {
     const logEl = document.getElementById('log');
     if (!logEl) return;
 
     const timestamp = date();
-    logEl.value += `${timestamp} | ${content}\r\n`;
+    logEl.value += `${timestamp} ${from} | ${content}\r\n`;
     logEl.scrollTop = logEl.scrollHeight;
 }
 
@@ -76,7 +77,7 @@ class WebsocketOp {
     connect() {
         const url = document.getElementById("ws-url").value;
         if (this.wsClient && this.wsClient.readyState === WebSocket.OPEN) {
-            appendToDialog("已连接，无需重复连接。");
+            appendToDialog("websocket", "已连接，无需重复连接。");
             return;
         }
         this.wsClient = new WebSocket(url);
@@ -89,7 +90,7 @@ class WebsocketOp {
          */
         this.wsClient.onopen = (event) => {
             console.log(event);
-            appendToDialog("server: 连接成功...");
+            appendToDialog("websocket", "连接成功...");
             this.sendAuth()
         };
         /**
@@ -110,16 +111,17 @@ class WebsocketOp {
 
             switch (op) {
                 case this.Op.AUTH_REPLY:
-                    appendToDialog('server: 授权成功...');
+                    appendToDialog("server", "授权成功！");
                     this.sendHeartbeat();
                     // 利用bind，解决this指针丢失的问题
                     // https://blog.csdn.net/Victor2code/article/details/107804354
                     this.heartbeatInterval = setInterval(this.sendHeartbeat.bind(this), 30 * 1000);
                     break;
                 case this.Op.HEARTBEAT_REPLY:
-                    appendToDialog('server: 回复心跳信息');
+                    appendToDialog("server", '回复心跳信息');
                     break;
                 case this.Op.BATCH_MSG:// 解析批量消息
+                    appendToDialog("server", "接收到批次信息");
                     // 因为在switch之前已经解过一次包，所以offset的值从rawHeaderLen开始
                     for (let offset = rawHeaderLen; offset < data.byteLength; offset += packetLen) {
                         let packetLen = dataView.getInt32(offset);
@@ -128,12 +130,12 @@ class WebsocketOp {
                         let op = dataView.getInt32(offset + opOffset);
                         let seq = dataView.getInt32(offset + seqOffset);
                         let msgBody = this.textDecoder.decode(data.slice(offset + headerLen, offset + packetLen));
-                        appendToDialog("server: ver=" + ver + " op=" + op + " seq=" + seq + " message=" + msgBody);
+                        appendToDialog("server", "ver=" + ver + " op=" + op + " seq=" + seq + " message=" + msgBody);
                     }
                     break;
                 default:
                     let msgBody = this.textDecoder.decode(data.slice(headerLen, packetLen));
-                    appendToDialog("server: ver=" + ver + " op=" + op + " seq=" + seq + " message=" + msgBody);
+                    appendToDialog("server", "ver=" + ver + " op=" + op + " seq=" + seq + " message=" + msgBody);
                     break
             }
         }
@@ -145,8 +147,8 @@ class WebsocketOp {
         this.wsClient.onclose = (event) => {
             // console.log(event);
             this.reset()
-            appendToDialog("连接已关闭...");
-            appendToDialog("event=" + event);
+            appendToDialog("websocket", "连接已关闭...");
+            appendToDialog("websocket", "event=" + event);
 
         };
         /**
@@ -156,8 +158,8 @@ class WebsocketOp {
         this.wsClient.onerror = (event) => {
             // console.log(event);
             this.reset()
-            appendToDialog("连接时遇到错误...");
-            appendToDialog("event=" + event);
+            appendToDialog("websocket", "连接时遇到错误...");
+            appendToDialog("websocket", "event=" + event);
         }
     }
 
@@ -182,7 +184,7 @@ class WebsocketOp {
         });
         // send frame
         this.sendFrame(this.Op.AUTH, authInfo)
-        appendToDialog("client: 发送授权请求");
+        appendToDialog("client", "发送授权请求");
     }
 
     // 发送消息
@@ -191,14 +193,14 @@ class WebsocketOp {
         if (!msgInput) return;
         // send frame
         this.sendFrame(this.Op.SEND_MSG, msgInput.value);
-        appendToDialog("client: 发送一条消息");
+        appendToDialog("client", "发送一条消息");
     }
 
     // 发送心跳
     sendHeartbeat() {
         // send frame
         this.sendFrame(this.Op.HEARTBEAT, '')
-        appendToDialog("client: 发送心跳信息");
+        appendToDialog("client", "发送心跳信息");
     }
 
     // 客户端发送消息
@@ -217,7 +219,7 @@ class WebsocketOp {
         headerView.setInt32(seqOffset, this.seqNum++);
         // send
         this.wsClient.send(this.mergeArrayBuffer(headerBuf, bodyBuf));
-        appendToDialog("client: send frame: " + body + ".");
+        appendToDialog("client", "send frame: " + body + ".");
     }
 
     mergeArrayBuffer(ab1, ab2) {
