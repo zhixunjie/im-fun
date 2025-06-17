@@ -137,6 +137,7 @@ func (s *TcpServer) readLoop(ctx context.Context, logHead string, ch *channel.Ch
 			}
 			logging.Errorf(logHead+"fail: err=%v", err)
 			s.cleanAfterFn(ctx, logHead, channel.CleanPath2, ch, bucket)
+			return
 		}
 	}()
 
