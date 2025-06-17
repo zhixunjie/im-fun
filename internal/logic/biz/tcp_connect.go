@@ -24,7 +24,8 @@ func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (resp *pb.Connec
 	resp = new(pb.ConnectResp)
 	authParams := req.AuthParams
 	expire := bz.GetHeartbeatExpire()
-	logHead := fmt.Sprintf("Connect,authParams.UniId=%+v,expire=%v|", authParams.UniId, expire)
+	logHead := fmt.Sprintf("Connect,uniId=%+v|", authParams.UniId)
+	logging.Info(logHead+"req=%+v,expire=%v", req, expire)
 
 	// check token
 	claims, err := bz.userUseCase.checkToken(authParams.Token)
@@ -64,7 +65,8 @@ func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (resp *pb.Connec
 func (bz *Biz) Disconnect(ctx context.Context, req *pb.DisconnectReq) (resp *pb.DisconnectResp, err error) {
 	resp = new(pb.DisconnectResp)
 	connect := req.Connect
-	logHead := fmt.Sprintf("Disconnect,connect=%+v|", connect)
+	logHead := fmt.Sprintf("Disconnect,uniId=%+v|", connect.UniId)
+	logging.Info(logHead+"req=%+v", req)
 
 	resp.Has, err = bz.data.SessionDel(ctx, logHead, connect)
 	if err != nil {
@@ -81,7 +83,8 @@ func (bz *Biz) Disconnect(ctx context.Context, req *pb.DisconnectReq) (resp *pb.
 func (bz *Biz) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (resp *pb.HeartbeatResp, err error) {
 	resp = new(pb.HeartbeatResp)
 	connect := req.Connect
-	logHead := fmt.Sprintf("Heartbeat,req=%+v|", req)
+	logHead := fmt.Sprintf("Heartbeat,uniId=%+v|", connect.UniId)
+	logging.Info(logHead+"req=%+v", req)
 
 	// 续约KEY
 	expire := time.Duration(req.BindExpire) * time.Second
