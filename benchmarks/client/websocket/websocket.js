@@ -8,7 +8,7 @@ function appendToDialog(from, content) {
     if (!logEl) return;
 
     const timestamp = date();
-    logEl.value += `[${timestamp}] ${from} | ${content}\r\n`;
+    logEl.value += `[${timestamp}] ${from} | ${content}.\r\n`;
     logEl.scrollTop = logEl.scrollHeight;
 }
 
@@ -219,7 +219,7 @@ class WebsocketOp {
         headerView.setInt32(seqOffset, this.seqNum++);
         // send
         this.wsClient.send(this.mergeArrayBuffer(headerBuf, bodyBuf));
-        appendToDialog("client", "send frame: " + body + ".");
+        appendToDialog("client", "send frame: " + body);
     }
 
     mergeArrayBuffer(ab1, ab2) {
