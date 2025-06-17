@@ -198,7 +198,7 @@ class WebsocketOp {
         // send frame
         this.sendFrame(this.Op.HEARTBEAT, '')
         console.log("send heartbeat to server");
-        appendToDialog("client: send heartbeat");
+        appendToDialog("client: 发送心跳信息");
     }
 
     // 客户端发送消息
