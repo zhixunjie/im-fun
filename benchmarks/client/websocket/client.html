@@ -66,6 +66,8 @@
 <script src="websocket.js"></script>
 <script>
     const API_BASE = 'http://localhost:8080';
+    let globalUserId = null;
+    let globalToken = null;
 
     document.getElementById("login-btn").addEventListener("click", async () => {
         const accountType = document.querySelector('input[name="account-type"]:checked').value;
@@ -85,11 +87,21 @@
             const result = await res.json();
             if (result.code === 0) {
                 const user = result.data.user;
+                const token = result.data.token;
+
+                // ✅ 保存 userId 和 token 到全局变量
+                globalUserId = user.id;
+                globalToken = token;
+
                 document.getElementById("user-avatar").src = user.avatar;
                 document.getElementById("user-nickname").textContent = user.nickname;
                 document.getElementById("user-id").textContent = user.id;
                 document.getElementById("user-info").classList.remove("hidden");
                 appendToDialog("client", `✅ 登录成功，欢迎 ${user.nickname}`);
+
+                // 自动连接到服务器
+                const url = document.getElementById("ws-url").value;
+                ws.connect(url, globalUserId.toString(), globalToken);
             } else {
                 alert("登录失败: " + result.msg);
             }
@@ -100,7 +112,7 @@
 
     document.getElementById("connect-btn").addEventListener("click", () => {
         const url = document.getElementById("ws-url").value;
-        ws.connect(url);
+        ws.connect(url, globalUserId.toString(), globalToken);
     });
 
     document.getElementById("disconnect-btn").addEventListener("click", () => {

@@ -74,7 +74,7 @@ class WebsocketOp {
     }
 
     // 建立连接
-    connect(url) {
+    connect(url, uniId, token) {
         if (this.wsClient && this.wsClient.readyState === WebSocket.OPEN) {
             appendToDialog("websocket", "已连接，无需重复连接。");
             return;
@@ -90,7 +90,7 @@ class WebsocketOp {
         this.wsClient.onopen = (event) => {
             console.log(event);
             appendToDialog("websocket", "连接成功...");
-            this.sendAuth()
+            this.sendAuth(uniId, token)
         };
         /**
          * 当有消息到达客户端的时候该事件会触发
@@ -169,10 +169,10 @@ class WebsocketOp {
     }
 
     // 发送授权请求
-    sendAuth() {
+    sendAuth(uniId, token) {
         const authInfo = JSON.stringify({
-            uniId: "1",        // 用户ID
-            token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA3NTc2NDcsImlhdCI6MTc1MDE1Mjg0NywidWlkIjoxfQ.TTQ_1YFknYo3RgLlWMgdCgLvVPcfi2-oSUDzyjVAjZU",  // token
+            uniId: uniId,        // 用户ID
+            token: token,  // token
             roomId: "live://9999", // 房间ID
             platform: 4,            // 所在平台
         });
