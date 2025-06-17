@@ -88,8 +88,8 @@ class WebsocketOp {
          * event属于Event对象，https://developer.mozilla.org/en-US/docs/Web/API/Event
          */
         this.wsClient.onopen = (event) => {
-            appendToDialog("连接成功...");
             console.log(event);
+            appendToDialog("server: 连接成功...");
             this.sendAuth()
         };
         /**
@@ -106,7 +106,7 @@ class WebsocketOp {
             let op = dataView.getInt32(opOffset);
             let seq = dataView.getInt32(seqOffset);
             // appendToDialog('get frame from server：' + event.data);
-            console.log("receiveHeader: packetLen=" + packetLen, "headerLen=" + headerLen, "ver=" + ver, "op=" + op, "seq=" + seq);
+            // console.log("receiveHeader: packetLen=" + packetLen, "headerLen=" + headerLen, "ver=" + ver, "op=" + op, "seq=" + seq);
 
             switch (op) {
                 case this.Op.AUTH_REPLY:
@@ -134,7 +134,6 @@ class WebsocketOp {
                 default:
                     let msgBody = this.textDecoder.decode(data.slice(headerLen, packetLen));
                     appendToDialog("server: ver=" + ver + " op=" + op + " seq=" + seq + " message=" + msgBody);
-                    console.log(event);
                     break
             }
         }
@@ -144,10 +143,10 @@ class WebsocketOp {
          * event属于CloseEvent对象，https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
          */
         this.wsClient.onclose = (event) => {
+            // console.log(event);
             this.reset()
             appendToDialog("连接已关闭...");
             appendToDialog("event=" + event);
-            console.log(event);
 
         };
         /**
@@ -155,10 +154,10 @@ class WebsocketOp {
          * event属于Event对象，https://developer.mozilla.org/en-US/docs/Web/API/Event
          */
         this.wsClient.onerror = (event) => {
+            // console.log(event);
             this.reset()
             appendToDialog("连接时遇到错误...");
             appendToDialog("event=" + event);
-            console.log(event);
         }
     }
 
@@ -183,6 +182,7 @@ class WebsocketOp {
         });
         // send frame
         this.sendFrame(this.Op.AUTH, authInfo)
+        appendToDialog("client: 发送授权请求");
     }
 
     // 发送消息
@@ -191,13 +191,13 @@ class WebsocketOp {
         if (!msgInput) return;
         // send frame
         this.sendFrame(this.Op.SEND_MSG, msgInput.value);
+        appendToDialog("client: 发送一条消息");
     }
 
     // 发送心跳
     sendHeartbeat() {
         // send frame
         this.sendFrame(this.Op.HEARTBEAT, '')
-        console.log("send heartbeat to server");
         appendToDialog("client: 发送心跳信息");
     }
 
