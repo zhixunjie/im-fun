@@ -146,3 +146,20 @@ enum Platform {
   Platform_H5 = 5;         // H5网页
   Platform_MinProgram = 6; // 小程序
 }
+
+enum App {
+  App_None = 0;
+  App_Im = 1;
+}
+
+// ============= base =================
+
+message Atom {
+  string seq_id = 1;       // 请求序列号（用于链路追踪、幂等操作等）
+  int64 uid = 2;           // 用户ID
+  string did = 3;          // 设备ID
+  App app = 4;             // app id
+  Platform platform = 5;   // 平台
+}
+
+// ============= user =================

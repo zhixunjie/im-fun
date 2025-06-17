@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/cast"
 	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/response"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"time"
 )
@@ -125,7 +127,7 @@ func (bz *Biz) RenewOnline(ctx context.Context, serverId string, roomCount map[s
 	return
 }
 
-// Receive receive a message.
+// Receive 接收消息
 func (bz *Biz) Receive(ctx context.Context, userId int64, proto *protocol.Proto) (err error) {
 	logHead := fmt.Sprintf("Receive,userId=%v|", userId)
 
@@ -175,6 +177,18 @@ func (bz *Biz) Nodes(ctx context.Context, req *pb.NodesReq) (resp *pb.NodesResp,
 func (bz *Biz) GetHeartbeatExpire() (result time.Duration) {
 	nodeConf := bz.conf.Node
 	result = time.Duration(nodeConf.Heartbeat.Interval)*time.Duration(nodeConf.Heartbeat.FailCount) + 10*time.Second
+
+	return
+}
+
+// OnlineUniId 获取在线用户的uniId
+func (bz *Biz) OnlineUniId(ctx context.Context, req *request.OnlineUniIdReq) (rsp *response.OnlineUniIdRsp, err error) {
+	rsp = new(response.OnlineUniIdRsp)
+
+	// TODO:
+	// 设置在线用户
+	// 获取在线用户
+	// 选择给某个在线用户发送消息
 
 	return
 }
