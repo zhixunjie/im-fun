@@ -1,19 +1,35 @@
 /**
- * 输出信息到textarea
- * @param content
+ * 输出信息到 textarea
+ * @param {string} content
  */
 function appendToDialog(content) {
-    $(".log").append(date() + " | " + content + "\r\n");
-    document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight
+    const logEl = document.getElementById('log');
+    if (!logEl) return;
+
+    const timestamp = date();
+    logEl.value += `${timestamp} | ${content}\r\n`;
+    logEl.scrollTop = logEl.scrollHeight;
 }
 
-function date() {
-    let today = new Date();
-    let date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-    let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-    let dateTime = date + ' ' + time;
 
-    return dateTime
+/**
+ * 返回当前时间字符串
+ * @returns {string}
+ */
+function date() {
+    const today = new Date();
+    const date = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+    const time = `${padZero(today.getHours())}:${padZero(today.getMinutes())}:${padZero(today.getSeconds())}`;
+    return `${date} ${time}`;
+}
+
+/**
+ * 补零函数
+ * @param {number} num
+ * @returns {string}
+ */
+function padZero(num) {
+    return num.toString().padStart(2, '0');
 }
 
 const protoVersion = 1
@@ -93,7 +109,7 @@ class WebsocketOp {
 
                     // 利用bind，解决this指针丢失的问题
                     // https://blog.csdn.net/Victor2code/article/details/107804354
-                    this.heartbeatInterval = setInterval(this.heartbeat.bind(this), 30 * 1000);
+                    this.heartbeatInterval = setInterval(this.sendHeartbeat.bind(this), 30 * 1000);
                     break;
                 case OpHeartbeatReply:
                     console.log('receive heartbeat reply');
@@ -151,7 +167,9 @@ class WebsocketOp {
 
     // 发送消息
     sendMessage() {
-        this.sendMsg($("#msg-txt").val());
+        const msgInput = document.getElementById('msg-txt');
+        if (!msgInput) return;
+        this.sendMsg(msgInput.value);
     }
 
     sendHeartbeat() {

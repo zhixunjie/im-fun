@@ -1,25 +1,102 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-    <script src="jquery-1.11.1.js"></script>
-    <script src="websocket.js"></script>
+    <title>ws client</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            margin: 40px auto;
+            max-width: 800px;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        h2 {
+            color: #444;
+        }
+
+        select, input[type="text"], button {
+            padding: 8px;
+            margin-right: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #log {
+            width: 100%;
+            height: 300px;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 13px;
+            background-color: #fff;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
-<div style="margin-bottom:10px;">
-    <input type="button" onclick="ws.connect()" value="建立连接">
-    <input type="button" onclick="ws.closeLink()" value="关闭连接">
+
+<h2>💬 ws client</h2>
+
+<div class="form-group">
+    <label for="ws-url">选择服务器地址：</label>
+    <select id="ws-url">
+        <option value="ws://127.0.0.1:12572" selected>ws://127.0.0.1:12572（单实例请求）</option>
+        <option value="ws://127.0.0.1:15001">ws://127.0.0.1:15001（多实例请求1）</option>
+        <option value="ws://127.0.0.1:15002">ws://127.0.0.1:15002（多实例请求2）</option>
+        <option value="ws://127.0.0.1:15003">ws://127.0.0.1:15003（多实例请求3）</option>
+        <option value="ws://127.0.0.1:9876">ws://127.0.0.1:9876（向 Nginx 请求）</option>
+    </select>
 </div>
-<div style="margin-bottom:10px;">
-    <input type="text" width="150" id="msg-txt">
-    <input type="button" onclick="ws.sendMessage()" value="发送消息">
+
+<div class="form-group">
+    <button id="connect-btn">建立连接</button>
+    <button id="disconnect-btn">关闭连接</button>
 </div>
-<hr>
-<!--内容输出-->
-<textarea class="log" cols="30" id="log" name="" rows="10" style="width: 100%; height: 500px;overflow: auto"></textarea>
+
+<div class="form-group">
+    <input type="text" id="msg-txt" placeholder="请输入要发送的消息..." style="width: 60%;">
+    <button id="send-btn">发送消息</button>
+</div>
+
+<div class="form-group">
+    <textarea id="log" readonly placeholder="通信日志将在此显示..."></textarea>
+</div>
+
+<script src="websocket.js"></script>
+<script>
+    // 事件绑定
+    document.getElementById("connect-btn").addEventListener("click", () => {
+        ws.connect();
+    });
+
+    document.getElementById("disconnect-btn").addEventListener("click", () => {
+        ws.disconnect();
+    });
+
+    document.getElementById("send-btn").addEventListener("click", () => {
+        ws.sendMessage();
+    });
+</script>
 </body>
 </html>
