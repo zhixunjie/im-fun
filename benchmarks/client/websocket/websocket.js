@@ -181,7 +181,7 @@ class WebsocketOp {
         appendToDialog("client", "发送授权请求");
     }
 
-    // 发送消息
+    // 发送长链接消息
     sendMessage() {
         if (this.wsClient == null || this.wsClient.readyState !== WebSocket.OPEN) {
             // appendToDialog("websocket", "请先登录后再发送消息");

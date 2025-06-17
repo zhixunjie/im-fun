@@ -53,9 +53,10 @@
     <!--    </div>-->
 
     <div class="mb-4 flex gap-2 flex-wrap">
-        <input type="text" id="msg-txt" placeholder="请输入要发送的消息..."
+        <input type="text" id="msg-txt" placeholder="请输入要发送的长链接消息..."
                class="flex-1 p-2 border border-gray-300 rounded-md">
-        <button id="send-btn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">发送消息</button>
+        <button id="send-btn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">发送长链接消息
+        </button>
     </div>
 
     <div class="mb-2">
@@ -96,7 +97,7 @@
                 globalUserId = user.id;
                 globalToken = token;
 
-                document.getElementById("user-avatar").src = "https://raw.githubusercontent.com/zhixunjie/im-fun/refs/heads/master/"+user.avatar;
+                document.getElementById("user-avatar").src = "https://raw.githubusercontent.com/zhixunjie/im-fun/refs/heads/master/" + user.avatar;
                 document.getElementById("user-nickname").textContent = user.nickname;
                 document.getElementById("user-id").textContent = user.id;
                 document.getElementById("user-info").classList.remove("hidden");
@@ -122,6 +123,8 @@
 
         // 隐藏用户信息展示
         document.getElementById("user-info").classList.add("hidden");
+        // 重置账号输入框
+        document.getElementById("account-id").value = "";
 
         // 清空 textarea 的内容
         document.getElementById("log").value = "";
