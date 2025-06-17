@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/zhixunjie/im-fun/api/pb"
-	k "github.com/zhixunjie/im-fun/pkg/goredis/key"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"time"
 )
@@ -19,7 +18,7 @@ func (d *Data) SessionBinding(ctx context.Context, logHead string, rr *pb.Connec
 
 	// set hash
 	if userId > 0 {
-		key := TcpUserAllSession.Format(k.M{"uid": userId})
+		key := fmt.Sprintf(TcpUserAllSession, userId)
 		// HSet
 		if err = mem.HSet(ctx, key, tcpSessionId, serverId).Err(); err != nil {
 			logging.Errorf(logHead+"HSet error=%v,key=%v", key)
@@ -34,7 +33,7 @@ func (d *Data) SessionBinding(ctx context.Context, logHead string, rr *pb.Connec
 	}
 	// set string
 	{
-		key := TcpSessionToSrv.Format(k.M{"tcp_session_id": tcpSessionId})
+		key := fmt.Sprintf(TcpSessionToSrv, tcpSessionId)
 		if err = mem.SetEx(ctx, key, serverId, expire).Err(); err != nil {
 			logging.Errorf(logHead+"SetEX error=%v,key=%v", key)
 			return
@@ -56,7 +55,7 @@ func (d *Data) SessionDel(ctx context.Context, logHead string, rr *pb.ConnectCom
 	// delete hash
 	if userId > 0 {
 		// HDel
-		key := TcpUserAllSession.Format(k.M{"uid": userId})
+		key := fmt.Sprintf(TcpUserAllSession, userId)
 		if err = mem.HDel(ctx, key, tcpSessionId).Err(); err != nil {
 			logging.Errorf(logHead+"HDel error=%v,key=%v", err, key)
 			return
@@ -64,7 +63,7 @@ func (d *Data) SessionDel(ctx context.Context, logHead string, rr *pb.ConnectCom
 		logging.Infof(logHead+"HDel success,key=%v", key)
 	}
 	// delete string
-	key := TcpSessionToSrv.Format(k.M{"tcp_session_id": tcpSessionId})
+	key := fmt.Sprintf(TcpSessionToSrv, tcpSessionId)
 	if err = mem.Del(ctx, key).Err(); err != nil {
 		logging.Errorf(logHead+"Del error=%v,key=%v", err, key)
 		return
@@ -84,7 +83,7 @@ func (d *Data) SessionLease(ctx context.Context, logHead string, rr *pb.ConnectC
 	tcpSessionId := rr.TcpSessionId
 
 	// expire 1（续约 Hash KEY）
-	key := TcpUserAllSession.Format(k.M{"uid": userId})
+	key := fmt.Sprintf(TcpUserAllSession, userId)
 	has, err = mem.Expire(ctx, key, expire).Result()
 	if err != nil {
 		logging.Errorf(logHead+"Expire(1) error=%v,key=%v", err, key)
@@ -93,7 +92,7 @@ func (d *Data) SessionLease(ctx context.Context, logHead string, rr *pb.ConnectC
 	logging.Infof(logHead+"Expire(1) success,key=%v", key)
 
 	// expire 2（续约 String KEY）
-	key = TcpSessionToSrv.Format(k.M{"tcp_session_id": tcpSessionId})
+	key = fmt.Sprintf(TcpSessionToSrv, tcpSessionId)
 	has, err = mem.Expire(ctx, key, expire).Result()
 	if err != nil {
 		logging.Errorf(logHead+"Expire(2) error=%v,key=%v", err, key)

@@ -1,21 +1,17 @@
 package data
 
-import (
-	k "github.com/zhixunjie/im-fun/pkg/goredis/key"
-)
-
 // 待划分：划分出cache操作层（需要wire上Redis对象）
 
 const Prefix = "im:logic:"
 
 // 分布式锁：保证version_id和数据库写入的时序一致性
 const (
-	TimelineMessageLock k.Key = Prefix + "timeline:message:lock:{session_id}"
-	TimelineContactLock k.Key = Prefix + "timeline:contact:lock:{contact_id}"
+	TimelineMessageLock = Prefix + "timeline:message:lock:{%v}"
+	TimelineContactLock = Prefix + "timeline:contact:lock:{%v}"
 )
 
 const (
-	UserToken k.Key = Prefix + "user:token:{uid}"
+	UserToken = Prefix + "user:token:{%v}"
 )
 
 const (
@@ -25,12 +21,12 @@ const (
 // mark tcp connection
 const (
 	// TcpUserAllSession Hash：
-	// 格式：userId -> [ tcpSessionId : serverId ]
-	TcpUserAllSession k.Key = Prefix + "tcp:user:all:session:{uid}"
+	// 格式：uid -> [ tcpSessionId : serverId ]
+	TcpUserAllSession = Prefix + "tcp:user:all:session:{%v}"
 	// TcpSessionToSrv String
 	// 格式：tcpSessionId -> serverId
-	TcpSessionToSrv k.Key = Prefix + "tcp:session:to:server:{tcp_session_id}"
+	TcpSessionToSrv = Prefix + "tcp:session:to:server:{%v}"
 	// TcpServerOnline String
 	// 格式：serverId -> online
-	TcpServerOnline k.Key = Prefix + "tcp:server:online:{server_id}"
+	TcpServerOnline = Prefix + "tcp:server:online:{%v}"
 )

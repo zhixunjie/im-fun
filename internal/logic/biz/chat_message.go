@@ -16,7 +16,6 @@ import (
 	"github.com/zhixunjie/im-fun/pkg/gen_id"
 	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/goredis/distrib_lock"
-	k "github.com/zhixunjie/im-fun/pkg/goredis/key"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/routine"
 	"github.com/zhixunjie/im-fun/pkg/utils"
@@ -396,7 +395,7 @@ func (b *MessageUseCase) createMessage(ctx context.Context, logHead string, req 
 
 	// note: 同一个消息timeline的版本变动，需要加锁
 	// 保证数据库记录中的 msg_id 与 session_id 是递增的
-	lockKey := data.TimelineMessageLock.Format(k.M{"session_id": sessionId})
+	lockKey := fmt.Sprintf(data.TimelineMessageLock, sessionId)
 	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 50 * time.Millisecond, Times: 40})
 	if err = redisSpinLock.AcquireWithTimes(); err != nil {
 		logging.Errorf(logHead+"acquire fail,lockKey=%v,err=%v", lockKey, err)
@@ -551,7 +550,7 @@ func (b *MessageUseCase) updateMsgVersion(ctx context.Context, logHead string, s
 	}
 
 	// note: 同一个消息timeline的版本变动，需要加锁
-	lockKey := data.TimelineMessageLock.Format(k.M{"session_id": sessionId})
+	lockKey := fmt.Sprintf(data.TimelineMessageLock, sessionId)
 	redisSpinLock := distrib_lock.NewSpinLock(mem, lockKey, 5*time.Second, &distrib_lock.SpinOption{Interval: 50 * time.Millisecond, Times: 40})
 	if err = redisSpinLock.AcquireWithTimes(); err != nil {
 		logging.Errorf(logHead+"acquire fail,lockKey=%v,err=%v", lockKey, err)

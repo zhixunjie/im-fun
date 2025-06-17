@@ -2,8 +2,8 @@ package cache
 
 import (
 	"context"
+	"fmt"
 	"github.com/zhixunjie/im-fun/internal/logic/data"
-	k "github.com/zhixunjie/im-fun/pkg/goredis/key"
 	"time"
 )
 
@@ -16,7 +16,7 @@ func NewUserCache(userRepo *data.UserRepo) *UserCache {
 }
 
 func (b *UserCache) GetToken(ctx context.Context, uid uint64) string {
-	key := data.UserToken.Format(k.M{"uid": uid})
+	key := fmt.Sprintf(data.UserToken, uid)
 	mem := b.userRepo.RedisClient
 
 	token, _ := mem.Get(ctx, key).Result()
@@ -25,14 +25,14 @@ func (b *UserCache) GetToken(ctx context.Context, uid uint64) string {
 }
 
 func (b *UserCache) SetToken(ctx context.Context, uid uint64, token string) error {
-	key := data.UserToken.Format(k.M{"uid": uid})
+	key := fmt.Sprintf(data.UserToken, uid)
 	mem := b.userRepo.RedisClient
 
 	return mem.Set(ctx, key, token, time.Second*86400*10).Err()
 }
 
 func (b *UserCache) DelToken(ctx context.Context, uid uint64) error {
-	key := data.UserToken.Format(k.M{"uid": uid})
+	key := fmt.Sprintf(data.UserToken, uid)
 	mem := b.userRepo.RedisClient
 
 	return mem.Del(ctx, key).Err()
