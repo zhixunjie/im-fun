@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	OpHeartbeat      = int32(protocol.OpHeartbeat)
+	OpHeartbeat      = int32(protocol.OpHeartbeatReq)
 	OpHeartbeatReply = int32(protocol.OpHeartbeatResp)
-	OpAuth           = int32(protocol.OpAuth)
+	OpAuth           = int32(protocol.OpAuthReq)
 	OpAuthReply      = int32(protocol.OpAuthResp)
 	OpBatchMsg       = int32(protocol.OpBatchMsg)
 )

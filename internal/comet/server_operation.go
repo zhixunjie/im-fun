@@ -16,7 +16,7 @@ func (s *TcpServer) handleClientMsg(ctx context.Context, logHead string, proto *
 	logHead += "handleClientMsg|"
 
 	switch protocol.Operation(proto.Op) {
-	case protocol.OpHeartbeat: // 心跳上报
+	case protocol.OpHeartbeatReq: // 心跳上报
 		proto.Op = int32(protocol.OpHeartbeatResp)
 		proto.Ver = protocol.ProtoVersion
 		proto.Seq = gmodel.NewSeqId32()
@@ -35,14 +35,14 @@ func (s *TcpServer) handleClientMsg(ctx context.Context, logHead string, proto *
 			ch.LastHb = now
 			logging.Infof(logHead + "Heartbeat lease success")
 		}
-	case protocol.OpChangeRoom: // 房间切换
+	case protocol.OpChangeRoomReq: // 房间切换
 		err = bucket.ChangeRoom(string(proto.Body), ch)
 		if err != nil {
 			logging.Errorf(logHead+"bucket.ChangeRoom(%s) error(%v)", proto.Body, err)
 			return
 		}
 		proto.Op = int32(protocol.OpChangeRoomResp)
-	case protocol.OpSub: // 订阅
+	case protocol.OpSubReq: // 订阅
 		// TBD
 	case protocol.OpUnsub: // 取消订阅
 		// TBD

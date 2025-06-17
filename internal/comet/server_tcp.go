@@ -126,44 +126,43 @@ func (s *TcpServer) readLoop(ctx context.Context, logHead string, ch *channel.Ch
 	var err error
 	var proto *protocol.Proto
 
+	// check error
+	defer func() {
+		if err != nil {
+			switch {
+			case err == io.EOF, strings.Contains(err.Error(), "closed") == true:
+				err = fmt.Errorf("client close or server close by dispatch: %w", err)
+			default:
+				err = fmt.Errorf("sth has happened: %w", err)
+			}
+			logging.Infof(logHead+"fail: err=%v", err)
+			s.cleanAfterFn(ctx, logHead, channel.CleanPath2, ch, bucket)
+		}
+	}()
+
 	for {
 		if proto, err = ch.ProtoAllocator.GetProtoForWrite(); err != nil {
-			logging.Errorf(logHead+"GetProtoForWrite,err=%v", err)
-			goto fail
+			err = fmt.Errorf("GetProtoForWrite failed: %w", err)
+			return
 		}
 		// read msg from client
 		// note：if there is no msg，it will block here！！！！
-		//logging.Infof(logHead + "waiting proto from client...")
+		logging.Infof(logHead + "blocked to read proto from client...")
 		if err = ch.ConnReadWriter.ReadProto(proto); err != nil {
-			//logging.Errorf(logHead+"ReadProto err=%v", err)
-			goto fail
+			err = fmt.Errorf("ReadProto failed: %w", err)
+			return
 		}
 
 		// handle msg
 		if err = s.handleClientMsg(ctx, logHead, proto, ch, bucket); err != nil {
-			logging.Errorf(logHead+"handleClientMsg err=%v", err)
-			goto fail
+			err = fmt.Errorf("handleClientMsg failed: %w", err)
+			return
 		}
 
 		// dispatch msg
 		ch.ProtoAllocator.AdvWritePointer()
 		ch.SendReady()
 	}
-fail:
-	// check error
-	if err != nil {
-		switch {
-		case err == io.EOF, strings.Contains(err.Error(), "closed") == true:
-			logging.Infof(logHead+"fail: err=%v (client close or server close by dispatch)", err)
-		default:
-			logging.Errorf(logHead+"fail: sth has happened,err=%v", err)
-		}
-	} else {
-		logging.Errorf(logHead + "fail: sth has happened")
-	}
-
-	// clean
-	s.cleanAfterFn(ctx, logHead, channel.CleanPath2, ch, bucket)
 }
 
 // serveTCP serve a tcp connection.
@@ -232,14 +231,14 @@ func (s *TcpServer) serveTCP(logHead string, ch *channel.Channel, connType chann
 	s.readLoop(ctx, logHead, ch, bucket)
 }
 
-// 一直读取，直到读取到的Proto操作类型为：protocol.OpAuth
+// 一直读取，直到读取到的Proto操作类型为：protocol.OpAuthReq
 func (s *TcpServer) getAuthProto(logHead string, ch *channel.Channel, proto *protocol.Proto) (err error) {
 	for {
 		if err = ch.ConnReadWriter.ReadProto(proto); err != nil {
 			logging.Infof(logHead+"ReadProto err=%v", err)
 			return
 		}
-		if protocol.Operation(proto.Op) == protocol.OpAuth {
+		if protocol.Operation(proto.Op) == protocol.OpAuthReq {
 			return
 		}
 		logging.Infof(logHead+"tcp request op=%d, but not auth", proto.Op)

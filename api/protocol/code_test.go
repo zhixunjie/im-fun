@@ -9,7 +9,7 @@ import (
 func TestHeaderEncodeAndDecode(t *testing.T) {
 	var proto = &Proto{
 		Ver:  ProtoVersion,
-		Op:   int32(OpAuth),
+		Op:   int32(OpAuthReq),
 		Seq:  1,
 		Body: []byte("i am jason"),
 	}
