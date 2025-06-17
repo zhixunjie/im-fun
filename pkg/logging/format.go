@@ -38,7 +38,7 @@ func (f *myFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	b.WriteString(" " + printCallerForImFun(entry.Caller))
 
 	// msg
-	_, _ = fmt.Fprintf(b, "\x1b[%dm", colorDefault) // 添加颜色
+	_, _ = fmt.Fprintf(b, "\x1b[%dm", colorBlue) // 添加颜色
 	b.WriteString(" ")
 	b.WriteString(entry.Message)
 
@@ -75,7 +75,7 @@ const (
 	colorYellow  = 33
 	colorBlue    = 36
 	colorGray    = 37
-	colorDefault = 37
+	colorDefault = 97
 )
 
 func getColorByLevel(level logrus.Level) int {
