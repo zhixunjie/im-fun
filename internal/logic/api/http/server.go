@@ -60,6 +60,8 @@ func NewServer(conf *conf.Config, bz *biz.Biz,
 		BzUser:         bzUser,
 		BzUserGroup:    bzUserGroup,
 	}
+	// 设置-中间件
+	srv.SetupMiddleware()
 	// 设置-路由
 	srv.SetupRouter()
 

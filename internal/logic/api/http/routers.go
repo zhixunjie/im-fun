@@ -1,8 +1,25 @@
 package http
 
+import "github.com/gin-contrib/cors"
+
+// SetupMiddleware 设置-中间件
+func (s *Server) SetupMiddleware() {
+	router := s.engine
+
+	// 添加 CORS 中间件
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"POST", "GET", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
+}
+
 // SetupRouter 设置-路由
 func (s *Server) SetupRouter() {
 	router := s.engine
+
 	// 设置-单个路由
 	router.GET("/ping", s.ping)
 

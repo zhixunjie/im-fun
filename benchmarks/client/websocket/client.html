@@ -6,10 +6,32 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans py-10 px-4">
-<!-- ✅ 调整宽度为屏幕的 70% -->
 <div class="w-[70%] max-w-7xl mx-auto bg-white shadow-lg rounded-xl p-8">
     <h2 class="text-2xl font-bold mb-6">💬 WebSocket 客户端</h2>
 
+    <!-- 登录区 -->
+    <div class="mb-6">
+        <div class="mb-2 font-medium">登录方式：</div>
+        <div class="flex gap-4 mb-4">
+            <label><input type="radio" name="account-type" value="1" checked> 设备登录</label>
+            <label><input type="radio" name="account-type" value="2"> 手机号登录</label>
+        </div>
+        <div class="mb-4 flex gap-2">
+            <input type="text" id="account-id" placeholder="请输入设备号或手机号"
+                   class="flex-1 p-2 border border-gray-300 rounded-md">
+            <button id="login-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-md">登录
+            </button>
+        </div>
+        <div id="user-info" class="flex items-center gap-4 hidden">
+            <img id="user-avatar" class="w-12 h-12 rounded-full" src="" alt="头像">
+            <div>
+                <div class="font-semibold" id="user-nickname"></div>
+                <div class="text-sm text-gray-500">ID: <span id="user-id"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WebSocket 控制区 -->
     <div class="mb-4">
         <label for="ws-url" class="block font-medium mb-1">选择服务器地址：</label>
         <select id="ws-url" class="w-full p-2 border border-gray-300 rounded-md">
@@ -22,25 +44,19 @@
     </div>
 
     <div class="mb-4 flex flex-wrap gap-2">
-        <button id="connect-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">
-            建立连接
-        </button>
-        <button id="disconnect-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md">
-            关闭连接
+        <button id="connect-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">建立连接</button>
+        <button id="disconnect-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md">关闭连接
         </button>
     </div>
 
     <div class="mb-4 flex gap-2 flex-wrap">
         <input type="text" id="msg-txt" placeholder="请输入要发送的消息..."
                class="flex-1 p-2 border border-gray-300 rounded-md">
-        <button id="send-btn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">
-            发送消息
-        </button>
+        <button id="send-btn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">发送消息</button>
     </div>
 
     <div class="mb-2">
         <label class="block font-medium mb-1">通信日志：</label>
-        <!-- ✅ 调整 textarea 高度为 h-96（384px） -->
         <textarea id="log" readonly
                   class="w-full h-96 p-2 border border-gray-300 rounded-md font-mono text-sm bg-gray-50 resize-none"
                   placeholder="通信日志将在此显示..."></textarea>
@@ -49,6 +65,39 @@
 
 <script src="websocket.js"></script>
 <script>
+    const API_BASE = 'http://localhost:8080';
+
+    document.getElementById("login-btn").addEventListener("click", async () => {
+        const accountType = document.querySelector('input[name="account-type"]:checked').value;
+        const accountId = document.getElementById("account-id").value.trim();
+        if (!accountId) return alert("请输入账号 ID");
+
+        try {
+            const res = await fetch(`${API_BASE}/user/login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    account_type: Number(accountType),
+                    account_id: accountId
+                })
+            });
+
+            const result = await res.json();
+            if (result.code === 0) {
+                const user = result.data.user;
+                document.getElementById("user-avatar").src = user.avatar;
+                document.getElementById("user-nickname").textContent = user.nickname;
+                document.getElementById("user-id").textContent = user.id;
+                document.getElementById("user-info").classList.remove("hidden");
+                appendToDialog("client", `✅ 登录成功，欢迎 ${user.nickname}`);
+            } else {
+                alert("登录失败: " + result.msg);
+            }
+        } catch (err) {
+            alert("请求失败: " + err);
+        }
+    });
+
     document.getElementById("connect-btn").addEventListener("click", () => {
         const url = document.getElementById("ws-url").value;
         ws.connect(url);
