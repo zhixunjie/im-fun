@@ -9,6 +9,18 @@
 <div class="w-[70%] max-w-7xl mx-auto bg-white shadow-lg rounded-xl p-8">
     <h2 class="text-2xl font-bold mb-6">💬 WebSocket 客户端</h2>
 
+    <!-- WebSocket 控制区 -->
+    <div class="mb-4">
+        <label for="ws-url" class="block font-medium mb-1">选择服务器地址：</label>
+        <select id="ws-url" class="w-full p-2 border border-gray-300 rounded-md">
+            <option value="ws://127.0.0.1:12572" selected>ws://127.0.0.1:12572（单实例请求）</option>
+            <option value="ws://127.0.0.1:15001">ws://127.0.0.1:15001（多实例请求1）</option>
+            <option value="ws://127.0.0.1:15002">ws://127.0.0.1:15002（多实例请求2）</option>
+            <option value="ws://127.0.0.1:15003">ws://127.0.0.1:15003（多实例请求3）</option>
+            <option value="ws://127.0.0.1:9876">ws://127.0.0.1:9876（向 Nginx 请求）</option>
+        </select>
+    </div>
+
     <!-- 登录区 -->
     <div class="mb-6">
         <div class="mb-2 font-medium">登录方式：</div>
@@ -33,23 +45,12 @@
         </div>
     </div>
 
-    <!-- WebSocket 控制区 -->
-    <div class="mb-4">
-        <label for="ws-url" class="block font-medium mb-1">选择服务器地址：</label>
-        <select id="ws-url" class="w-full p-2 border border-gray-300 rounded-md">
-            <option value="ws://127.0.0.1:12572" selected>ws://127.0.0.1:12572（单实例请求）</option>
-            <option value="ws://127.0.0.1:15001">ws://127.0.0.1:15001（多实例请求1）</option>
-            <option value="ws://127.0.0.1:15002">ws://127.0.0.1:15002（多实例请求2）</option>
-            <option value="ws://127.0.0.1:15003">ws://127.0.0.1:15003（多实例请求3）</option>
-            <option value="ws://127.0.0.1:9876">ws://127.0.0.1:9876（向 Nginx 请求）</option>
-        </select>
-    </div>
 
-<!--    <div class="mb-4 flex flex-wrap gap-2">-->
-<!--        <button id="connect-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">建立连接</button>-->
-<!--        <button id="disconnect-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md">关闭连接-->
-<!--        </button>-->
-<!--    </div>-->
+    <!--    <div class="mb-4 flex flex-wrap gap-2">-->
+    <!--        <button id="connect-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">建立连接</button>-->
+    <!--        <button id="disconnect-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md">关闭连接-->
+    <!--        </button>-->
+    <!--    </div>-->
 
     <div class="mb-4 flex gap-2 flex-wrap">
         <input type="text" id="msg-txt" placeholder="请输入要发送的消息..."
