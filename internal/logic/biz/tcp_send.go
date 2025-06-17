@@ -27,7 +27,7 @@ func (bz *Biz) SendToUsers(ctx context.Context, req *request.SendToUsersReq) err
 		serverIdMap[serverId] = append(serverIdMap[serverId], tcpSessionId.ToString())
 	}
 
-	// 把同一台机器的请求聚合青睐
+	// 把同一台机器的请求聚合到一起
 	for serverId := range serverIdMap {
 		err = bz.data.KafkaSendToUsers(serverId, serverIdMap[serverId], req.SubId, []byte(req.Message))
 		if err != nil {
