@@ -183,6 +183,11 @@ class WebsocketOp {
 
     // 发送消息
     sendMessage() {
+        if (this.wsClient == null || this.wsClient.readyState !== WebSocket.OPEN) {
+            // appendToDialog("websocket", "请先登录后再发送消息");
+            alert("请先登录后再发送消息");
+            return;
+        }
         const msgInput = document.getElementById('msg-txt');
         if (!msgInput) return;
         // send frame

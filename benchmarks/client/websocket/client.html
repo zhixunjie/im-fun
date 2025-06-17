@@ -12,7 +12,7 @@
     <!-- WebSocket 控制区 -->
     <div class="mb-4">
         <label for="ws-url" class="block font-medium mb-1">选择服务器地址：</label>
-        <select id="ws-url" class="w-full p-2 border border-gray-300 rounded-md">
+        <select id="ws-url" class="w-1/2 p-2 border border-gray-300 rounded-md">
             <option value="ws://127.0.0.1:12572" selected>ws://127.0.0.1:12572（单实例请求）</option>
             <option value="ws://127.0.0.1:15001">ws://127.0.0.1:15001（多实例请求1）</option>
             <option value="ws://127.0.0.1:15002">ws://127.0.0.1:15002（多实例请求2）</option>
@@ -96,7 +96,7 @@
                 globalUserId = user.id;
                 globalToken = token;
 
-                document.getElementById("user-avatar").src = user.avatar;
+                document.getElementById("user-avatar").src = "https://raw.githubusercontent.com/zhixunjie/im-fun/refs/heads/master/"+user.avatar;
                 document.getElementById("user-nickname").textContent = user.nickname;
                 document.getElementById("user-id").textContent = user.id;
                 document.getElementById("user-info").classList.remove("hidden");
@@ -115,24 +115,31 @@
 
     document.getElementById("logout-btn").addEventListener("click", () => {
         ws.disconnect();
+
+        // 清除用户信息
         globalUserId = null;
         globalToken = null;
+
+        // 隐藏用户信息展示
         document.getElementById("user-info").classList.add("hidden");
-        appendToDialog("client", "👋 已退出登录");
-    });
 
-    document.getElementById("connect-btn").addEventListener("click", () => {
-        const url = document.getElementById("ws-url").value;
-        ws.connect(url, globalUserId.toString(), globalToken);
-    });
+        // 清空 textarea 的内容
+        document.getElementById("log").value = "";
 
-    document.getElementById("disconnect-btn").addEventListener("click", () => {
-        ws.disconnect();
+        appendToDialog("client", "🚪 已退出登录");
     });
 
     document.getElementById("send-btn").addEventListener("click", () => {
         ws.sendMessage();
     });
+    // document.getElementById("connect-btn").addEventListener("click", () => {
+    //     const url = document.getElementById("ws-url").value;
+    //     ws.connect(url, globalUserId.toString(), globalToken);
+    // });
+    //
+    // document.getElementById("disconnect-btn").addEventListener("click", () => {
+    //     ws.disconnect();
+    // });
 </script>
 </body>
 </html>
