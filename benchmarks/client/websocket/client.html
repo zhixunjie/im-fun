@@ -21,6 +21,8 @@
                    class="flex-1 p-2 border border-gray-300 rounded-md">
             <button id="login-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-md">登录
             </button>
+            <button id="logout-btn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md">退出登录
+            </button>
         </div>
         <div id="user-info" class="flex items-center gap-4 hidden">
             <img id="user-avatar" class="w-12 h-12 rounded-full" src="" alt="头像">
@@ -43,11 +45,11 @@
         </select>
     </div>
 
-    <div class="mb-4 flex flex-wrap gap-2">
-        <button id="connect-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">建立连接</button>
-        <button id="disconnect-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md">关闭连接
-        </button>
-    </div>
+<!--    <div class="mb-4 flex flex-wrap gap-2">-->
+<!--        <button id="connect-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">建立连接</button>-->
+<!--        <button id="disconnect-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md">关闭连接-->
+<!--        </button>-->
+<!--    </div>-->
 
     <div class="mb-4 flex gap-2 flex-wrap">
         <input type="text" id="msg-txt" placeholder="请输入要发送的消息..."
@@ -108,6 +110,14 @@
         } catch (err) {
             alert("请求失败: " + err);
         }
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+        ws.disconnect();
+        globalUserId = null;
+        globalToken = null;
+        document.getElementById("user-info").classList.add("hidden");
+        appendToDialog("client", "👋 已退出登录");
     });
 
     document.getElementById("connect-btn").addEventListener("click", () => {
