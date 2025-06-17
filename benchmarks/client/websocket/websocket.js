@@ -43,14 +43,6 @@ const verOffset = 6;
 const opOffset = 8;
 const seqOffset = 12;
 
-// op code
-const OpHeartbeat = 2
-const OpHeartbeatReply = 3
-const OpSendMsg = 4
-const OpAuth = 7
-const OpAuthReply = 8
-const OpBatchMsg = 9
-
 class WebsocketOp {
     wsClient;
     seqNum;
@@ -60,6 +52,16 @@ class WebsocketOp {
         this.seqNum = 1;
         this.textEncoder = new TextEncoder();
         this.textDecoder = new TextDecoder();
+
+        // 定义操作码
+        this.Op = {
+            HEARTBEAT: 2,
+            HEARTBEAT_REPLY: 3,
+            SEND_MSG: 4,
+            AUTH: 7,
+            AUTH_REPLY: 8,
+            BATCH_MSG: 9
+        };
     }
 
     reset() {
@@ -103,22 +105,21 @@ class WebsocketOp {
             let ver = dataView.getInt16(verOffset);
             let op = dataView.getInt32(opOffset);
             let seq = dataView.getInt32(seqOffset);
-            // appendToDialog('获得消息：' + event.data);
-            // console.log("receiveHeader: packetLen=" + packetLen, "headerLen=" + headerLen, "ver=" + ver, "op=" + op, "seq=" + seq);
+            // appendToDialog('get frame from server：' + event.data);
+            console.log("receiveHeader: packetLen=" + packetLen, "headerLen=" + headerLen, "ver=" + ver, "op=" + op, "seq=" + seq);
 
             switch (op) {
-                case OpAuthReply:
-                    appendToDialog('授权成功...');
+                case this.Op.AUTH_REPLY:
+                    appendToDialog('server: 授权成功...');
                     this.sendHeartbeat();
                     // 利用bind，解决this指针丢失的问题
                     // https://blog.csdn.net/Victor2code/article/details/107804354
                     this.heartbeatInterval = setInterval(this.sendHeartbeat.bind(this), 30 * 1000);
                     break;
-                case OpHeartbeatReply:
-                    console.log('receive heartbeat reply');
-                    appendToDialog('server: reply heartbeat');
+                case this.Op.HEARTBEAT_REPLY:
+                    appendToDialog('server: 回复心跳信息');
                     break;
-                case OpBatchMsg:
+                case this.Op.BATCH_MSG:
                     // batch message
                     // 因为在switch之前已经解过一次包，所以offset的值从rawHeaderLen开始
                     for (let offset = rawHeaderLen; offset < data.byteLength; offset += packetLen) {
@@ -128,12 +129,12 @@ class WebsocketOp {
                         let op = dataView.getInt32(offset + opOffset);
                         let seq = dataView.getInt32(offset + seqOffset);
                         let msgBody = this.textDecoder.decode(data.slice(offset + headerLen, offset + packetLen));
-                        appendToDialog("receive: ver=" + ver + " op=" + op + " seq=" + seq + " message=" + msgBody);
+                        appendToDialog("server: ver=" + ver + " op=" + op + " seq=" + seq + " message=" + msgBody);
                     }
                     break;
                 default:
                     let msgBody = this.textDecoder.decode(data.slice(headerLen, packetLen));
-                    appendToDialog("receive: ver=" + ver + " op=" + op + " seq=" + seq + " message=" + msgBody);
+                    appendToDialog("server: ver=" + ver + " op=" + op + " seq=" + seq + " message=" + msgBody);
                     console.log(event);
                     break
             }
@@ -182,7 +183,7 @@ class WebsocketOp {
             token: 'abcabcabcabc',
         });
         // send frame
-        this.sendFrame(OpAuth, authInfo)
+        this.sendFrame(this.Op.AUTH, authInfo)
     }
 
     // 发送消息
@@ -190,13 +191,13 @@ class WebsocketOp {
         const msgInput = document.getElementById('msg-txt');
         if (!msgInput) return;
         // send frame
-        this.sendFrame(OpSendMsg, msgInput.value);
+        this.sendFrame(this.Op.SEND_MSG, msgInput.value);
     }
 
     // 发送心跳
     sendHeartbeat() {
         // send frame
-        this.sendFrame(OpHeartbeat, '')
+        this.sendFrame(this.Op.HEARTBEAT, '')
         console.log("send heartbeat to server");
         appendToDialog("client: send heartbeat");
     }
