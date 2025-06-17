@@ -72,7 +72,7 @@ class WebsocketOp {
         }
     }
 
-    // 连接
+    // 建立连接
     connect() {
         const url = document.getElementById("ws-url").value;
         if (this.wsClient && this.wsClient.readyState === WebSocket.OPEN) {
