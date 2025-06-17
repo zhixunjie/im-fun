@@ -3,84 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <title>ws client</title>
-    <style>
-        body {
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            margin: 40px auto;
-            max-width: 800px;
-            padding: 20px;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-
-        h2 {
-            color: #444;
-        }
-
-        select, input[type="text"], button {
-            padding: 8px;
-            margin-right: 10px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-        }
-
-        button {
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        #log {
-            width: 100%;
-            height: 300px;
-            margin-top: 20px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 13px;
-            background-color: #fff;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800 font-sans py-10 px-4">
+<div class="max-w-3xl mx-auto bg-white shadow-lg rounded-xl p-8">
+    <h2 class="text-2xl font-bold mb-6">💬 WebSocket 客户端</h2>
 
-<h2>💬 ws client</h2>
+    <div class="mb-4">
+        <label for="ws-url" class="block font-medium mb-1">选择服务器地址：</label>
+        <select id="ws-url" class="w-full p-2 border border-gray-300 rounded-md">
+            <option value="ws://127.0.0.1:12572" selected>ws://127.0.0.1:12572（单实例请求）</option>
+            <option value="ws://127.0.0.1:15001">ws://127.0.0.1:15001（多实例请求1）</option>
+            <option value="ws://127.0.0.1:15002">ws://127.0.0.1:15002（多实例请求2）</option>
+            <option value="ws://127.0.0.1:15003">ws://127.0.0.1:15003（多实例请求3）</option>
+            <option value="ws://127.0.0.1:9876">ws://127.0.0.1:9876（向 Nginx 请求）</option>
+        </select>
+    </div>
 
-<div class="form-group">
-    <label for="ws-url">选择服务器地址：</label>
-    <select id="ws-url">
-        <option value="ws://127.0.0.1:12572" selected>ws://127.0.0.1:12572（单实例请求）</option>
-        <option value="ws://127.0.0.1:15001">ws://127.0.0.1:15001（多实例请求1）</option>
-        <option value="ws://127.0.0.1:15002">ws://127.0.0.1:15002（多实例请求2）</option>
-        <option value="ws://127.0.0.1:15003">ws://127.0.0.1:15003（多实例请求3）</option>
-        <option value="ws://127.0.0.1:9876">ws://127.0.0.1:9876（向 Nginx 请求）</option>
-    </select>
-</div>
+    <div class="mb-4 flex flex-wrap gap-2">
+        <button id="connect-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">
+            建立连接
+        </button>
+        <button id="disconnect-btn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md">
+            关闭连接
+        </button>
+    </div>
 
-<div class="form-group">
-    <button id="connect-btn">建立连接</button>
-    <button id="disconnect-btn">关闭连接</button>
-</div>
+    <div class="mb-4 flex gap-2 flex-wrap">
+        <input type="text" id="msg-txt" placeholder="请输入要发送的消息..."
+               class="flex-1 p-2 border border-gray-300 rounded-md">
+        <button id="send-btn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">
+            发送消息
+        </button>
+    </div>
 
-<div class="form-group">
-    <input type="text" id="msg-txt" placeholder="请输入要发送的消息..." style="width: 60%;">
-    <button id="send-btn">发送消息</button>
-</div>
-
-<div class="form-group">
-    <textarea id="log" readonly placeholder="通信日志将在此显示..."></textarea>
+    <div class="mb-2">
+        <label class="block font-medium mb-1">通信日志：</label>
+        <textarea id="log" readonly
+                  class="w-full h-64 p-2 border border-gray-300 rounded-md font-mono text-sm bg-gray-50 resize-none"
+                  placeholder="通信日志将在此显示..."></textarea>
+    </div>
 </div>
 
 <script src="websocket.js"></script>
