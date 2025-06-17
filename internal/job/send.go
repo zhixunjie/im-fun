@@ -23,17 +23,25 @@ func (b *Job) SendToUser(subId int32, serverId string, tcpSessionIds []string, m
 	protocol.WriteProtoToWriter(proto, writer)
 	proto.Body = writer.Buffer()
 
-	// push to comet
-	if cm, ok := b.cometInvokers[serverId]; ok {
-		params := &pb.SendToUsersReq{
-			TcpSessionIds: tcpSessionIds,
-			Proto:         proto,
-			SubId:         subId,
-		}
-		if err = cm.SendToUsers(params); err != nil {
-			logging.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
-		}
+	// get comet invoker
+	cm, ok := b.cometInvokers[serverId]
+	if !ok {
+		logging.Errorf(logHead+"can not find serverId=%v", serverId)
+		return
 	}
+
+	// push to comet
+	params := &pb.SendToUsersReq{
+		TcpSessionIds: tcpSessionIds,
+		Proto:         proto,
+		SubId:         subId,
+	}
+	if err = cm.SendToUsers(params); err != nil {
+		logging.Errorf(logHead+"SendToUsers err=%v,serverId=%v,params=%+v", err, serverId, params)
+		return
+	}
+	logging.Infof("SendToUsers successserverId=%v,params=%+v", serverId, params)
+
 	return
 }
 
@@ -57,8 +65,10 @@ func (b *Job) SendToRoom(subId int32, roomId string, batchMessage []byte) (err e
 			Proto:  proto,
 		}
 		if err = cm.SendToRoom(&params); err != nil {
-			logging.Errorf(logHead+"Send err=%v,serverId=%v,params=%+v", err, serverId, params)
+			logging.Errorf(logHead+"SendToRoom err=%v,serverId=%v,params=%+v", err, serverId, params.RoomId)
+			continue
 		}
+		logging.Infof(logHead+"SendToRoom success,serverId=%v,params=%+v", serverId, params.RoomId)
 	}
 	return
 }

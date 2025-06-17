@@ -56,7 +56,7 @@ func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (resp *pb.Connec
 		},
 		SessionId: sessionId,
 	}
-	logging.Infof(logHead+"success,hbCfg=%+v", hbCfg)
+	logging.Infof(logHead+"success,resp=%+v", resp)
 
 	return
 }

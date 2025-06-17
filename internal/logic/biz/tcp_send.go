@@ -28,7 +28,9 @@ func (bz *Biz) SendToUsers(ctx context.Context, req *request.SendToUsersReq) err
 		err = bz.data.KafkaSendToUsers(serverId, serverIdMap[serverId], req.SubId, []byte(req.Message))
 		if err != nil {
 			logging.Errorf(logHead+"err=%v", err)
+			continue
 		}
+		logging.Infof(logHead+"send success, serverId=%v", serverId)
 	}
 
 	return nil
@@ -60,9 +62,10 @@ func (bz *Biz) SendToUsersByIds(ctx context.Context, req *request.SendToUsersByI
 	for serverId := range m {
 		kafkaErr := bz.data.KafkaSendToUsers(serverId, m[serverId], req.SubId, []byte(req.Message))
 		if kafkaErr != nil {
-			logging.Errorf(logHead+"kafkaErr=%v", kafkaErr)
+			logging.Errorf(logHead+"KafkaSendToUsers=%v", kafkaErr)
 			continue
 		}
+		logging.Infof(logHead+"KafkaSendToUsers success, serverId=%v", serverId)
 	}
 
 	return nil
