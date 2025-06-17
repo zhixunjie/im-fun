@@ -20,20 +20,17 @@ func (c *CometInvoker) Run(i int) {
 		case msg := <-c.chUsers[i]:
 			_, err := c.rpcClient.SendToUsers(context.Background(), msg)
 			if err != nil {
-				logging.Errorf(logHead+"conf.rpcClient.SendToUsers(%s),serverId=%s,error=%v",
-					msg, c.serverId, err)
+				logging.Errorf(logHead+"rpcClient.SendToUsers(%s),serverId=%s,error=%v", msg, c.serverId, err)
 			}
 		case msg := <-c.chRoom[i]:
 			_, err := c.rpcClient.SendToRoom(context.Background(), msg)
 			if err != nil {
-				logging.Errorf(logHead+"conf.rpcClient.BroadcastRoom(%s),serverId=%s,error=%v",
-					msg, c.serverId, err)
+				logging.Errorf(logHead+"rpcClient.SendToRoom(%s),serverId=%s,error=%v", msg, c.serverId, err)
 			}
 		case msg := <-c.chAll:
 			_, err := c.rpcClient.SendToAll(context.Background(), msg)
 			if err != nil {
-				logging.Errorf(logHead+"conf.rpcClient.Broadcast(%s),serverId=%s,error=%v",
-					msg, c.serverId, err)
+				logging.Errorf(logHead+"rpcClient.SendToAll(%s),serverId=%s,error=%v", msg, c.serverId, err)
 			}
 		}
 	}
