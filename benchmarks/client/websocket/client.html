@@ -87,7 +87,8 @@
 <script>
     // 事件绑定
     document.getElementById("connect-btn").addEventListener("click", () => {
-        ws.connect();
+        const url = document.getElementById("ws-url").value;
+        ws.connect(url);
     });
 
     document.getElementById("disconnect-btn").addEventListener("click", () => {

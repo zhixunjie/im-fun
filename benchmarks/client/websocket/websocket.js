@@ -74,8 +74,7 @@ class WebsocketOp {
     }
 
     // 建立连接
-    connect() {
-        const url = document.getElementById("ws-url").value;
+    connect(url) {
         if (this.wsClient && this.wsClient.readyState === WebSocket.OPEN) {
             appendToDialog("websocket", "已连接，无需重复连接。");
             return;
