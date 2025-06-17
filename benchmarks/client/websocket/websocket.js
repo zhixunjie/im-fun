@@ -8,7 +8,7 @@ function appendToDialog(from, content) {
     if (!logEl) return;
 
     const timestamp = date();
-    logEl.value += `${timestamp} ${from} | ${content}\r\n`;
+    logEl.value += `[${timestamp}] ${from} | ${content}\r\n`;
     logEl.scrollTop = logEl.scrollHeight;
 }
 
