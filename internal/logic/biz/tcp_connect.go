@@ -29,16 +29,16 @@ func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (resp *pb.Connec
 		return
 	}
 	// check token
-	claims, err := bz.userUseCase.checkToken(req.Token)
-	if err != nil {
-		logging.Errorf(logHead+"checkToken fail,error=%v", err)
-		return
-	}
-	if claims.Uid != rr.UserId {
-		err = fmt.Errorf("token not allows")
-		logging.Errorf(logHead + "UserId err")
-		return
-	}
+	//claims, err := bz.userUseCase.checkToken(req.Token)
+	//if err != nil {
+	//	logging.Errorf(logHead+"checkToken fail,error=%v", err)
+	//	return
+	//}
+	//if claims.Uid != rr.UserId {
+	//	err = fmt.Errorf("token not allows")
+	//	logging.Errorf(logHead + "UserId err")
+	//	return
+	//}
 
 	// return hb
 	hbCfg := bz.conf.Node.Heartbeat
