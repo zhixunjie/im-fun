@@ -34,46 +34,47 @@ const OpAuthReply = 8
 const OpBatchMsg = 9
 
 class WebsocketOp {
-    WsClient;
-    SeqNum;
+    wsClient;
+    seqNum;
 
     constructor() {
+        this.wsClient = null;
+        this.seqNum = 1;
         this.textEncoder = new TextEncoder();
         this.textDecoder = new TextDecoder();
     }
 
-    clear() {
-        this.SeqNum = 1
+    reset() {
+        this.seqNum = 1
         clearInterval(this.heartbeatInterval)
     }
 
     // 连接
     connect() {
-        // ws://是web socket协议，发送到websocket服务器的指定端口
-        let url = "ws://127.0.0.1:12572";     // 单实例请求
-        url = "ws://127.0.0.1:15001";         // 多实例请求（1）
-        url = "ws://127.0.0.1:15002";         // 多实例请求（2）
-        url = "ws://127.0.0.1:15003";         // 多实例请求（3）
-        url = "ws://127.0.0.1:9876";          // 直接向Nginx发起请求
-        this.WsClient = new WebSocket(url);
-        this.WsClient.binaryType = 'arraybuffer';
-        this.clear()
+        const url = document.getElementById("ws-url").value;
+        if (this.wsClient && this.wsClient.readyState === WebSocket.OPEN) {
+            appendToDialog("已连接，无需重复连接。");
+            return;
+        }
+        this.wsClient = new WebSocket(url);
+        this.wsClient.binaryType = 'arraybuffer';
+        this.reset()
         /**
          * 当WebSocket对象的readyState状态变为OPEN时会触发该事件。
          * 该事件表明websocket连接成功并开始发送数据。
          * event属于Event对象，https://developer.mozilla.org/en-US/docs/Web/API/Event
          */
-        this.WsClient.onopen = (event) => {
+        this.wsClient.onopen = (event) => {
             appendToDialog("连接成功...");
             console.log(event);
-            this.auth()
+            this.sendAuth()
         };
         /**
          * 当有消息到达客户端的时候该事件会触发
          * event属于MessageEvent对象，https://developer.mozilla.org/en-US/docs/Web/API/MessageEvent
          */
-        this.WsClient.onmessage = (event) => {
-            console.log(event.data)
+        this.wsClient.onmessage = (event) => {
+            console.log(event)
             let data = event.data;
             let dataView = new DataView(data, 0);
             let packetLen = dataView.getInt32(packetOffset);
@@ -88,7 +89,7 @@ class WebsocketOp {
                 case OpAuthReply:
                     appendToDialog('授权成功...');
                     // send a heartbeat to server
-                    this.heartbeat();
+                    this.sendHeartbeat();
 
                     // 利用bind，解决this指针丢失的问题
                     // https://blog.csdn.net/Victor2code/article/details/107804354
@@ -123,8 +124,8 @@ class WebsocketOp {
          * 该事件表明这个连接已经已经关闭。
          * event属于CloseEvent对象，https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
          */
-        this.WsClient.onclose = (event) => {
-            this.clear()
+        this.wsClient.onclose = (event) => {
+            this.reset()
             appendToDialog("连接已关闭...");
             appendToDialog("event=" + event);
             console.log(event);
@@ -134,8 +135,8 @@ class WebsocketOp {
          * 当WebSocket发生错误时的回调。
          * event属于Event对象，https://developer.mozilla.org/en-US/docs/Web/API/Event
          */
-        this.WsClient.onerror = (event) => {
-            this.clear()
+        this.wsClient.onerror = (event) => {
+            this.reset()
             appendToDialog("连接时遇到错误...");
             appendToDialog("event=" + event);
             console.log(event);
@@ -143,38 +144,32 @@ class WebsocketOp {
     }
 
     // 关闭连接
-    closeLink() {
-        this.WsClient.close();
-        this.WsClient = null;
+    disconnect() {
+        this.wsClient.close();
+        this.wsClient = null;
     }
 
     // 发送消息
     sendMessage() {
-        // let msg = {
-        //     'type': 'php',
-        //     'msg': $("#msg-txt").val()
-        // }
-        // this.WsClient.send(JSON.stringify(msg));
         this.sendMsg($("#msg-txt").val());
     }
 
-    heartbeat() {
+    sendHeartbeat() {
         let headerBuf = new ArrayBuffer(rawHeaderLen);
         let headerView = new DataView(headerBuf, 0);
         headerView.setInt32(packetOffset, rawHeaderLen);
         headerView.setInt16(headerOffset, rawHeaderLen);
         headerView.setInt16(verOffset, protoVersion);
         headerView.setInt32(opOffset, OpHeartbeat);
-        headerView.setInt32(seqOffset, this.SeqNum);
-        this.WsClient.send(headerBuf);
-        this.SeqNum++
+        headerView.setInt32(seqOffset, this.seqNum++);
+        this.wsClient.send(headerBuf);
         console.log(this)
         console.log("send heartbeat to server");
         appendToDialog("client: send heartbeat");
     }
 
     // 授权
-    auth() {
+    sendAuth() {
         let authInfo = `{"user_info":{"tcp_session_id":{"user_id":1001,"user_key":"x4u5mmq6gh2md5dl"},"room_id":"live://9999","platform":4},"token":"abcabcabcabc"}`
         let headerBuf = new ArrayBuffer(rawHeaderLen);
         let headerView = new DataView(headerBuf, 0);
@@ -183,9 +178,8 @@ class WebsocketOp {
         headerView.setInt16(headerOffset, rawHeaderLen);
         headerView.setInt16(verOffset, protoVersion);
         headerView.setInt32(opOffset, OpAuth);
-        headerView.setInt32(seqOffset, this.SeqNum);
-        this.WsClient.send(this.mergeArrayBuffer(headerBuf, bodyBuf));
-        this.SeqNum++
+        headerView.setInt32(seqOffset, this.seqNum++);
+        this.wsClient.send(this.mergeArrayBuffer(headerBuf, bodyBuf));
         appendToDialog("client: send auth" + authInfo + ".");
     }
 
@@ -198,9 +192,8 @@ class WebsocketOp {
         headerView.setInt16(headerOffset, rawHeaderLen);
         headerView.setInt16(verOffset, protoVersion);
         headerView.setInt32(opOffset, OpSendMsg);
-        headerView.setInt32(seqOffset, this.SeqNum);
-        this.WsClient.send(this.mergeArrayBuffer(headerBuf, bodyBuf));
-        this.SeqNum++
+        headerView.setInt32(seqOffset, this.seqNum++);
+        this.wsClient.send(this.mergeArrayBuffer(headerBuf, bodyBuf));
         appendToDialog("client: send msg: " + msg + ".");
     }
 

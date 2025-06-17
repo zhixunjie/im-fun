@@ -120,10 +120,10 @@ func (b *Job) Watch(conf *conf.Config) {
 					continue
 				}
 
-				// check invoker is exists
+				// check if exists serverId, if not create new
 				if _, ok := oldComet[serverId]; ok {
-					logging.Infof("comet invoke don't exists,serverId=%v", serverId)
 					newComet[serverId] = oldComet[serverId]
+					logging.Infof("old comet,nothing change,serverId=%v", serverId)
 					continue
 				} else {
 					cmt, tErr = invoker.NewCometInvoker(serverId, ept, conf.CometInvoker)
@@ -131,7 +131,7 @@ func (b *Job) Watch(conf *conf.Config) {
 						logging.Errorf("NewCometInvoker err=%v", tErr)
 						continue
 					}
-					logging.Infof("comet invoke exists,serverId=%v", serverId)
+					logging.Infof("new commet success,serverId=%v", serverId)
 					newComet[serverId] = cmt
 				}
 			}

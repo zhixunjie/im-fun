@@ -10,49 +10,34 @@ import (
 	"time"
 )
 
-// grpc options
-var (
-	grpcMaxSendMsgSize = 1 << 24
-	grpcMaxCallMsgSize = 1 << 24
-
-	grpcKeepAliveTime    = time.Duration(10) * time.Second
-	grpcKeepAliveTimeout = time.Duration(3) * time.Second
-	grpcBackoffMaxDelay  = time.Duration(3) * time.Second
-)
-
-const (
-	// grpc options
-	grpcInitialWindowSize     = 1 << 24
-	grpcInitialConnWindowSize = 1 << 24
-)
-
 func newCometClient(addr string) (pb.CometClient, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	// dial
 	conn, err := grpc.DialContext(ctx, addr,
 		[]grpc.DialOption{
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
-			grpc.WithInitialWindowSize(grpcInitialWindowSize),
-			grpc.WithInitialConnWindowSize(grpcInitialConnWindowSize),
-			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(grpcMaxCallMsgSize)),
-			grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(grpcMaxSendMsgSize)),
+			grpc.WithInitialWindowSize(1 << 24),
+			grpc.WithInitialConnWindowSize(1 << 24),
+			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1 << 24)),
+			grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(1 << 24)),
 			// https://pkg.go.dev/google.golang.org/grpc/backoff
 			grpc.WithConnectParams(grpc.ConnectParams{
 				Backoff: backoff.Config{
-					BaseDelay:  1.0 * time.Second,
+					BaseDelay:  1 * time.Second,
 					Multiplier: 1.6,
 					Jitter:     0.2,
+					MaxDelay:   3 * time.Second,
 					//MaxDelay:   120 * time.Second,
-					MaxDelay: grpcBackoffMaxDelay,
 				},
 				MinConnectTimeout: 20 * time.Second,
 			}),
+			// 设置 keepalive 参数
 			grpc.WithKeepaliveParams(keepalive.ClientParameters{
-				Time:                grpcKeepAliveTime,
-				Timeout:             grpcKeepAliveTimeout,
-				PermitWithoutStream: true,
+				Time:                30 * time.Second, // 推荐 30s ~ 60s
+				Timeout:             10 * time.Second, // 等待响应的超时时间
+				PermitWithoutStream: false,            // 空闲连接不发送 PING，避免被判为“过于活跃”
 			}),
 		}...,
 	)
