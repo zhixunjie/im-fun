@@ -135,7 +135,7 @@ func (s *TcpServer) readLoop(ctx context.Context, logHead string, ch *channel.Ch
 			default:
 				err = fmt.Errorf("sth has happened: %w", err)
 			}
-			logging.Infof(logHead+"fail: err=%v", err)
+			logging.Errorf(logHead+"fail: err=%v", err)
 			s.cleanAfterFn(ctx, logHead, channel.CleanPath2, ch, bucket)
 		}
 	}()
