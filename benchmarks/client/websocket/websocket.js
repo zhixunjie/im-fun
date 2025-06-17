@@ -167,28 +167,7 @@ class WebsocketOp {
         this.wsClient = null;
     }
 
-    // 发送消息
-    sendMessage() {
-        const msgInput = document.getElementById('msg-txt');
-        if (!msgInput) return;
-        this.sendFrame(msgInput.value);
-    }
-
-    sendHeartbeat() {
-        let headerBuf = new ArrayBuffer(rawHeaderLen);
-        let headerView = new DataView(headerBuf, 0);
-        headerView.setInt32(packetOffset, rawHeaderLen);
-        headerView.setInt16(headerOffset, rawHeaderLen);
-        headerView.setInt16(verOffset, protoVersion);
-        headerView.setInt32(opOffset, OpHeartbeat);
-        headerView.setInt32(seqOffset, this.seqNum++);
-        this.wsClient.send(headerBuf);
-        console.log(this)
-        console.log("send heartbeat to server");
-        appendToDialog("client: send heartbeat");
-    }
-
-    // 授权
+    // 发送授权请求
     sendAuth() {
         const authInfo = JSON.stringify({
             user_info: {
@@ -201,31 +180,43 @@ class WebsocketOp {
             },
             token: 'abcabcabcabc',
         });
+        // send frame
+        this.sendFrame(OpAuth, authInfo)
+    }
 
-        let headerBuf = new ArrayBuffer(rawHeaderLen);
-        let headerView = new DataView(headerBuf, 0);
-        let bodyBuf = this.textEncoder.encode(authInfo);
-        headerView.setInt32(packetOffset, rawHeaderLen + bodyBuf.byteLength);
-        headerView.setInt16(headerOffset, rawHeaderLen);
-        headerView.setInt16(verOffset, protoVersion);
-        headerView.setInt32(opOffset, OpAuth);
-        headerView.setInt32(seqOffset, this.seqNum++);
-        this.wsClient.send(this.mergeArrayBuffer(headerBuf, bodyBuf));
-        appendToDialog("client: send auth" + authInfo + ".");
+    // 发送消息
+    sendMessage() {
+        const msgInput = document.getElementById('msg-txt');
+        if (!msgInput) return;
+        // send frame
+        this.sendFrame(OpSendMsg, msgInput.value);
+    }
+
+    // 发送心跳
+    sendHeartbeat() {
+        // send frame
+        this.sendFrame(OpHeartbeat, '')
+        console.log("send heartbeat to server");
+        appendToDialog("client: send heartbeat");
     }
 
     // 客户端发送消息
-    sendFrame(msg) {
+    sendFrame(op, body) {
         let headerBuf = new ArrayBuffer(rawHeaderLen);
         let headerView = new DataView(headerBuf, 0);
-        let bodyBuf = this.textEncoder.encode(msg);
-        headerView.setInt32(packetOffset, rawHeaderLen + bodyBuf.byteLength);
-        headerView.setInt16(headerOffset, rawHeaderLen);
+        let bodyBuf = this.textEncoder.encode(body);
+        // length
+        let totalLen = rawHeaderLen + bodyBuf.byteLength
+        let headerLen = rawHeaderLen
+        // pack
+        headerView.setInt32(packetOffset, totalLen);
+        headerView.setInt16(headerOffset, headerLen);
         headerView.setInt16(verOffset, protoVersion);
-        headerView.setInt32(opOffset, OpSendMsg);
+        headerView.setInt32(opOffset, op);
         headerView.setInt32(seqOffset, this.seqNum++);
+        // send
         this.wsClient.send(this.mergeArrayBuffer(headerBuf, bodyBuf));
-        appendToDialog("client: send msg: " + msg + ".");
+        appendToDialog("client: send frame: " + body + ".");
     }
 
     mergeArrayBuffer(ab1, ab2) {
