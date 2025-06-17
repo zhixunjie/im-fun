@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-func Start(userId uint64, addr string) {
+func Start(userId uint64, token, addr string) {
 	logHead := fmt.Sprintf("Start|userId=%v,", userId)
 
 	// dial to server
@@ -32,8 +32,8 @@ func Start(userId uint64, addr string) {
 	rd := bufio.NewReader(conn)
 
 	// auth
-	seq := int32(0)
-	if err = Auth(rd, wr, userId); err != nil {
+	seq := int32(1)
+	if err = Auth(rd, wr, userId, token); err != nil {
 		logging.Errorf(logHead+"Auth err=%v", err)
 		return
 	}
@@ -41,7 +41,7 @@ func Start(userId uint64, addr string) {
 	seq++
 
 	// writer
-	go Writer(ctx, &seq, wr, userId, quit)
+	go func() { _ = Writer(ctx, &seq, wr, userId, quit) }()
 
 	// reader
 	_ = Reader(ctx, conn, rd, userId, quit)

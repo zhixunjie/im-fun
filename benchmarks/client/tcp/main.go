@@ -40,19 +40,21 @@ func main() {
 	go operation.DashBoard()
 	var i int64
 	for i = start; i < start+num; i++ {
-		go func(userId uint64) {
+		// TODO: 不同uid需要走不通的token验证
+		token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA3NTc2NDcsImlhdCI6MTc1MDE1Mjg0NywidWlkIjoxfQ.TTQ_1YFknYo3RgLlWMgdCgLvVPcfi2-oSUDzyjVAjZU"
+		go func(userId uint64, token string) {
 			for {
 				// 切分QPS
 				sec := rand.Intn(120)
 				logging.Infof("userId=%v try to connect server after %v second", userId, sec)
 				time.Sleep(time.Duration(sec) * time.Second)
 				// start
-				operation.Start(userId, addr)
+				operation.Start(userId, token, addr)
 
 				// restart after some second
 				time.Sleep(time.Duration(rand.Intn(10)) * time.Second)
 			}
-		}(cast.ToUint64(i))
+		}(cast.ToUint64(i), token)
 	}
 
 	// signal

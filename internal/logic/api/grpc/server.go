@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+	"fmt"
 	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/logic/biz"
 	"github.com/zhixunjie/im-fun/pkg/logging"
@@ -27,22 +28,27 @@ func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (resp *pb.Conn
 			return
 		}
 	}()
-	if req.Comm.UserId == 0 {
-		err = errors.New("UserId not allow")
+	if req.AuthParams == nil {
+		err = errors.New("AuthParams not allow")
 		return
 	}
-	if req.Comm.TcpSessionId == "" {
-		err = errors.New("TcpSessionId not allow")
+	if len(req.AuthParams.UniId) == 0 {
+		err = errors.New("UniId not allow")
 		return
 	}
-	if req.Token == "" {
+	if req.AuthParams.Token == "" {
 		err = errors.New("token not allow")
+		return
+	}
+	if len(req.ServerId) == 0 {
+		err = errors.New("ServerId not allow")
 		return
 	}
 
 	// invoke svc
 	resp, err = s.bz.Connect(ctx, req)
 	if err != nil {
+		err = fmt.Errorf("cnnect failed: %w", err)
 		return
 	}
 
@@ -50,9 +56,16 @@ func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (resp *pb.Conn
 }
 
 func (s *server) Disconnect(ctx context.Context, req *pb.DisconnectReq) (resp *pb.DisconnectResp, err error) {
+	defer func() {
+		if err != nil {
+			logging.Errorf("err=%v,req=%+v", err, req)
+			return
+		}
+	}()
 	// invoke svc
 	resp, err = s.bz.Disconnect(ctx, req)
 	if err != nil {
+		err = fmt.Errorf("disconnect failed: %w", err)
 		return
 	}
 
@@ -60,9 +73,16 @@ func (s *server) Disconnect(ctx context.Context, req *pb.DisconnectReq) (resp *p
 }
 
 func (s *server) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (resp *pb.HeartbeatResp, err error) {
+	defer func() {
+		if err != nil {
+			logging.Errorf("err=%v,req=%+v", err, req)
+			return
+		}
+	}()
 	// invoke svc
 	resp, err = s.bz.Heartbeat(ctx, req)
 	if err != nil {
+		err = fmt.Errorf("heartbeat failed: %w", err)
 		return
 	}
 
@@ -70,9 +90,16 @@ func (s *server) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (resp *pb.
 }
 
 func (s *server) RenewOnline(ctx context.Context, req *pb.OnlineReq) (resp *pb.OnlineResp, err error) {
+	defer func() {
+		if err != nil {
+			logging.Errorf("err=%v,req=%+v", err, req)
+			return
+		}
+	}()
 	// invoke svc
 	resp, err = s.bz.RenewOnline(ctx, req.ServerId, req.RoomCount)
 	if err != nil {
+		err = fmt.Errorf("RenewOne failed: %w", err)
 		return
 	}
 

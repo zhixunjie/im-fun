@@ -2,19 +2,15 @@ package biz
 
 import (
 	"context"
-	"github.com/samber/lo"
+	"errors"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-	"github.com/zhixunjie/im-fun/pkg/tcp"
 )
 
 // SendToUsers 发送消息（by kafka）
 func (bz *Biz) SendToUsers(ctx context.Context, req *request.SendToUsersReq) error {
 	logHead := "SendToUsers|"
-	tcpSessionIds := lo.Map(req.TcpSessionIds, func(item tcp.SessionId, index int) string {
-		return item.ToString()
-	})
-	serverIds, err := bz.data.GetServerIds(ctx, tcpSessionIds)
+	serverIds, err := bz.data.GetServerIds(ctx, req.TcpSessionIds)
 	if err != nil {
 		logging.Errorf(logHead+"res=%v, err=%v", serverIds, err)
 		return err
@@ -24,7 +20,7 @@ func (bz *Biz) SendToUsers(ctx context.Context, req *request.SendToUsersReq) err
 	serverIdMap := make(map[string][]string)
 	for i, tcpSessionId := range req.TcpSessionIds {
 		serverId := serverIds[i]
-		serverIdMap[serverId] = append(serverIdMap[serverId], tcpSessionId.ToString())
+		serverIdMap[serverId] = append(serverIdMap[serverId], tcpSessionId)
 	}
 
 	// 把同一台机器的请求聚合到一起
@@ -43,9 +39,14 @@ func (bz *Biz) SendToUsersByIds(ctx context.Context, req *request.SendToUsersByI
 	logHead := "SendToUsersByIds|"
 
 	// get: data
-	mSession, err := bz.data.GetSessionByUserIds(ctx, req.UserIds)
+	mSession, err := bz.data.GetSessionByUniIds(ctx, req.UniIds)
 	if err != nil {
 		logging.Errorf(logHead+"res=%v, err=%v", mSession, err)
+		return err
+	}
+	if len(mSession) == 0 {
+		err = errors.New("can not find any session by uniIds")
+		logging.Errorf(logHead+"err=%v", err)
 		return err
 	}
 

@@ -21,7 +21,7 @@ const (
 // mark tcp connection
 const (
 	// TcpUserAllSession Hash：
-	// 格式：uid -> [ tcpSessionId : serverId ]
+	// 格式：uniId -> [ tcpSessionId : serverId ]
 	TcpUserAllSession = Prefix + "tcp:user:all:session:{%v}"
 	// TcpSessionToSrv String
 	// 格式：tcpSessionId -> serverId

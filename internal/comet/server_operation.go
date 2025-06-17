@@ -2,6 +2,7 @@ package comet
 
 import (
 	"context"
+	"fmt"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/pkg/gmodel"
 	"github.com/zhixunjie/im-fun/pkg/logging"
@@ -27,7 +28,7 @@ func (s *TcpServer) handleClientMsg(ctx context.Context, logHead string, proto *
 		// rpc: lease
 		// 节流: 即使客户端上报心跳过来，也不一定要调用RPC接口进行续约
 		if now := time.Now(); now.Sub(ch.LastHb) > ch.HbInterval {
-			tErr := s.Heartbeat(ctx, ch.UserInfo)
+			tErr := s.Heartbeat(ctx, ch)
 			if tErr != nil {
 				logging.Errorf(logHead+"Heartbeat lease fail,err=%v", tErr)
 				return
@@ -58,38 +59,40 @@ func (s *TcpServer) handleClientMsg(ctx context.Context, logHead string, proto *
 	return
 }
 
-func (s *TcpServer) Connect(ctx context.Context, params *channel.AuthParams) (hbCfg *pb.HbCfg, err error) {
-	userInfo := params.UserInfo
-	resp, err := s.rpcToLogic.Connect(ctx, &pb.ConnectReq{
-		Comm: &pb.ConnectCommon{
-			ServerId:     s.serverId,
-			UserId:       userInfo.TcpSessionId.UserId,
-			TcpSessionId: userInfo.TcpSessionId.ToString(),
-		},
-		RoomId:   userInfo.RoomId,
-		Token:    params.Token,
-		Platform: userInfo.Platform,
-	})
-	if err != nil {
-		logging.Errorf("RPC Connect,err=%v", err)
+func (s *TcpServer) Connect(ctx context.Context, params *pb.AuthParams) (resp *pb.ConnectResp, err error) {
+	if params == nil {
+		err = fmt.Errorf("params is nil")
 		return
 	}
-	logging.Infof("RPC Connect success")
-	hbCfg = resp.HbCfg
+	resp, err = s.rpcToLogic.Connect(ctx, &pb.ConnectReq{
+		AuthParams: params,
+		ServerId:   s.serverId,
+	})
+	if err != nil {
+		err = fmt.Errorf("RPC Connect,err=%w", err)
+		return
+	}
+	if resp.SessionId == "" {
+		err = fmt.Errorf("sessionId is empty")
+		return
+	}
+	if resp.HbCfg == nil {
+		err = fmt.Errorf("hbCfg is empty")
+		return
+	}
+	logging.Infof("RPC Connect success,resp=%v", resp)
 
 	return
 }
 
 func (s *TcpServer) Disconnect(ctx context.Context, ch *channel.Channel) (err error) {
-	_, err = s.rpcToLogic.Disconnect(ctx, &pb.DisconnectReq{
-		Comm: &pb.ConnectCommon{
-			ServerId:     s.serverId,
-			UserId:       ch.UserInfo.TcpSessionId.UserId,
-			TcpSessionId: ch.UserInfo.TcpSessionId.ToString(),
-		},
-	})
+	if ch.UserInfo == nil {
+		err = fmt.Errorf("userInfo is empty")
+		return
+	}
+	_, err = s.rpcToLogic.Disconnect(ctx, &pb.DisconnectReq{Connect: ch.UserInfo.Connect})
 	if err != nil {
-		logging.Errorf("RPC Disconnect,err=%v", err)
+		err = fmt.Errorf("RPC Disconnect,err=%v", err)
 		return
 	}
 	logging.Infof("RPC Disconnect success")
@@ -97,16 +100,17 @@ func (s *TcpServer) Disconnect(ctx context.Context, ch *channel.Channel) (err er
 	return
 }
 
-func (s *TcpServer) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (err error) {
+func (s *TcpServer) Heartbeat(ctx context.Context, ch *channel.Channel) (err error) {
+	if ch.UserInfo == nil {
+		err = fmt.Errorf("userInfo is empty")
+		return
+	}
 	_, err = s.rpcToLogic.Heartbeat(ctx, &pb.HeartbeatReq{
-		Comm: &pb.ConnectCommon{
-			ServerId:     s.serverId,
-			UserId:       userInfo.TcpSessionId.UserId,
-			TcpSessionId: userInfo.TcpSessionId.ToString(),
-		},
+		Connect:    ch.UserInfo.Connect,
+		BindExpire: ch.UserInfo.HbCfg.BindExpire,
 	})
 	if err != nil {
-		logging.Errorf("RPC Heartbeat,err=%v", err)
+		err = fmt.Errorf("RPC Heartbeat,err=%v", err)
 		return
 	}
 	logging.Infof("RPC Heartbeat success")
@@ -125,11 +129,11 @@ func (s *TcpServer) Heartbeat(ctx context.Context, userInfo *channel.UserInfo) (
 //	return resp.AllRoomCount, nil
 //}
 
-// Receive receive a message.
+// Receive 接收到消息
 func (s *TcpServer) Receive(ctx context.Context, ch *channel.Channel, p *protocol.Proto) (err error) {
 	_, err = s.rpcToLogic.Receive(ctx, &pb.ReceiveReq{
-		UserId: ch.UserInfo.TcpSessionId.UserId,
-		Proto:  p,
+		UniId: ch.UserInfo.Connect.UniId,
+		Proto: p,
 	})
 	logging.Infof("RPC Receive,err=%v", err)
 

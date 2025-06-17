@@ -2,6 +2,7 @@ package comet
 
 import (
 	"context"
+	"errors"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/pkg/logging"
@@ -15,7 +16,7 @@ func (s *TcpServer) dispatch(ctx context.Context, logHead string, ch *channel.Ch
 
 	for {
 		// waiting for messages from channel（otherwise, it will block here）
-		//logging.Infof(logHead + "waiting get proto...")
+		logging.Infof(logHead + "blocked to get proto...")
 		proto := ch.Waiting()
 		switch protocol.Operation(proto.Op) {
 		case protocol.OpProtoReady: // 处理TCP客户端的消息
@@ -79,7 +80,7 @@ func ProtoReady(logHead string, ch *channel.Channel) (err error) {
 		// 1. read proto from client
 		proto, tErr = ch.ProtoAllocator.GetProtoForRead()
 		if tErr != nil {
-			if tErr == channel.ErrRingEmpty { // 说明：没有东西可读（此错误无需报错）
+			if errors.Is(tErr, channel.ErrRingEmpty) { // 说明：没有东西可读（此错误无需报错）
 				break
 			} else {
 				err = tErr

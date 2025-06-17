@@ -36,32 +36,52 @@ message KafkaSendMsg {
   bytes msg = 7;
 }
 
-message ConnectCommon {
-  string serverId = 1;
-  uint64 userId = 2;
-  string tcpSessionId = 3;
+// TCP连接的唯一标识
+// 关系：
+// - 一个 uniId 可以有多个 sessionId
+// - 每个 session 对应一个 tcp 连接；每个 tcp 连接对应一个 serverId
+message TcpConnection {
+  string uniId = 1;     // 唯一ID（比如：用户ID）
+  string sessionId = 2; // 会话ID
+  string serverId = 3;  // 服务器实例ID（uuid）
+}
+
+// TCP连接的用户信息
+message TcpUserInfo {
+  TcpConnection connect = 1; // 唯一地标识一条TCP连接
+  string roomId = 2;         // 房间ID
+  Platform platform = 3;     // 客户端平台
+  string clientIP = 4;       // 客户端的IP地址
+  HbCfg hb_cfg = 5;          // 心跳配置
+}
+
+message AuthParams {
+  string uniId = 1;       // 唯一ID（比如：用户ID）
+  string token = 2;       // 鉴权token
+  string roomId = 3;      // 房间ID
+  Platform platform = 4;  // 客户端平台
 }
 
 // 建立TCP连接，并且auth后，保存映射关系
 message ConnectReq {
-  ConnectCommon comm = 1;
-  string roomId = 4;
-  string token = 5;
-  Platform platform = 6;
+  AuthParams authParams = 1; // 鉴权参数
+  string serverId = 2;       // 服务器实例ID（uuid）
 }
 
 message ConnectResp {
   HbCfg hb_cfg = 1;
+  string sessionId = 2;
 }
 
 message HbCfg {
   int64 interval = 1;   // 心跳间隔(s)
   int64 fail_count = 2; // 心跳失败次数
+  int64 bind_expire = 3; // 绑定过期时间(s)
 }
 
 // 断开TCP连接，删除映射关系
 message DisconnectReq {
-  ConnectCommon comm = 1;
+  TcpConnection connect = 1;   // 连接信息
 }
 
 message DisconnectResp {
@@ -69,7 +89,8 @@ message DisconnectResp {
 }
 
 message HeartbeatReq {
-  ConnectCommon comm = 1;
+  TcpConnection connect = 1; // 连接信息
+  int64 bind_expire = 2;     // 绑定过期时间(s)
 }
 
 message HeartbeatResp {
@@ -86,7 +107,7 @@ message OnlineResp {
 }
 
 message ReceiveReq {
-  uint64 userId = 1;
+  string uniId = 1;
   imfun.protocol.Proto proto = 2;
 }
 
@@ -118,9 +139,10 @@ message Backoff {
 // 平台
 enum Platform {
   Platform_None = 0;
-  Platform_PC = 1;         // PC
+  Platform_PC = 1;         // PC客户端
   Platform_Android = 2;    // 安卓
   Platform_Ios = 3;        // IOS
-  Platform_Web = 4;        // 网页
-  Platform_MinProgram = 5; // 小程序
+  Platform_Web = 4;        // PC网页
+  Platform_H5 = 5;         // H5网页
+  Platform_MinProgram = 6; // 小程序
 }

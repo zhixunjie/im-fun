@@ -50,8 +50,8 @@ func (s *Server) sendToUsersByIds(ctx *gin.Context) {
 	}
 
 	// check params
-	if len(req.UserIds) == 0 {
-		response.JsonError(ctx, errors.New("req.UserIds not allow"))
+	if len(req.UniIds) == 0 {
+		response.JsonError(ctx, errors.New("req.UniIds not allow"))
 		return
 	}
 	if len(req.Message) == 0 {

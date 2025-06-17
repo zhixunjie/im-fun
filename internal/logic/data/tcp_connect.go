@@ -9,18 +9,14 @@ import (
 )
 
 // SessionBinding KEY绑定
-func (d *Data) SessionBinding(ctx context.Context, logHead string, rr *pb.ConnectCommon, expire time.Duration) (err error) {
+func (d *Data) SessionBinding(ctx context.Context, logHead string, uniId, sessionId, serverId string, expire time.Duration) (err error) {
 	logHead += fmt.Sprintf("SessionBinding,expire=%v|", expire)
 	mem := d.RedisClient
-	serverId := rr.ServerId
-	userId := rr.UserId
-	tcpSessionId := rr.TcpSessionId
-
 	// set hash
-	if userId > 0 {
-		key := fmt.Sprintf(TcpUserAllSession, userId)
+	if len(uniId) > 0 {
+		key := fmt.Sprintf(TcpUserAllSession, uniId)
 		// HSet
-		if err = mem.HSet(ctx, key, tcpSessionId, serverId).Err(); err != nil {
+		if err = mem.HSet(ctx, key, sessionId, serverId).Err(); err != nil {
 			logging.Errorf(logHead+"HSet error=%v,key=%v", key)
 			return
 		}
@@ -33,7 +29,7 @@ func (d *Data) SessionBinding(ctx context.Context, logHead string, rr *pb.Connec
 	}
 	// set string
 	{
-		key := fmt.Sprintf(TcpSessionToSrv, tcpSessionId)
+		key := fmt.Sprintf(TcpSessionToSrv, sessionId)
 		if err = mem.SetEx(ctx, key, serverId, expire).Err(); err != nil {
 			logging.Errorf(logHead+"SetEX error=%v,key=%v", key)
 			return
@@ -45,17 +41,16 @@ func (d *Data) SessionBinding(ctx context.Context, logHead string, rr *pb.Connec
 }
 
 // SessionDel KEY删除
-func (d *Data) SessionDel(ctx context.Context, logHead string, rr *pb.ConnectCommon) (has bool, err error) {
+func (d *Data) SessionDel(ctx context.Context, logHead string, connect *pb.TcpConnection) (has bool, err error) {
 	logHead += "SessionDel|"
 	mem := d.RedisClient
-	//serverId := rr.ServerId
-	userId := rr.UserId
-	tcpSessionId := rr.TcpSessionId
+	uniId := connect.UniId
+	tcpSessionId := connect.SessionId
 
 	// delete hash
-	if userId > 0 {
+	if len(uniId) > 0 {
 		// HDel
-		key := fmt.Sprintf(TcpUserAllSession, userId)
+		key := fmt.Sprintf(TcpUserAllSession, uniId)
 		if err = mem.HDel(ctx, key, tcpSessionId).Err(); err != nil {
 			logging.Errorf(logHead+"HDel error=%v,key=%v", err, key)
 			return
@@ -74,16 +69,15 @@ func (d *Data) SessionDel(ctx context.Context, logHead string, rr *pb.ConnectCom
 }
 
 // SessionLease KEY续约
-func (d *Data) SessionLease(ctx context.Context, logHead string, rr *pb.ConnectCommon, expire time.Duration) (has bool, err error) {
+func (d *Data) SessionLease(ctx context.Context, logHead string, connect *pb.TcpConnection, expire time.Duration) (has bool, err error) {
 	logHead += "SessionLease|"
 
 	mem := d.RedisClient
-	//serverId := rr.ServerId
-	userId := rr.UserId
-	tcpSessionId := rr.TcpSessionId
+	uniId := connect.UniId
+	tcpSessionId := connect.SessionId
 
 	// expire 1（续约 Hash KEY）
-	key := fmt.Sprintf(TcpUserAllSession, userId)
+	key := fmt.Sprintf(TcpUserAllSession, uniId)
 	has, err = mem.Expire(ctx, key, expire).Result()
 	if err != nil {
 		logging.Errorf(logHead+"Expire(1) error=%v,key=%v", err, key)

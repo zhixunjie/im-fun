@@ -6,29 +6,22 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/cast"
 	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/benchmarks/client/tcp/model"
-	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-	"github.com/zhixunjie/im-fun/pkg/tcp"
 	"io"
 	"net"
 	"time"
 )
 
-func Auth(rd *bufio.Reader, wr *bufio.Writer, userId uint64) (err error) {
+func Auth(rd *bufio.Reader, wr *bufio.Writer, userId uint64, token string) (err error) {
 	logHead := fmt.Sprintf("auth|userId=%v,", userId)
-
-	var authParams = &channel.AuthParams{
-		UserInfo: &channel.UserInfo{
-			TcpSessionId: &tcp.SessionId{
-				UserId:  userId,
-				UserKey: "any_key",
-			},
-			RoomId:   "live://9999",
-			Platform: pb.Platform_Platform_PC,
-		},
-		Token: "abcabcabcabc",
+	authParams := &pb.AuthParams{
+		UniId:    cast.ToString(userId),
+		Token:    token,
+		RoomId:   "live://9999",
+		Platform: pb.Platform_Platform_PC,
 	}
 	body, _ := json.Marshal(authParams)
 	proto := &model.Proto{

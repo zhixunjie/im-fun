@@ -64,12 +64,12 @@ func (p *SyncProducer) SendByteMessage(topic string, value []byte) error {
 func (p *SyncProducer) SendProducerMessage(msg *sarama.ProducerMessage) error {
 	partition, offset, err := p.producer.SendMessage(msg)
 	if err != nil {
-		logging.Errorf("send kafka msg failed(%v),partition:%d offset:%d msg:%+v\n",
-			err, partition, offset, msg)
+		logging.Errorf("send kafka msg failed(%v),partition:%d offset:%d msg:%s",
+			err, partition, offset, msg.Value)
 		return err
 	}
-	logging.Infof("send kafka msg success,partition:%d offset:%d msg:%+v\n",
-		partition, offset, msg)
+	logging.Infof("send kafka msg success,partition:%d offset:%d msg:%s",
+		partition, offset, msg.Value)
 
 	return nil
 }

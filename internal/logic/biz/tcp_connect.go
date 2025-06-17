@@ -3,6 +3,8 @@ package biz
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/spf13/cast"
 	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/pkg/logging"
@@ -20,33 +22,38 @@ import (
 // Connect connected a conn.
 func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (resp *pb.ConnectResp, err error) {
 	resp = new(pb.ConnectResp)
-	rr := req.Comm
+	authParams := req.AuthParams
 	expire := bz.GetHeartbeatExpire()
-	logHead := fmt.Sprintf("Connect,req.Comm=%v,expire=%v|", rr, expire)
+	logHead := fmt.Sprintf("Connect,authParams.UniId=%+v,expire=%v|", authParams.UniId, expire)
 
-	if err = bz.data.SessionBinding(ctx, logHead, rr, expire); err != nil {
-		logging.Errorf(logHead+"SessionBinding fail,error=%v", err)
+	// check token
+	claims, err := bz.userUseCase.checkToken(authParams.Token)
+	if err != nil {
+		err = fmt.Errorf("token check failed: %w", err)
 		return
 	}
-	// check token
-	//claims, err := bz.userUseCase.checkToken(req.Token)
-	//if err != nil {
-	//	logging.Errorf(logHead+"checkToken fail,error=%v", err)
-	//	return
-	//}
-	//if claims.Uid != rr.UserId {
-	//	err = fmt.Errorf("token not allows")
-	//	logging.Errorf(logHead + "UserId err")
-	//	return
-	//}
+	if cast.ToString(claims.Uid) != authParams.UniId {
+		err = fmt.Errorf("token not allows(%v,%v)", authParams.UniId, claims.Uid)
+		return
+	}
+
+	sessionId := uuid.NewString()
+	serverId := req.ServerId
+	uniId := req.AuthParams.UniId
+	if err = bz.data.SessionBinding(ctx, logHead, uniId, sessionId, serverId, expire); err != nil {
+		err = fmt.Errorf("session binding failed: %w", err)
+		return
+	}
 
 	// return hb
 	hbCfg := bz.conf.Node.Heartbeat
 	resp = &pb.ConnectResp{
 		HbCfg: &pb.HbCfg{
-			Interval:  int64(hbCfg.Interval),
-			FailCount: hbCfg.FailCount,
+			Interval:   int64(time.Duration(hbCfg.Interval).Seconds()),
+			FailCount:  hbCfg.FailCount,
+			BindExpire: int64(expire.Seconds()),
 		},
+		SessionId: sessionId,
 	}
 	logging.Infof(logHead+"success,hbCfg=%+v", hbCfg)
 
@@ -56,12 +63,12 @@ func (bz *Biz) Connect(ctx context.Context, req *pb.ConnectReq) (resp *pb.Connec
 // Disconnect disconnect a conn.
 func (bz *Biz) Disconnect(ctx context.Context, req *pb.DisconnectReq) (resp *pb.DisconnectResp, err error) {
 	resp = new(pb.DisconnectResp)
-	rr := req.Comm
-	logHead := fmt.Sprintf("Disconnect,req.Comm=%v|", rr)
+	connect := req.Connect
+	logHead := fmt.Sprintf("Disconnect,connect=%+v|", connect)
 
-	resp.Has, err = bz.data.SessionDel(ctx, logHead, rr)
+	resp.Has, err = bz.data.SessionDel(ctx, logHead, connect)
 	if err != nil {
-		logging.Errorf(logHead+"SessionDel fail,error=%v", err, rr.UserId, rr.TcpSessionId)
+		logging.Errorf(logHead+"SessionDel fail", err)
 
 		return
 	}
@@ -73,19 +80,22 @@ func (bz *Biz) Disconnect(ctx context.Context, req *pb.DisconnectReq) (resp *pb.
 // Heartbeat heartbeat a conn.
 func (bz *Biz) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (resp *pb.HeartbeatResp, err error) {
 	resp = new(pb.HeartbeatResp)
-	rr := req.Comm
-	logHead := fmt.Sprintf("Heartbeat,req.Comm=%v|", rr)
+	connect := req.Connect
+	logHead := fmt.Sprintf("Heartbeat,req=%+v|", req)
 
 	// 续约KEY
-	expire := bz.GetHeartbeatExpire()
-	resp.Has, err = bz.data.SessionLease(ctx, logHead, rr, expire)
+	expire := time.Duration(req.BindExpire) * time.Second
+	resp.Has, err = bz.data.SessionLease(ctx, logHead, connect, expire)
 	if err != nil {
 		logging.Errorf(logHead+"SessionLease fail,error=%v", err)
 		return
 	}
 	// 重新建立绑定关系
 	if !resp.Has {
-		if err = bz.data.SessionBinding(ctx, logHead, rr, expire); err != nil {
+		uniId := connect.UniId
+		sessionId := connect.SessionId
+		serverId := connect.ServerId
+		if err = bz.data.SessionBinding(ctx, logHead, uniId, sessionId, serverId, expire); err != nil {
 			logging.Errorf(logHead+"SessionBinding fail,error=%v", err)
 			return
 		}
@@ -158,6 +168,7 @@ func (bz *Biz) Nodes(ctx context.Context, req *pb.NodesReq) (resp *pb.NodesResp,
 	return
 }
 
+// GetHeartbeatExpire 单位：秒
 func (bz *Biz) GetHeartbeatExpire() (result time.Duration) {
 	nodeConf := bz.conf.Node
 	result = time.Duration(nodeConf.Heartbeat.Interval)*time.Duration(nodeConf.Heartbeat.FailCount) + 10*time.Second

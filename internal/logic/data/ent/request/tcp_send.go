@@ -1,15 +1,13 @@
 package request
 
-import "github.com/zhixunjie/im-fun/pkg/tcp"
-
 type SendToUsersReq struct {
-	TcpSessionIds []tcp.SessionId `json:"tcp_session_ids"`
-	SubId         int32           `json:"sub_id"`
-	Message       string          `json:"message"`
+	TcpSessionIds []string `json:"tcp_session_ids"`
+	SubId         int32    `json:"sub_id"`
+	Message       string   `json:"message"`
 }
 
 type SendToUsersByIdsReq struct {
-	UserIds []uint64 `json:"user_ids"`
+	UniIds  []string `json:"uni_ids"`
 	SubId   int32    `json:"sub_id"`
 	Message string   `json:"message"`
 }

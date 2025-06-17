@@ -27,11 +27,12 @@ type Platform int32
 
 const (
 	Platform_Platform_None       Platform = 0
-	Platform_Platform_PC         Platform = 1 // PC
+	Platform_Platform_PC         Platform = 1 // PC客户端
 	Platform_Platform_Android    Platform = 2 // 安卓
 	Platform_Platform_Ios        Platform = 3 // IOS
-	Platform_Platform_Web        Platform = 4 // 网页
-	Platform_Platform_MinProgram Platform = 5 // 小程序
+	Platform_Platform_Web        Platform = 4 // PC网页
+	Platform_Platform_H5         Platform = 5 // H5网页
+	Platform_Platform_MinProgram Platform = 6 // 小程序
 )
 
 // Enum value maps for Platform.
@@ -42,7 +43,8 @@ var (
 		2: "Platform_Android",
 		3: "Platform_Ios",
 		4: "Platform_Web",
-		5: "Platform_MinProgram",
+		5: "Platform_H5",
+		6: "Platform_MinProgram",
 	}
 	Platform_value = map[string]int32{
 		"Platform_None":       0,
@@ -50,7 +52,8 @@ var (
 		"Platform_Android":    2,
 		"Platform_Ios":        3,
 		"Platform_Web":        4,
-		"Platform_MinProgram": 5,
+		"Platform_H5":         5,
+		"Platform_MinProgram": 6,
 	}
 )
 
@@ -222,29 +225,33 @@ func (x *KafkaSendMsg) GetMsg() []byte {
 	return nil
 }
 
-type ConnectCommon struct {
+// TCP连接的唯一标识
+// 关系：
+// - 一个 uniId 可以有多个 sessionId
+// - 每个 session 对应一个 tcp 连接；每个 tcp 连接对应一个 serverId
+type TcpConnection struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ServerId      string                 `protobuf:"bytes,1,opt,name=serverId,proto3" json:"serverId,omitempty"`
-	UserId        uint64                 `protobuf:"varint,2,opt,name=userId,proto3" json:"userId,omitempty"`
-	TcpSessionId  string                 `protobuf:"bytes,3,opt,name=tcpSessionId,proto3" json:"tcpSessionId,omitempty"`
+	UniId         string                 `protobuf:"bytes,1,opt,name=uniId,proto3" json:"uniId,omitempty"`         // 唯一ID（比如：用户ID）
+	SessionId     string                 `protobuf:"bytes,2,opt,name=sessionId,proto3" json:"sessionId,omitempty"` // 会话ID
+	ServerId      string                 `protobuf:"bytes,3,opt,name=serverId,proto3" json:"serverId,omitempty"`   // 服务器实例ID（uuid）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ConnectCommon) Reset() {
-	*x = ConnectCommon{}
+func (x *TcpConnection) Reset() {
+	*x = TcpConnection{}
 	mi := &file_logic_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ConnectCommon) String() string {
+func (x *TcpConnection) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ConnectCommon) ProtoMessage() {}
+func (*TcpConnection) ProtoMessage() {}
 
-func (x *ConnectCommon) ProtoReflect() protoreflect.Message {
+func (x *TcpConnection) ProtoReflect() protoreflect.Message {
 	mi := &file_logic_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -256,46 +263,189 @@ func (x *ConnectCommon) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ConnectCommon.ProtoReflect.Descriptor instead.
-func (*ConnectCommon) Descriptor() ([]byte, []int) {
+// Deprecated: Use TcpConnection.ProtoReflect.Descriptor instead.
+func (*TcpConnection) Descriptor() ([]byte, []int) {
 	return file_logic_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ConnectCommon) GetServerId() string {
+func (x *TcpConnection) GetUniId() string {
+	if x != nil {
+		return x.UniId
+	}
+	return ""
+}
+
+func (x *TcpConnection) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *TcpConnection) GetServerId() string {
 	if x != nil {
 		return x.ServerId
 	}
 	return ""
 }
 
-func (x *ConnectCommon) GetUserId() uint64 {
-	if x != nil {
-		return x.UserId
-	}
-	return 0
+// TCP连接的用户信息
+type TcpUserInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Connect       *TcpConnection         `protobuf:"bytes,1,opt,name=connect,proto3" json:"connect,omitempty"`                              // 唯一地标识一条TCP连接
+	RoomId        string                 `protobuf:"bytes,2,opt,name=roomId,proto3" json:"roomId,omitempty"`                                // 房间ID
+	Platform      Platform               `protobuf:"varint,3,opt,name=platform,proto3,enum=imfun.logic.Platform" json:"platform,omitempty"` // 客户端平台
+	ClientIP      string                 `protobuf:"bytes,4,opt,name=clientIP,proto3" json:"clientIP,omitempty"`                            // 客户端的IP地址
+	HbCfg         *HbCfg                 `protobuf:"bytes,5,opt,name=hb_cfg,json=hbCfg,proto3" json:"hb_cfg,omitempty"`                     // 心跳配置
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ConnectCommon) GetTcpSessionId() string {
+func (x *TcpUserInfo) Reset() {
+	*x = TcpUserInfo{}
+	mi := &file_logic_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TcpUserInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TcpUserInfo) ProtoMessage() {}
+
+func (x *TcpUserInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_logic_proto_msgTypes[2]
 	if x != nil {
-		return x.TcpSessionId
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TcpUserInfo.ProtoReflect.Descriptor instead.
+func (*TcpUserInfo) Descriptor() ([]byte, []int) {
+	return file_logic_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *TcpUserInfo) GetConnect() *TcpConnection {
+	if x != nil {
+		return x.Connect
+	}
+	return nil
+}
+
+func (x *TcpUserInfo) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
 	}
 	return ""
+}
+
+func (x *TcpUserInfo) GetPlatform() Platform {
+	if x != nil {
+		return x.Platform
+	}
+	return Platform_Platform_None
+}
+
+func (x *TcpUserInfo) GetClientIP() string {
+	if x != nil {
+		return x.ClientIP
+	}
+	return ""
+}
+
+func (x *TcpUserInfo) GetHbCfg() *HbCfg {
+	if x != nil {
+		return x.HbCfg
+	}
+	return nil
+}
+
+type AuthParams struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UniId         string                 `protobuf:"bytes,1,opt,name=uniId,proto3" json:"uniId,omitempty"`                                  // 唯一ID（比如：用户ID）
+	Token         string                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`                                  // 鉴权token
+	RoomId        string                 `protobuf:"bytes,3,opt,name=roomId,proto3" json:"roomId,omitempty"`                                // 房间ID
+	Platform      Platform               `protobuf:"varint,4,opt,name=platform,proto3,enum=imfun.logic.Platform" json:"platform,omitempty"` // 客户端平台
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthParams) Reset() {
+	*x = AuthParams{}
+	mi := &file_logic_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthParams) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthParams) ProtoMessage() {}
+
+func (x *AuthParams) ProtoReflect() protoreflect.Message {
+	mi := &file_logic_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthParams.ProtoReflect.Descriptor instead.
+func (*AuthParams) Descriptor() ([]byte, []int) {
+	return file_logic_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *AuthParams) GetUniId() string {
+	if x != nil {
+		return x.UniId
+	}
+	return ""
+}
+
+func (x *AuthParams) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *AuthParams) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
+func (x *AuthParams) GetPlatform() Platform {
+	if x != nil {
+		return x.Platform
+	}
+	return Platform_Platform_None
 }
 
 // 建立TCP连接，并且auth后，保存映射关系
 type ConnectReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Comm          *ConnectCommon         `protobuf:"bytes,1,opt,name=comm,proto3" json:"comm,omitempty"`
-	RoomId        string                 `protobuf:"bytes,4,opt,name=roomId,proto3" json:"roomId,omitempty"`
-	Token         string                 `protobuf:"bytes,5,opt,name=token,proto3" json:"token,omitempty"`
-	Platform      Platform               `protobuf:"varint,6,opt,name=platform,proto3,enum=imfun.logic.Platform" json:"platform,omitempty"`
+	AuthParams    *AuthParams            `protobuf:"bytes,1,opt,name=authParams,proto3" json:"authParams,omitempty"` // 鉴权参数
+	ServerId      string                 `protobuf:"bytes,2,opt,name=serverId,proto3" json:"serverId,omitempty"`     // 服务器实例ID（uuid）
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ConnectReq) Reset() {
 	*x = ConnectReq{}
-	mi := &file_logic_proto_msgTypes[2]
+	mi := &file_logic_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -307,7 +457,7 @@ func (x *ConnectReq) String() string {
 func (*ConnectReq) ProtoMessage() {}
 
 func (x *ConnectReq) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[2]
+	mi := &file_logic_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -320,47 +470,34 @@ func (x *ConnectReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectReq.ProtoReflect.Descriptor instead.
 func (*ConnectReq) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{2}
+	return file_logic_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *ConnectReq) GetComm() *ConnectCommon {
+func (x *ConnectReq) GetAuthParams() *AuthParams {
 	if x != nil {
-		return x.Comm
+		return x.AuthParams
 	}
 	return nil
 }
 
-func (x *ConnectReq) GetRoomId() string {
+func (x *ConnectReq) GetServerId() string {
 	if x != nil {
-		return x.RoomId
+		return x.ServerId
 	}
 	return ""
-}
-
-func (x *ConnectReq) GetToken() string {
-	if x != nil {
-		return x.Token
-	}
-	return ""
-}
-
-func (x *ConnectReq) GetPlatform() Platform {
-	if x != nil {
-		return x.Platform
-	}
-	return Platform_Platform_None
 }
 
 type ConnectResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	HbCfg         *HbCfg                 `protobuf:"bytes,1,opt,name=hb_cfg,json=hbCfg,proto3" json:"hb_cfg,omitempty"`
+	SessionId     string                 `protobuf:"bytes,2,opt,name=sessionId,proto3" json:"sessionId,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ConnectResp) Reset() {
 	*x = ConnectResp{}
-	mi := &file_logic_proto_msgTypes[3]
+	mi := &file_logic_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -372,7 +509,7 @@ func (x *ConnectResp) String() string {
 func (*ConnectResp) ProtoMessage() {}
 
 func (x *ConnectResp) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[3]
+	mi := &file_logic_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -385,7 +522,7 @@ func (x *ConnectResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectResp.ProtoReflect.Descriptor instead.
 func (*ConnectResp) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{3}
+	return file_logic_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ConnectResp) GetHbCfg() *HbCfg {
@@ -395,17 +532,25 @@ func (x *ConnectResp) GetHbCfg() *HbCfg {
 	return nil
 }
 
+func (x *ConnectResp) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
 type HbCfg struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Interval      int64                  `protobuf:"varint,1,opt,name=interval,proto3" json:"interval,omitempty"`                    // 心跳间隔(s)
-	FailCount     int64                  `protobuf:"varint,2,opt,name=fail_count,json=failCount,proto3" json:"fail_count,omitempty"` // 心跳失败次数
+	Interval      int64                  `protobuf:"varint,1,opt,name=interval,proto3" json:"interval,omitempty"`                       // 心跳间隔(s)
+	FailCount     int64                  `protobuf:"varint,2,opt,name=fail_count,json=failCount,proto3" json:"fail_count,omitempty"`    // 心跳失败次数
+	BindExpire    int64                  `protobuf:"varint,3,opt,name=bind_expire,json=bindExpire,proto3" json:"bind_expire,omitempty"` // 绑定过期时间(s)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *HbCfg) Reset() {
 	*x = HbCfg{}
-	mi := &file_logic_proto_msgTypes[4]
+	mi := &file_logic_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -417,7 +562,7 @@ func (x *HbCfg) String() string {
 func (*HbCfg) ProtoMessage() {}
 
 func (x *HbCfg) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[4]
+	mi := &file_logic_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -430,7 +575,7 @@ func (x *HbCfg) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HbCfg.ProtoReflect.Descriptor instead.
 func (*HbCfg) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{4}
+	return file_logic_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *HbCfg) GetInterval() int64 {
@@ -447,17 +592,24 @@ func (x *HbCfg) GetFailCount() int64 {
 	return 0
 }
 
+func (x *HbCfg) GetBindExpire() int64 {
+	if x != nil {
+		return x.BindExpire
+	}
+	return 0
+}
+
 // 断开TCP连接，删除映射关系
 type DisconnectReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Comm          *ConnectCommon         `protobuf:"bytes,1,opt,name=comm,proto3" json:"comm,omitempty"`
+	Connect       *TcpConnection         `protobuf:"bytes,1,opt,name=connect,proto3" json:"connect,omitempty"` // 连接信息
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *DisconnectReq) Reset() {
 	*x = DisconnectReq{}
-	mi := &file_logic_proto_msgTypes[5]
+	mi := &file_logic_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -469,7 +621,7 @@ func (x *DisconnectReq) String() string {
 func (*DisconnectReq) ProtoMessage() {}
 
 func (x *DisconnectReq) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[5]
+	mi := &file_logic_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -482,12 +634,12 @@ func (x *DisconnectReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisconnectReq.ProtoReflect.Descriptor instead.
 func (*DisconnectReq) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{5}
+	return file_logic_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *DisconnectReq) GetComm() *ConnectCommon {
+func (x *DisconnectReq) GetConnect() *TcpConnection {
 	if x != nil {
-		return x.Comm
+		return x.Connect
 	}
 	return nil
 }
@@ -501,7 +653,7 @@ type DisconnectResp struct {
 
 func (x *DisconnectResp) Reset() {
 	*x = DisconnectResp{}
-	mi := &file_logic_proto_msgTypes[6]
+	mi := &file_logic_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -513,7 +665,7 @@ func (x *DisconnectResp) String() string {
 func (*DisconnectResp) ProtoMessage() {}
 
 func (x *DisconnectResp) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[6]
+	mi := &file_logic_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -526,7 +678,7 @@ func (x *DisconnectResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisconnectResp.ProtoReflect.Descriptor instead.
 func (*DisconnectResp) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{6}
+	return file_logic_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *DisconnectResp) GetHas() bool {
@@ -538,14 +690,15 @@ func (x *DisconnectResp) GetHas() bool {
 
 type HeartbeatReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Comm          *ConnectCommon         `protobuf:"bytes,1,opt,name=comm,proto3" json:"comm,omitempty"`
+	Connect       *TcpConnection         `protobuf:"bytes,1,opt,name=connect,proto3" json:"connect,omitempty"`                          // 连接信息
+	BindExpire    int64                  `protobuf:"varint,2,opt,name=bind_expire,json=bindExpire,proto3" json:"bind_expire,omitempty"` // 绑定过期时间(s)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *HeartbeatReq) Reset() {
 	*x = HeartbeatReq{}
-	mi := &file_logic_proto_msgTypes[7]
+	mi := &file_logic_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -557,7 +710,7 @@ func (x *HeartbeatReq) String() string {
 func (*HeartbeatReq) ProtoMessage() {}
 
 func (x *HeartbeatReq) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[7]
+	mi := &file_logic_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -570,14 +723,21 @@ func (x *HeartbeatReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HeartbeatReq.ProtoReflect.Descriptor instead.
 func (*HeartbeatReq) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{7}
+	return file_logic_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *HeartbeatReq) GetComm() *ConnectCommon {
+func (x *HeartbeatReq) GetConnect() *TcpConnection {
 	if x != nil {
-		return x.Comm
+		return x.Connect
 	}
 	return nil
+}
+
+func (x *HeartbeatReq) GetBindExpire() int64 {
+	if x != nil {
+		return x.BindExpire
+	}
+	return 0
 }
 
 type HeartbeatResp struct {
@@ -589,7 +749,7 @@ type HeartbeatResp struct {
 
 func (x *HeartbeatResp) Reset() {
 	*x = HeartbeatResp{}
-	mi := &file_logic_proto_msgTypes[8]
+	mi := &file_logic_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -601,7 +761,7 @@ func (x *HeartbeatResp) String() string {
 func (*HeartbeatResp) ProtoMessage() {}
 
 func (x *HeartbeatResp) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[8]
+	mi := &file_logic_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -614,7 +774,7 @@ func (x *HeartbeatResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HeartbeatResp.ProtoReflect.Descriptor instead.
 func (*HeartbeatResp) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{8}
+	return file_logic_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *HeartbeatResp) GetHas() bool {
@@ -634,7 +794,7 @@ type OnlineReq struct {
 
 func (x *OnlineReq) Reset() {
 	*x = OnlineReq{}
-	mi := &file_logic_proto_msgTypes[9]
+	mi := &file_logic_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -646,7 +806,7 @@ func (x *OnlineReq) String() string {
 func (*OnlineReq) ProtoMessage() {}
 
 func (x *OnlineReq) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[9]
+	mi := &file_logic_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -659,7 +819,7 @@ func (x *OnlineReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OnlineReq.ProtoReflect.Descriptor instead.
 func (*OnlineReq) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{9}
+	return file_logic_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *OnlineReq) GetServerId() string {
@@ -685,7 +845,7 @@ type OnlineResp struct {
 
 func (x *OnlineResp) Reset() {
 	*x = OnlineResp{}
-	mi := &file_logic_proto_msgTypes[10]
+	mi := &file_logic_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -697,7 +857,7 @@ func (x *OnlineResp) String() string {
 func (*OnlineResp) ProtoMessage() {}
 
 func (x *OnlineResp) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[10]
+	mi := &file_logic_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -710,7 +870,7 @@ func (x *OnlineResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OnlineResp.ProtoReflect.Descriptor instead.
 func (*OnlineResp) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{10}
+	return file_logic_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *OnlineResp) GetAllRoomCount() map[string]int32 {
@@ -722,7 +882,7 @@ func (x *OnlineResp) GetAllRoomCount() map[string]int32 {
 
 type ReceiveReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        uint64                 `protobuf:"varint,1,opt,name=userId,proto3" json:"userId,omitempty"`
+	UniId         string                 `protobuf:"bytes,1,opt,name=uniId,proto3" json:"uniId,omitempty"`
 	Proto         *protocol.Proto        `protobuf:"bytes,2,opt,name=proto,proto3" json:"proto,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -730,7 +890,7 @@ type ReceiveReq struct {
 
 func (x *ReceiveReq) Reset() {
 	*x = ReceiveReq{}
-	mi := &file_logic_proto_msgTypes[11]
+	mi := &file_logic_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -742,7 +902,7 @@ func (x *ReceiveReq) String() string {
 func (*ReceiveReq) ProtoMessage() {}
 
 func (x *ReceiveReq) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[11]
+	mi := &file_logic_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -755,14 +915,14 @@ func (x *ReceiveReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReceiveReq.ProtoReflect.Descriptor instead.
 func (*ReceiveReq) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{11}
+	return file_logic_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *ReceiveReq) GetUserId() uint64 {
+func (x *ReceiveReq) GetUniId() string {
 	if x != nil {
-		return x.UserId
+		return x.UniId
 	}
-	return 0
+	return ""
 }
 
 func (x *ReceiveReq) GetProto() *protocol.Proto {
@@ -780,7 +940,7 @@ type ReceiveResp struct {
 
 func (x *ReceiveResp) Reset() {
 	*x = ReceiveResp{}
-	mi := &file_logic_proto_msgTypes[12]
+	mi := &file_logic_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -792,7 +952,7 @@ func (x *ReceiveResp) String() string {
 func (*ReceiveResp) ProtoMessage() {}
 
 func (x *ReceiveResp) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[12]
+	mi := &file_logic_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -805,7 +965,7 @@ func (x *ReceiveResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReceiveResp.ProtoReflect.Descriptor instead.
 func (*ReceiveResp) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{12}
+	return file_logic_proto_rawDescGZIP(), []int{14}
 }
 
 type NodesReq struct {
@@ -818,7 +978,7 @@ type NodesReq struct {
 
 func (x *NodesReq) Reset() {
 	*x = NodesReq{}
-	mi := &file_logic_proto_msgTypes[13]
+	mi := &file_logic_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -830,7 +990,7 @@ func (x *NodesReq) String() string {
 func (*NodesReq) ProtoMessage() {}
 
 func (x *NodesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[13]
+	mi := &file_logic_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -843,7 +1003,7 @@ func (x *NodesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodesReq.ProtoReflect.Descriptor instead.
 func (*NodesReq) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{13}
+	return file_logic_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *NodesReq) GetPlatform() Platform {
@@ -875,7 +1035,7 @@ type NodesResp struct {
 
 func (x *NodesResp) Reset() {
 	*x = NodesResp{}
-	mi := &file_logic_proto_msgTypes[14]
+	mi := &file_logic_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -887,7 +1047,7 @@ func (x *NodesResp) String() string {
 func (*NodesResp) ProtoMessage() {}
 
 func (x *NodesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[14]
+	mi := &file_logic_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -900,7 +1060,7 @@ func (x *NodesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodesResp.ProtoReflect.Descriptor instead.
 func (*NodesResp) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{14}
+	return file_logic_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *NodesResp) GetDomain() string {
@@ -964,7 +1124,7 @@ type Backoff struct {
 
 func (x *Backoff) Reset() {
 	*x = Backoff{}
-	mi := &file_logic_proto_msgTypes[15]
+	mi := &file_logic_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -976,7 +1136,7 @@ func (x *Backoff) String() string {
 func (*Backoff) ProtoMessage() {}
 
 func (x *Backoff) ProtoReflect() protoreflect.Message {
-	mi := &file_logic_proto_msgTypes[15]
+	mi := &file_logic_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -989,7 +1149,7 @@ func (x *Backoff) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Backoff.ProtoReflect.Descriptor instead.
 func (*Backoff) Descriptor() ([]byte, []int) {
-	return file_logic_proto_rawDescGZIP(), []int{15}
+	return file_logic_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *Backoff) GetBaseDelay() int32 {
@@ -1037,29 +1197,46 @@ const file_logic_proto_rawDesc = "" +
 	"\aToUsers\x10\x00\x12\n" +
 	"\n" +
 	"\x06ToRoom\x10\x01\x12\t\n" +
-	"\x05ToAll\x10\x02\"g\n" +
-	"\rConnectCommon\x12\x1a\n" +
-	"\bserverId\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
-	"\x06userId\x18\x02 \x01(\x04R\x06userId\x12\"\n" +
-	"\ftcpSessionId\x18\x03 \x01(\tR\ftcpSessionId\"\x9d\x01\n" +
+	"\x05ToAll\x10\x02\"_\n" +
+	"\rTcpConnection\x12\x14\n" +
+	"\x05uniId\x18\x01 \x01(\tR\x05uniId\x12\x1c\n" +
+	"\tsessionId\x18\x02 \x01(\tR\tsessionId\x12\x1a\n" +
+	"\bserverId\x18\x03 \x01(\tR\bserverId\"\xd5\x01\n" +
+	"\vTcpUserInfo\x124\n" +
+	"\aconnect\x18\x01 \x01(\v2\x1a.imfun.logic.TcpConnectionR\aconnect\x12\x16\n" +
+	"\x06roomId\x18\x02 \x01(\tR\x06roomId\x121\n" +
+	"\bplatform\x18\x03 \x01(\x0e2\x15.imfun.logic.PlatformR\bplatform\x12\x1a\n" +
+	"\bclientIP\x18\x04 \x01(\tR\bclientIP\x12)\n" +
+	"\x06hb_cfg\x18\x05 \x01(\v2\x12.imfun.logic.HbCfgR\x05hbCfg\"\x83\x01\n" +
 	"\n" +
-	"ConnectReq\x12.\n" +
-	"\x04comm\x18\x01 \x01(\v2\x1a.imfun.logic.ConnectCommonR\x04comm\x12\x16\n" +
-	"\x06roomId\x18\x04 \x01(\tR\x06roomId\x12\x14\n" +
-	"\x05token\x18\x05 \x01(\tR\x05token\x121\n" +
-	"\bplatform\x18\x06 \x01(\x0e2\x15.imfun.logic.PlatformR\bplatform\"8\n" +
+	"AuthParams\x12\x14\n" +
+	"\x05uniId\x18\x01 \x01(\tR\x05uniId\x12\x14\n" +
+	"\x05token\x18\x02 \x01(\tR\x05token\x12\x16\n" +
+	"\x06roomId\x18\x03 \x01(\tR\x06roomId\x121\n" +
+	"\bplatform\x18\x04 \x01(\x0e2\x15.imfun.logic.PlatformR\bplatform\"a\n" +
+	"\n" +
+	"ConnectReq\x127\n" +
+	"\n" +
+	"authParams\x18\x01 \x01(\v2\x17.imfun.logic.AuthParamsR\n" +
+	"authParams\x12\x1a\n" +
+	"\bserverId\x18\x02 \x01(\tR\bserverId\"V\n" +
 	"\vConnectResp\x12)\n" +
-	"\x06hb_cfg\x18\x01 \x01(\v2\x12.imfun.logic.HbCfgR\x05hbCfg\"B\n" +
+	"\x06hb_cfg\x18\x01 \x01(\v2\x12.imfun.logic.HbCfgR\x05hbCfg\x12\x1c\n" +
+	"\tsessionId\x18\x02 \x01(\tR\tsessionId\"c\n" +
 	"\x05HbCfg\x12\x1a\n" +
 	"\binterval\x18\x01 \x01(\x03R\binterval\x12\x1d\n" +
 	"\n" +
-	"fail_count\x18\x02 \x01(\x03R\tfailCount\"?\n" +
-	"\rDisconnectReq\x12.\n" +
-	"\x04comm\x18\x01 \x01(\v2\x1a.imfun.logic.ConnectCommonR\x04comm\"\"\n" +
+	"fail_count\x18\x02 \x01(\x03R\tfailCount\x12\x1f\n" +
+	"\vbind_expire\x18\x03 \x01(\x03R\n" +
+	"bindExpire\"E\n" +
+	"\rDisconnectReq\x124\n" +
+	"\aconnect\x18\x01 \x01(\v2\x1a.imfun.logic.TcpConnectionR\aconnect\"\"\n" +
 	"\x0eDisconnectResp\x12\x10\n" +
-	"\x03has\x18\x01 \x01(\bR\x03has\">\n" +
-	"\fHeartbeatReq\x12.\n" +
-	"\x04comm\x18\x01 \x01(\v2\x1a.imfun.logic.ConnectCommonR\x04comm\"!\n" +
+	"\x03has\x18\x01 \x01(\bR\x03has\"e\n" +
+	"\fHeartbeatReq\x124\n" +
+	"\aconnect\x18\x01 \x01(\v2\x1a.imfun.logic.TcpConnectionR\aconnect\x12\x1f\n" +
+	"\vbind_expire\x18\x02 \x01(\x03R\n" +
+	"bindExpire\"!\n" +
 	"\rHeartbeatResp\x12\x10\n" +
 	"\x03has\x18\x01 \x01(\bR\x03has\"\xaa\x01\n" +
 	"\tOnlineReq\x12\x1a\n" +
@@ -1073,10 +1250,10 @@ const file_logic_proto_rawDesc = "" +
 	"\fallRoomCount\x18\x01 \x03(\v2).imfun.logic.OnlineResp.AllRoomCountEntryR\fallRoomCount\x1a?\n" +
 	"\x11AllRoomCountEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"Q\n" +
+	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"O\n" +
 	"\n" +
-	"ReceiveReq\x12\x16\n" +
-	"\x06userId\x18\x01 \x01(\x04R\x06userId\x12+\n" +
+	"ReceiveReq\x12\x14\n" +
+	"\x05uniId\x18\x01 \x01(\tR\x05uniId\x12+\n" +
 	"\x05proto\x18\x02 \x01(\v2\x15.imfun.protocol.ProtoR\x05proto\"\r\n" +
 	"\vReceiveResp\"Y\n" +
 	"\bNodesReq\x121\n" +
@@ -1097,14 +1274,15 @@ const file_logic_proto_rawDesc = "" +
 	"multiplier\x18\x02 \x01(\x02R\n" +
 	"multiplier\x12\x16\n" +
 	"\x06jitter\x18\x03 \x01(\x02R\x06jitter\x12\x1b\n" +
-	"\tmax_delay\x18\x04 \x01(\x05R\bmaxDelay*\x81\x01\n" +
+	"\tmax_delay\x18\x04 \x01(\x05R\bmaxDelay*\x92\x01\n" +
 	"\bPlatform\x12\x11\n" +
 	"\rPlatform_None\x10\x00\x12\x0f\n" +
 	"\vPlatform_PC\x10\x01\x12\x14\n" +
 	"\x10Platform_Android\x10\x02\x12\x10\n" +
 	"\fPlatform_Ios\x10\x03\x12\x10\n" +
-	"\fPlatform_Web\x10\x04\x12\x17\n" +
-	"\x13Platform_MinProgram\x10\x052\x86\x03\n" +
+	"\fPlatform_Web\x10\x04\x12\x0f\n" +
+	"\vPlatform_H5\x10\x05\x12\x17\n" +
+	"\x13Platform_MinProgram\x10\x062\x86\x03\n" +
 	"\x05Logic\x12<\n" +
 	"\aConnect\x12\x17.imfun.logic.ConnectReq\x1a\x18.imfun.logic.ConnectResp\x12E\n" +
 	"\n" +
@@ -1127,60 +1305,65 @@ func file_logic_proto_rawDescGZIP() []byte {
 }
 
 var file_logic_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_logic_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_logic_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_logic_proto_goTypes = []any{
 	(Platform)(0),          // 0: imfun.logic.Platform
 	(KafkaSendMsg_Type)(0), // 1: imfun.logic.KafkaSendMsg.Type
 	(*KafkaSendMsg)(nil),   // 2: imfun.logic.KafkaSendMsg
-	(*ConnectCommon)(nil),  // 3: imfun.logic.ConnectCommon
-	(*ConnectReq)(nil),     // 4: imfun.logic.ConnectReq
-	(*ConnectResp)(nil),    // 5: imfun.logic.ConnectResp
-	(*HbCfg)(nil),          // 6: imfun.logic.HbCfg
-	(*DisconnectReq)(nil),  // 7: imfun.logic.DisconnectReq
-	(*DisconnectResp)(nil), // 8: imfun.logic.DisconnectResp
-	(*HeartbeatReq)(nil),   // 9: imfun.logic.HeartbeatReq
-	(*HeartbeatResp)(nil),  // 10: imfun.logic.HeartbeatResp
-	(*OnlineReq)(nil),      // 11: imfun.logic.OnlineReq
-	(*OnlineResp)(nil),     // 12: imfun.logic.OnlineResp
-	(*ReceiveReq)(nil),     // 13: imfun.logic.ReceiveReq
-	(*ReceiveResp)(nil),    // 14: imfun.logic.ReceiveResp
-	(*NodesReq)(nil),       // 15: imfun.logic.NodesReq
-	(*NodesResp)(nil),      // 16: imfun.logic.NodesResp
-	(*Backoff)(nil),        // 17: imfun.logic.Backoff
-	nil,                    // 18: imfun.logic.OnlineReq.RoomCountEntry
-	nil,                    // 19: imfun.logic.OnlineResp.AllRoomCountEntry
-	(*protocol.Proto)(nil), // 20: imfun.protocol.Proto
+	(*TcpConnection)(nil),  // 3: imfun.logic.TcpConnection
+	(*TcpUserInfo)(nil),    // 4: imfun.logic.TcpUserInfo
+	(*AuthParams)(nil),     // 5: imfun.logic.AuthParams
+	(*ConnectReq)(nil),     // 6: imfun.logic.ConnectReq
+	(*ConnectResp)(nil),    // 7: imfun.logic.ConnectResp
+	(*HbCfg)(nil),          // 8: imfun.logic.HbCfg
+	(*DisconnectReq)(nil),  // 9: imfun.logic.DisconnectReq
+	(*DisconnectResp)(nil), // 10: imfun.logic.DisconnectResp
+	(*HeartbeatReq)(nil),   // 11: imfun.logic.HeartbeatReq
+	(*HeartbeatResp)(nil),  // 12: imfun.logic.HeartbeatResp
+	(*OnlineReq)(nil),      // 13: imfun.logic.OnlineReq
+	(*OnlineResp)(nil),     // 14: imfun.logic.OnlineResp
+	(*ReceiveReq)(nil),     // 15: imfun.logic.ReceiveReq
+	(*ReceiveResp)(nil),    // 16: imfun.logic.ReceiveResp
+	(*NodesReq)(nil),       // 17: imfun.logic.NodesReq
+	(*NodesResp)(nil),      // 18: imfun.logic.NodesResp
+	(*Backoff)(nil),        // 19: imfun.logic.Backoff
+	nil,                    // 20: imfun.logic.OnlineReq.RoomCountEntry
+	nil,                    // 21: imfun.logic.OnlineResp.AllRoomCountEntry
+	(*protocol.Proto)(nil), // 22: imfun.protocol.Proto
 }
 var file_logic_proto_depIdxs = []int32{
 	1,  // 0: imfun.logic.KafkaSendMsg.type:type_name -> imfun.logic.KafkaSendMsg.Type
-	3,  // 1: imfun.logic.ConnectReq.comm:type_name -> imfun.logic.ConnectCommon
-	0,  // 2: imfun.logic.ConnectReq.platform:type_name -> imfun.logic.Platform
-	6,  // 3: imfun.logic.ConnectResp.hb_cfg:type_name -> imfun.logic.HbCfg
-	3,  // 4: imfun.logic.DisconnectReq.comm:type_name -> imfun.logic.ConnectCommon
-	3,  // 5: imfun.logic.HeartbeatReq.comm:type_name -> imfun.logic.ConnectCommon
-	18, // 6: imfun.logic.OnlineReq.roomCount:type_name -> imfun.logic.OnlineReq.RoomCountEntry
-	19, // 7: imfun.logic.OnlineResp.allRoomCount:type_name -> imfun.logic.OnlineResp.AllRoomCountEntry
-	20, // 8: imfun.logic.ReceiveReq.proto:type_name -> imfun.protocol.Proto
-	0,  // 9: imfun.logic.NodesReq.platform:type_name -> imfun.logic.Platform
-	6,  // 10: imfun.logic.NodesResp.hb_cfg:type_name -> imfun.logic.HbCfg
-	17, // 11: imfun.logic.NodesResp.backoff:type_name -> imfun.logic.Backoff
-	4,  // 12: imfun.logic.Logic.Connect:input_type -> imfun.logic.ConnectReq
-	7,  // 13: imfun.logic.Logic.Disconnect:input_type -> imfun.logic.DisconnectReq
-	9,  // 14: imfun.logic.Logic.Heartbeat:input_type -> imfun.logic.HeartbeatReq
-	11, // 15: imfun.logic.Logic.RenewOnline:input_type -> imfun.logic.OnlineReq
-	13, // 16: imfun.logic.Logic.Receive:input_type -> imfun.logic.ReceiveReq
-	15, // 17: imfun.logic.Logic.Nodes:input_type -> imfun.logic.NodesReq
-	5,  // 18: imfun.logic.Logic.Connect:output_type -> imfun.logic.ConnectResp
-	8,  // 19: imfun.logic.Logic.Disconnect:output_type -> imfun.logic.DisconnectResp
-	10, // 20: imfun.logic.Logic.Heartbeat:output_type -> imfun.logic.HeartbeatResp
-	12, // 21: imfun.logic.Logic.RenewOnline:output_type -> imfun.logic.OnlineResp
-	14, // 22: imfun.logic.Logic.Receive:output_type -> imfun.logic.ReceiveResp
-	16, // 23: imfun.logic.Logic.Nodes:output_type -> imfun.logic.NodesResp
-	18, // [18:24] is the sub-list for method output_type
-	12, // [12:18] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	3,  // 1: imfun.logic.TcpUserInfo.connect:type_name -> imfun.logic.TcpConnection
+	0,  // 2: imfun.logic.TcpUserInfo.platform:type_name -> imfun.logic.Platform
+	8,  // 3: imfun.logic.TcpUserInfo.hb_cfg:type_name -> imfun.logic.HbCfg
+	0,  // 4: imfun.logic.AuthParams.platform:type_name -> imfun.logic.Platform
+	5,  // 5: imfun.logic.ConnectReq.authParams:type_name -> imfun.logic.AuthParams
+	8,  // 6: imfun.logic.ConnectResp.hb_cfg:type_name -> imfun.logic.HbCfg
+	3,  // 7: imfun.logic.DisconnectReq.connect:type_name -> imfun.logic.TcpConnection
+	3,  // 8: imfun.logic.HeartbeatReq.connect:type_name -> imfun.logic.TcpConnection
+	20, // 9: imfun.logic.OnlineReq.roomCount:type_name -> imfun.logic.OnlineReq.RoomCountEntry
+	21, // 10: imfun.logic.OnlineResp.allRoomCount:type_name -> imfun.logic.OnlineResp.AllRoomCountEntry
+	22, // 11: imfun.logic.ReceiveReq.proto:type_name -> imfun.protocol.Proto
+	0,  // 12: imfun.logic.NodesReq.platform:type_name -> imfun.logic.Platform
+	8,  // 13: imfun.logic.NodesResp.hb_cfg:type_name -> imfun.logic.HbCfg
+	19, // 14: imfun.logic.NodesResp.backoff:type_name -> imfun.logic.Backoff
+	6,  // 15: imfun.logic.Logic.Connect:input_type -> imfun.logic.ConnectReq
+	9,  // 16: imfun.logic.Logic.Disconnect:input_type -> imfun.logic.DisconnectReq
+	11, // 17: imfun.logic.Logic.Heartbeat:input_type -> imfun.logic.HeartbeatReq
+	13, // 18: imfun.logic.Logic.RenewOnline:input_type -> imfun.logic.OnlineReq
+	15, // 19: imfun.logic.Logic.Receive:input_type -> imfun.logic.ReceiveReq
+	17, // 20: imfun.logic.Logic.Nodes:input_type -> imfun.logic.NodesReq
+	7,  // 21: imfun.logic.Logic.Connect:output_type -> imfun.logic.ConnectResp
+	10, // 22: imfun.logic.Logic.Disconnect:output_type -> imfun.logic.DisconnectResp
+	12, // 23: imfun.logic.Logic.Heartbeat:output_type -> imfun.logic.HeartbeatResp
+	14, // 24: imfun.logic.Logic.RenewOnline:output_type -> imfun.logic.OnlineResp
+	16, // 25: imfun.logic.Logic.Receive:output_type -> imfun.logic.ReceiveResp
+	18, // 26: imfun.logic.Logic.Nodes:output_type -> imfun.logic.NodesResp
+	21, // [21:27] is the sub-list for method output_type
+	15, // [15:21] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_logic_proto_init() }
@@ -1194,7 +1377,7 @@ func file_logic_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_logic_proto_rawDesc), len(file_logic_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   18,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

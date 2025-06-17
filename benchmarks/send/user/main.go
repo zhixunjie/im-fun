@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/spf13/cast"
 	"github.com/zhixunjie/im-fun/benchmarks/send"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/pkg/http"
@@ -83,7 +84,7 @@ func Start(st, ed int64) {
 
 	// build msg
 	msg := request.SendToUsersByIdsReq{
-		UserIds: []uint64{userId},
+		UniIds:  []string{cast.ToString(userId)},
 		Message: send.Msg,
 	}
 

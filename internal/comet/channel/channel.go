@@ -2,6 +2,7 @@ package channel
 
 import (
 	"fmt"
+	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/api/protocol"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/buffer/bufio"
@@ -29,7 +30,8 @@ type Channel struct {
 	ConnReadWriter protocol.ConnReadWriter
 
 	// user info
-	UserInfo *UserInfo
+	ClientIp string
+	UserInfo *pb.TcpUserInfo
 
 	// use to get proto，reduce GC
 	ProtoAllocator Ring
@@ -52,15 +54,14 @@ func NewChannel(conf *conf.Config, conn *net.TCPConn, traceId int64, connType Co
 			TimerPool:  timerPool,
 			Trd:        nil,
 		},
-		signal:   make(chan *protocol.Proto, conf.Protocol.Proto.ChannelSize),
-		UserInfo: new(UserInfo),
+		signal: make(chan *protocol.Proto, conf.Protocol.Proto.ChannelSize),
 	}
 
 	// set ProtoAllocator
 	ch.ProtoAllocator.Init(uint64(conf.Protocol.Proto.AllocatorSize))
 
 	// set user ip
-	ch.UserInfo.IP, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
+	ch.ClientIp, _, _ = net.SplitHostPort(conn.RemoteAddr().String())
 
 	// set buffer
 	// 底层执行IO操作的是conn，缓冲区为ch.readBuf.Bytes()

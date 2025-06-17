@@ -111,16 +111,16 @@ func (b *Bucket) Put(ch *channel.Channel) (err error) {
 	var room *channel.Room
 	var ok bool
 	userInfo := ch.UserInfo
-	tcpSessionId := userInfo.TcpSessionId
+	tcpSessionId := userInfo.Connect.SessionId
 	roomId := userInfo.RoomId
 
 	b.rwLock.Lock()
 	// close old channel
-	if oldCh := b.chs[tcpSessionId.ToString()]; oldCh != nil {
+	if oldCh := b.chs[tcpSessionId]; oldCh != nil {
 		oldCh.SendFinish(logHead)
 	}
 	// set new channel
-	b.chs[tcpSessionId.ToString()] = ch
+	b.chs[tcpSessionId] = ch
 	if roomId != "" {
 		if room, ok = b.rooms[roomId]; !ok {
 			room = channel.NewRoom(roomId)
@@ -128,7 +128,7 @@ func (b *Bucket) Put(ch *channel.Channel) (err error) {
 		}
 		ch.Room = room
 	}
-	b.ipCount[userInfo.IP]++
+	b.ipCount[userInfo.ClientIP]++
 	b.rwLock.Unlock()
 
 	// put channel to the room
@@ -142,19 +142,19 @@ func (b *Bucket) Put(ch *channel.Channel) (err error) {
 func (b *Bucket) DelChannel(currCh *channel.Channel) {
 	logging.Infof("[traceId=%v] DelChannel|", currCh.TraceId)
 	userInfo := currCh.UserInfo
-	tcpSessionId := userInfo.TcpSessionId
+	tcpSessionId := userInfo.Connect.SessionId
 
 	b.rwLock.Lock()
-	if ch, ok := b.chs[tcpSessionId.ToString()]; ok {
+	if ch, ok := b.chs[tcpSessionId]; ok {
 		// delete channel
 		if ch == currCh {
-			delete(b.chs, tcpSessionId.ToString())
+			delete(b.chs, tcpSessionId)
 		}
 		// update ip counter
-		if b.ipCount[userInfo.IP] > 1 {
-			b.ipCount[userInfo.IP]--
+		if b.ipCount[userInfo.ClientIP] > 1 {
+			b.ipCount[userInfo.ClientIP]--
 		} else {
-			delete(b.ipCount, userInfo.IP)
+			delete(b.ipCount, userInfo.ClientIP)
 		}
 	}
 	b.rwLock.Unlock()

@@ -103,6 +103,7 @@ func (s *TcpServer) cleanAfterFn(ctx context.Context, logHead string, cleanPath 
 	case channel.CleanPath1:
 		// clean
 		ch.CleanPath1()
+		return
 	case channel.CleanPath2:
 		// delete channel
 		if bucket != nil {
@@ -113,16 +114,20 @@ func (s *TcpServer) cleanAfterFn(ctx context.Context, logHead string, cleanPath 
 		// rpc: remove redis binding info
 		if err = s.Disconnect(ctx, ch); err != nil {
 			logging.Errorf(logHead+"Disconnect,err=%v", err)
+			return
 		}
+		return
 	case channel.CleanPath3:
 		// clean
 		ch.CleanPath3()
+		return
 	}
 }
 
 // loop to read client msg
 // 数据流：client -> [comet] -> read -> send protoReady -> dispatch
 func (s *TcpServer) readLoop(ctx context.Context, logHead string, ch *channel.Channel, bucket *Bucket) {
+	logHead = logHead + "readLoop|"
 	var err error
 	var proto *protocol.Proto
 
@@ -175,14 +180,16 @@ func (s *TcpServer) serveTCP(logHead string, ch *channel.Channel, connType chann
 
 		bucket *Bucket
 	)
-	var hbCfg *pb.HbCfg
+	var connectResp *pb.ConnectResp
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	fn1 := func() {
+	fn1 := func() (err error) {
 		defer func() {
 			if err != nil {
+				logging.Infof(logHead+"fail to fn1,err=%v", err)
 				s.cleanAfterFn(ctx, logHead, channel.CleanPath1, ch, nil)
+				return
 			}
 		}()
 
@@ -192,38 +199,53 @@ func (s *TcpServer) serveTCP(logHead string, ch *channel.Channel, connType chann
 		// upgrade to websocket
 		if connType == channel.ConnTypeWebSocket {
 			if err = s.upgradeToWebSocket(ctx, logHead, ch); err != nil {
-				logging.Errorf(logHead+"upgradeToWebSocket err=%v", err)
+				err = fmt.Errorf("upgradeToWebSocket failed: %w", err)
 				return
 			}
 		}
 
 		// auth（check token）
-		hbCfg, bucket, err = s.auth(ctx, logHead, ch)
+		connectResp, err = s.auth(ctx, logHead, ch)
 		if err != nil {
-			logging.Errorf(logHead+"auth err=%v", err)
+			err = fmt.Errorf("auth failed: %w", err)
 			return
 		}
+		return
 	}
-	fn1()
+	err = fn1()
+	if err != nil {
+		logging.Infof(logHead+"fail to fn1,err=%v", err)
+		return
+	}
 
-	fn2 := func() {
+	fn2 := func() (err error) {
 		defer func() {
 			if err != nil {
+				logging.Infof(logHead+"fail to fn2,err=%v", err)
 				s.cleanAfterFn(ctx, logHead, channel.CleanPath2, ch, bucket)
+				return
 			}
 		}()
-
 		// allocate bucket
-		bucket = s.AllocBucket(ch.UserInfo.TcpSessionId.ToString())
+		bucket = s.AllocBucket(connectResp.SessionId)
 		err = bucket.Put(ch)
 		if err != nil {
-			logging.Errorf(logHead+"AllocBucket err=%v", err)
+			err = fmt.Errorf("bucket.Put failed: %w", err)
 			return
 		}
 		// recreate: timer
-		s.SetTimerHeartbeat(ctx, logHead, ch, hbCfg, bucket)
+		err = s.SetTimerHeartbeat(ctx, logHead, ch, connectResp.HbCfg, bucket)
+		if err != nil {
+			err = fmt.Errorf("SetTimerHeartbeat failed: %w", err)
+			return
+		}
+		return
 	}
-	fn2()
+	err = fn2()
+	if err != nil {
+		logging.Infof(logHead+"fail to fn2,err=%v", err)
+		return
+	}
 
 	// routine new: dispatch
 	go s.dispatch(ctx, logHead, ch)
@@ -246,36 +268,48 @@ func (s *TcpServer) getAuthProto(logHead string, ch *channel.Channel, proto *pro
 	}
 }
 
-func (s *TcpServer) auth(ctx context.Context, logHead string, ch *channel.Channel) (hbCfg *pb.HbCfg, bucket *Bucket, err error) {
+func (s *TcpServer) auth(ctx context.Context, logHead string, ch *channel.Channel) (resp *pb.ConnectResp, err error) {
 	logHead += "auth|"
 
 	// 获取：proto（用于写入）
 	proto, err := ch.ProtoAllocator.GetProtoForWrite()
 	if err != nil {
-		logging.Errorf(logHead+"GetProtoForWrite err=%v", err)
+		err = fmt.Errorf("GetProtoForWrite failed: %w", err)
 		return
 	}
 
 	// 读取：auth信息
 	err = s.getAuthProto(logHead, ch, proto)
 	if err != nil {
+		err = fmt.Errorf("getAuthProto failed: %w", err)
 		return
 	}
 
 	// 解析：授权信息
-	authParams := new(channel.AuthParams)
+	authParams := new(pb.AuthParams)
 	if err = json.Unmarshal(proto.Body, authParams); err != nil {
-		logging.Errorf(logHead+"Unmarshal body=%s,err=%v", proto.Body, err)
+		err = fmt.Errorf("unmarshal auth params failed: %w(body=%s)", err, proto.Body)
 		return
 	}
-	authParams.UserInfo.IP = ch.UserInfo.IP
 
 	// RPC：建立绑定关系
-	if hbCfg, err = s.Connect(ctx, authParams); err != nil {
-		logging.Errorf(logHead+"Connect err=%v,params=%+v", err, authParams)
+	if resp, err = s.Connect(ctx, authParams); err != nil {
+		err = fmt.Errorf("connect failed: %w(authParams=%+v)", err, authParams)
 		return
 	}
-	ch.UserInfo = authParams.UserInfo
+
+	// 绑定成功，生成用户信息（用于后续TCP操作）
+	ch.UserInfo = &pb.TcpUserInfo{
+		Connect: &pb.TcpConnection{
+			UniId:     authParams.UniId,
+			SessionId: resp.SessionId,
+			ServerId:  s.serverId,
+		},
+		RoomId:   authParams.RoomId,
+		Platform: authParams.Platform,
+		ClientIP: ch.ClientIp,
+		HbCfg:    resp.HbCfg,
+	}
 	logging.Infof(logHead+"update user info after Connect[%v]", ch.UserInfo)
 
 	// TCP响应：下发TCP消息给给客户端（授权结果）
@@ -283,7 +317,7 @@ func (s *TcpServer) auth(ctx context.Context, logHead string, ch *channel.Channe
 	proto.Seq = gmodel.NewSeqId32()
 	proto.Body = nil
 	if err = ch.ConnReadWriter.WriteProto(proto); err != nil {
-		logging.Errorf(logHead+"WriteTCP err=%v,UserInfo=%v", err, ch.UserInfo)
+		err = fmt.Errorf("WriteProto failed: %w(UserInfo=%+v)", err, ch.UserInfo)
 		return
 	}
 	err = ch.ConnReadWriter.Flush()
@@ -325,13 +359,18 @@ func (s *TcpServer) SetTimerHandshake(logHead string, ch *channel.Channel) {
 }
 
 // SetTimerHeartbeat set timer: for heartbeat
-func (s *TcpServer) SetTimerHeartbeat(ctx context.Context, logHead string, ch *channel.Channel, hbCfg *pb.HbCfg, bucket *Bucket) {
+func (s *TcpServer) SetTimerHeartbeat(ctx context.Context, logHead string, ch *channel.Channel, hbCfg *pb.HbCfg, bucket *Bucket) (err error) {
 	logHead += fmt.Sprintf("SetTimerHeartbeat,hbCfg=%+v|", hbCfg)
-	hbInterval := time.Duration(hbCfg.Interval) * time.Second
-	hbExpire := hbInterval * time.Duration(hbCfg.FailCount)
 
+	if hbCfg == nil {
+		err = fmt.Errorf("hbCfg is nil")
+		return
+	}
+
+	hbInterval := time.Duration(hbCfg.Interval) * time.Second
+	hbExpire := time.Duration(hbCfg.Interval*hbCfg.FailCount) * time.Second
 	if hbExpire.Seconds() == 0 {
-		logging.Errorf(logHead + "hbDuration not allow")
+		err = fmt.Errorf("hbInterval is zero")
 		return
 	}
 
@@ -343,7 +382,9 @@ func (s *TcpServer) SetTimerHeartbeat(ctx context.Context, logHead string, ch *c
 	ch.LastHb = time.Now()
 	ch.HbExpire = hbExpire
 	ch.HbInterval = hbInterval
-	logging.Infof(logHead+"timer set success,params(LastHb=%v,HbExpire=%v)", ch.LastHb, ch.HbExpire)
+	logging.Infof(logHead+"heartbeat timer set success,params(LastHb=%v,HbExpire=%v)", ch.LastHb.Format("2006-01-02 15:04:05"), ch.HbExpire)
+
+	return
 }
 
 // ResetTimerHeartbeat reset timer: for heartbeat
