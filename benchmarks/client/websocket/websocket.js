@@ -64,7 +64,10 @@ class WebsocketOp {
 
     reset() {
         this.seqNum = 1
-        clearInterval(this.heartbeatInterval)
+        if (this.heartbeatInterval) {
+            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = null;
+        }
     }
 
     // 连接
@@ -106,9 +109,7 @@ class WebsocketOp {
             switch (op) {
                 case OpAuthReply:
                     appendToDialog('授权成功...');
-                    // send a heartbeat to server
                     this.sendHeartbeat();
-
                     // 利用bind，解决this指针丢失的问题
                     // https://blog.csdn.net/Victor2code/article/details/107804354
                     this.heartbeatInterval = setInterval(this.sendHeartbeat.bind(this), 30 * 1000);
