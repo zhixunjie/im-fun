@@ -120,23 +120,6 @@ func (s *TcpServer) cleanAfterFn(ctx context.Context, logHead string, cleanPath 
 	}
 }
 
-func (s *TcpServer) readLoopFail(ctx context.Context, logHead string, ch *channel.Channel, bucket *Bucket, err error) {
-	// check error
-	if err != nil {
-		switch {
-		case err == io.EOF, strings.Contains(err.Error(), "closed") == true:
-			logging.Infof(logHead+"fail: err=%v (client close or server close by dispatch)", err)
-		default:
-			logging.Errorf(logHead+"fail: sth has happened,err=%v", err)
-		}
-	} else {
-		logging.Errorf(logHead + "fail: sth has happened")
-	}
-
-	// clean
-	s.cleanAfterFn(ctx, logHead, channel.CleanPath2, ch, bucket)
-}
-
 // loop to read client msg
 // 数据流：client -> [comet] -> read -> send protoReady -> dispatch
 func (s *TcpServer) readLoop(ctx context.Context, logHead string, ch *channel.Channel, bucket *Bucket) {
@@ -167,7 +150,20 @@ func (s *TcpServer) readLoop(ctx context.Context, logHead string, ch *channel.Ch
 		ch.SendReady()
 	}
 fail:
-	s.readLoopFail(ctx, logHead, ch, bucket, err)
+	// check error
+	if err != nil {
+		switch {
+		case err == io.EOF, strings.Contains(err.Error(), "closed") == true:
+			logging.Infof(logHead+"fail: err=%v (client close or server close by dispatch)", err)
+		default:
+			logging.Errorf(logHead+"fail: sth has happened,err=%v", err)
+		}
+	} else {
+		logging.Errorf(logHead + "fail: sth has happened")
+	}
+
+	// clean
+	s.cleanAfterFn(ctx, logHead, channel.CleanPath2, ch, bucket)
 }
 
 // serveTCP serve a tcp connection.
