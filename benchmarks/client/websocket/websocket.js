@@ -111,7 +111,7 @@ class WebsocketOp {
 
             switch (op) {
                 case this.Op.AUTH_REPLY:
-                    appendToDialog("server", "授权成功！");
+                    appendToDialog("server", "授权成功");
                     this.sendHeartbeat();
                     // 利用bind，解决this指针丢失的问题
                     // https://blog.csdn.net/Victor2code/article/details/107804354
