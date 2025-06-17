@@ -57,9 +57,10 @@ func (bz *Biz) SendToUsersByIds(ctx context.Context, req *request.SendToUsersByI
 
 	// 把同一台机器的请求聚合在一起
 	for serverId := range m {
-		err = bz.data.KafkaSendToUsers(serverId, m[serverId], req.SubId, []byte(req.Message))
-		if err != nil {
-			logging.Errorf(logHead+"err=%v", err)
+		kafkaErr := bz.data.KafkaSendToUsers(serverId, m[serverId], req.SubId, []byte(req.Message))
+		if kafkaErr != nil {
+			logging.Errorf(logHead+"kafkaErr=%v", kafkaErr)
+			continue
 		}
 	}
 
