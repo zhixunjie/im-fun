@@ -35,12 +35,14 @@ function padZero(num) {
 const protoVersion = 1
 // size
 const rawHeaderLen = 16;
+
 // offset
 const packetOffset = 0;
 const headerOffset = 4;
 const verOffset = 6;
 const opOffset = 8;
 const seqOffset = 12;
+
 // op code
 const OpHeartbeat = 2
 const OpHeartbeatReply = 3
@@ -169,7 +171,7 @@ class WebsocketOp {
     sendMessage() {
         const msgInput = document.getElementById('msg-txt');
         if (!msgInput) return;
-        this.sendMsg(msgInput.value);
+        this.sendFrame(msgInput.value);
     }
 
     sendHeartbeat() {
@@ -188,7 +190,18 @@ class WebsocketOp {
 
     // 授权
     sendAuth() {
-        let authInfo = `{"user_info":{"tcp_session_id":{"user_id":1001,"user_key":"x4u5mmq6gh2md5dl"},"room_id":"live://9999","platform":4},"token":"abcabcabcabc"}`
+        const authInfo = JSON.stringify({
+            user_info: {
+                tcp_session_id: {
+                    user_id: 1001,
+                    user_key: 'x4u5mmq6gh2md5dl',
+                },
+                room_id: 'live://9999',
+                platform: 4,
+            },
+            token: 'abcabcabcabc',
+        });
+
         let headerBuf = new ArrayBuffer(rawHeaderLen);
         let headerView = new DataView(headerBuf, 0);
         let bodyBuf = this.textEncoder.encode(authInfo);
@@ -202,7 +215,7 @@ class WebsocketOp {
     }
 
     // 客户端发送消息
-    sendMsg(msg) {
+    sendFrame(msg) {
         let headerBuf = new ArrayBuffer(rawHeaderLen);
         let headerView = new DataView(headerBuf, 0);
         let bodyBuf = this.textEncoder.encode(msg);
