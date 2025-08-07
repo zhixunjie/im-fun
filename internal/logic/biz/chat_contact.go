@@ -41,7 +41,7 @@ func (b *ContactUseCase) Fetch(ctx context.Context, req *request.ContactFetchReq
 	// get: contact list
 	ownerId := req.Owner
 	list, err := b.contactRepo.RangeList(&model.FetchContactRangeParams{
-		FetchType:      gmodel.FetchTypeForward,
+		FetchType:      req.FetchType,
 		Owner:          ownerId,
 		PivotVersionId: req.VersionId,
 		Limit:          limit,

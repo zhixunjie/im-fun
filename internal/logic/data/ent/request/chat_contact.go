@@ -7,6 +7,7 @@ import (
 
 // ContactFetchReq 拉取会话列表（by version_id）
 type ContactFetchReq struct {
+	FetchType gmodel.FetchType    `json:"fetch_type"`        // 拉取类型
 	VersionId model.BigIntType    `json:"version_id,string"` // 版本id
 	Owner     *gmodel.ComponentId `json:"owner"`             // 会话拥有者
 }

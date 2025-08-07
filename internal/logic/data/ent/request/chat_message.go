@@ -17,7 +17,7 @@ type MessageSendReq struct {
 
 // MessageFetchReq 拉取消息列表（by version_id）
 type MessageFetchReq struct {
-	FetchType gmodel.FetchType    `json:"fetch_type"`
+	FetchType gmodel.FetchType    `json:"fetch_type"`        // 拉取类型
 	VersionId model.BigIntType    `json:"version_id,string"` // 版本id
 	Owner     *gmodel.ComponentId `json:"owner"`             // 会话拥有者
 	Peer      *gmodel.ComponentId `json:"peer"`              // 会话联系人（对方）
