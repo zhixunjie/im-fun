@@ -80,6 +80,7 @@ func (b *MessageUseCase) Send(ctx context.Context, req *request.MessageSendReq) 
 	// 3. create message（无扩散）🔥
 	msg, err := b.createMessage(ctx, logHead, req)
 	if err != nil {
+		err = fmt.Errorf("createMessage failed: %w", err)
 		return
 	}
 	currMsgId := msg.MsgID
