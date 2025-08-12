@@ -63,6 +63,7 @@ func (b *GroupMessageUseCase) Send(ctx context.Context, req *request.GroupMessag
 		if !lo.Contains(req.InvisibleList, cast.ToString(req.Sender.GetId())) {
 			senderContact, err = b.repoContact.CreateNotExists(ctx, logHead, &model.BuildContactParams{Owner: sender, Peer: receiver})
 			if err != nil {
+				err = fmt.Errorf("CreateNotExists sender failed: %v", err)
 				return
 			}
 		}
@@ -72,6 +73,7 @@ func (b *GroupMessageUseCase) Send(ctx context.Context, req *request.GroupMessag
 		if !lo.Contains(req.InvisibleList, cast.ToString(req.Receiver.GetId())) {
 			receiverContact, err = b.repoContact.CreateNotExists(ctx, logHead, &model.BuildContactParams{Owner: receiver, Peer: sender})
 			if err != nil {
+				err = fmt.Errorf("CreateNotExists receiver failed: %v", err)
 				return
 			}
 		}
@@ -105,9 +107,6 @@ func (b *GroupMessageUseCase) Send(ctx context.Context, req *request.GroupMessag
 		// update contact's info（写扩散）
 		if receiverContact != nil {
 			err = b.repoContact.UpdateLastMsgId(ctx, logHead, receiverContact.ID, receiver, currMsgId, gmodel.PeerAcked)
-			if err != nil {
-				return
-			}
 			if err != nil {
 				return
 			}
