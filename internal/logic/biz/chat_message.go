@@ -312,7 +312,7 @@ func (b *MessageUseCase) checkParamsClearHistory(ctx context.Context, req *reque
 			return
 		}
 		if !receiver.Equal(peer) {
-			err = fmt.Errorf("lastDelMsgId not match peer: %w", err)
+			err = errors.New("lastDelMsgId not match peer")
 			return
 		}
 	} else {
