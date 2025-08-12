@@ -308,11 +308,11 @@ func (b *MessageUseCase) checkParamsClearHistory(ctx context.Context, req *reque
 		var receiver *gmodel.ComponentId
 		receiver, err = gmodel.SessionId(msgInfo.SessionID).ParsePeerId(owner)
 		if err != nil {
-			err = errors.New("parse session id error")
+			err = fmt.Errorf("parse session id error: %w", err)
 			return
 		}
 		if !receiver.Equal(peer) {
-			err = errors.New("lastDelMsgId not match peer")
+			err = fmt.Errorf("lastDelMsgId not match peer: %w", err)
 			return
 		}
 	} else {
