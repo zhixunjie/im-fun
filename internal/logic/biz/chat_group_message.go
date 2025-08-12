@@ -54,6 +54,7 @@ func (b *GroupMessageUseCase) Send(ctx context.Context, req *request.GroupMessag
 	// check params
 	err = b.checkParamsSend(ctx, req)
 	if err != nil {
+		err = fmt.Errorf("checkParamsSend failed: %w", err)
 		return
 	}
 
@@ -63,7 +64,7 @@ func (b *GroupMessageUseCase) Send(ctx context.Context, req *request.GroupMessag
 		if !lo.Contains(req.InvisibleList, cast.ToString(req.Sender.GetId())) {
 			senderContact, err = b.repoContact.CreateNotExists(ctx, logHead, &model.BuildContactParams{Owner: sender, Peer: receiver})
 			if err != nil {
-				err = fmt.Errorf("CreateNotExists sender failed: %v", err)
+				err = fmt.Errorf("CreateNotExists sender failed: %w", err)
 				return
 			}
 		}
@@ -73,7 +74,7 @@ func (b *GroupMessageUseCase) Send(ctx context.Context, req *request.GroupMessag
 		if !lo.Contains(req.InvisibleList, cast.ToString(req.Receiver.GetId())) {
 			receiverContact, err = b.repoContact.CreateNotExists(ctx, logHead, &model.BuildContactParams{Owner: receiver, Peer: sender})
 			if err != nil {
-				err = fmt.Errorf("CreateNotExists receiver failed: %v", err)
+				err = fmt.Errorf("CreateNotExists receiver failed: %w", err)
 				return
 			}
 		}
