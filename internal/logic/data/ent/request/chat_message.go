@@ -47,3 +47,8 @@ type MessageClearHistoryReq struct {
 	Owner *gmodel.ComponentId `json:"owner"`         // 会话拥有者
 	Peer  *gmodel.ComponentId `json:"peer"`          // 会话联系人（对方）
 }
+
+//type MessageModifyReq struct {
+//	MsgID  model.BigIntType    `json:"msg_id,string"` // 删除哪一条消息？
+//	Sender *gmodel.ComponentId `json:"sender"`        // 消息发送者
+//}
