@@ -27,17 +27,17 @@ const (
 )
 
 func keyMsgId(timestamp int64) string {
-	return fmt.Sprintf(RedisPrefix+"mid:%v", timestamp)
+	return fmt.Sprintf(RedisPrefix+"mid:{%v}", timestamp)
 }
 
 func keyContactVersion(ownerUniId string, verIdTimeKey int64) string {
-	return fmt.Sprintf(RedisPrefix+"cvid:%v:%v", ownerUniId, verIdTimeKey)
+	return fmt.Sprintf(RedisPrefix+"cvid:{%v}:%v", ownerUniId, verIdTimeKey)
 }
 
 func keyMsgVersion(smallerUniId, largerUniId string, verIdTimeKey int64) string {
-	return fmt.Sprintf(RedisPrefix+"mvid:%v:%v:%v", smallerUniId, largerUniId, verIdTimeKey)
+	return fmt.Sprintf(RedisPrefix+"mvid:{%v:%v}:%v", smallerUniId, largerUniId, verIdTimeKey)
 }
 
 func keyMsgGroupVersion(groupUniId string, verIdTimeKey int64) string {
-	return fmt.Sprintf(RedisPrefix+"mvid:g:%v:%v", groupUniId, verIdTimeKey)
+	return fmt.Sprintf(RedisPrefix+"mvid:g:{%v}:%v", groupUniId, verIdTimeKey)
 }
