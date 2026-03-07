@@ -52,11 +52,24 @@
     <!--        </button>-->
     <!--    </div>-->
 
-    <div class="mb-4 flex gap-2 flex-wrap">
-        <input type="text" id="msg-txt" placeholder="请输入要发送的长链接消息..."
-               class="flex-1 p-2 border border-gray-300 rounded-md">
-        <button id="send-btn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">发送长链接消息
-        </button>
+<!--    <div class="mb-4 flex gap-2 flex-wrap">-->
+<!--        <input type="text" id="msg-txt" placeholder="请输入要发送的长链接消息..."-->
+<!--               class="flex-1 p-2 border border-gray-300 rounded-md">-->
+<!--        <button id="send-btn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md">发送长链接消息-->
+<!--        </button>-->
+<!--    </div>-->
+
+    <!-- 发送消息给指定用户 -->
+    <div class="mb-4">
+        <div class="mb-2 font-medium">发送消息给指定用户：</div>
+        <div class="flex gap-2 flex-wrap">
+            <input type="text" id="target-user-id" placeholder="目标用户 ID"
+                   class="w-40 p-2 border border-gray-300 rounded-md">
+            <input type="text" id="send-msg-txt" placeholder="请输入消息内容..."
+                   class="flex-1 p-2 border border-gray-300 rounded-md">
+            <button id="send-to-user-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">发送给指定用户
+            </button>
+        </div>
     </div>
 
     <div class="mb-2">
@@ -134,6 +147,31 @@
 
     document.getElementById("send-btn").addEventListener("click", () => {
         ws.sendMessage();
+    });
+
+    document.getElementById("send-to-user-btn").addEventListener("click", async () => {
+        if (!globalUserId) return alert("请先登录");
+        const targetId = document.getElementById("target-user-id").value.trim();
+        if (!targetId) return alert("请输入目标用户 ID");
+        const message = document.getElementById("send-msg-txt").value.trim();
+        if (!message) return alert("请输入消息内容");
+
+        try {
+            const res = await fetch(`${API_BASE}/im/send/to/users/by/ids`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({uni_ids: [targetId], message: message})
+            });
+            const result = await res.json();
+            if (res.ok) {
+                appendToDialog("client", `发送给用户 ${targetId} 成功：${message}`);
+                document.getElementById("send-msg-txt").value = "";
+            } else {
+                appendToDialog("client", `发送失败：${JSON.stringify(result)}`);
+            }
+        } catch (err) {
+            appendToDialog("client", `发送请求异常：${err}`);
+        }
     });
     // document.getElementById("connect-btn").addEventListener("click", () => {
     //     const url = document.getElementById("ws-url").value;
