@@ -6,13 +6,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/spf13/cast"
-	"github.com/zhixunjie/im-fun/api/pb"
-	"github.com/zhixunjie/im-fun/benchmarks/client/tcp/model"
-	"github.com/zhixunjie/im-fun/pkg/logging"
 	"io"
 	"net"
 	"time"
+
+	"github.com/spf13/cast"
+	"github.com/zhixunjie/im-fun/api/pb"
+	"github.com/zhixunjie/im-fun/cmd/benchmarks/client/tcp/model"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
 func Auth(rd *bufio.Reader, wr *bufio.Writer, userId uint64, token string) (err error) {

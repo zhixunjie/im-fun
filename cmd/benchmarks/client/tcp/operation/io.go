@@ -3,7 +3,8 @@ package operation
 import (
 	"bufio"
 	"encoding/binary"
-	"github.com/zhixunjie/im-fun/benchmarks/client/tcp/model"
+
+	"github.com/zhixunjie/im-fun/cmd/benchmarks/client/tcp/model"
 )
 
 func WriteProto(wr *bufio.Writer, proto *model.Proto) (err error) {
