@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/zhixunjie/im-fun/cmd/logic/wire"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/zhixunjie/im-fun/cmd/single/logic/wire"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/perf"
 	"github.com/zhixunjie/im-fun/pkg/prometheus/register"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 var (
