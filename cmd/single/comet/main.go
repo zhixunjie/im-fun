@@ -3,13 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/zhixunjie/im-fun/internal/comet"
-	commetgrpc "github.com/zhixunjie/im-fun/internal/comet/api/grpc"
-	"github.com/zhixunjie/im-fun/internal/comet/channel"
-	"github.com/zhixunjie/im-fun/internal/comet/conf"
-	"github.com/zhixunjie/im-fun/pkg/logging"
-	"github.com/zhixunjie/im-fun/pkg/perf"
-	"github.com/zhixunjie/im-fun/pkg/prometheus/register"
 	"math/rand"
 	"net"
 	"os"
@@ -17,6 +10,14 @@ import (
 	"runtime"
 	"syscall"
 	"time"
+
+	"github.com/zhixunjie/im-fun/internal/comet"
+	commetgrpc "github.com/zhixunjie/im-fun/internal/comet/api/grpc"
+	"github.com/zhixunjie/im-fun/internal/comet/channel"
+	"github.com/zhixunjie/im-fun/internal/comet/conf"
+	"github.com/zhixunjie/im-fun/pkg/logging"
+	"github.com/zhixunjie/im-fun/pkg/perf"
+	"github.com/zhixunjie/im-fun/pkg/prometheus/register"
 )
 
 var (

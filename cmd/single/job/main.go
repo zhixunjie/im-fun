@@ -2,14 +2,15 @@ package main
 
 import (
 	"flag"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/zhixunjie/im-fun/internal/job"
 	"github.com/zhixunjie/im-fun/internal/job/conf"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/perf"
 	"github.com/zhixunjie/im-fun/pkg/prometheus/register"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 var (
