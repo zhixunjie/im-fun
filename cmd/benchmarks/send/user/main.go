@@ -5,16 +5,17 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/spf13/cast"
-	"github.com/zhixunjie/im-fun/benchmarks/send"
-	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
-	"github.com/zhixunjie/im-fun/pkg/http"
-	"github.com/zhixunjie/im-fun/pkg/logging"
 	"math/rand"
 	"os"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/spf13/cast"
+	"github.com/zhixunjie/im-fun/cmd/benchmarks/send"
+	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
+	"github.com/zhixunjie/im-fun/pkg/http"
+	"github.com/zhixunjie/im-fun/pkg/logging"
 )
 
 var (
