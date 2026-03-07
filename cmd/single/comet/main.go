@@ -26,7 +26,7 @@ var (
 
 // get params
 func init() {
-	flag.StringVar(&confPath, "conf", "cmd/comet/comet.yaml", "配置文件的路径")
+	flag.StringVar(&confPath, "conf", "cmd/single/comet/comet.yaml", "配置文件的路径")
 	flag.Parse()
 }
 

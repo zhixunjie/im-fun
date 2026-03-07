@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"flag"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/zhixunjie/im-fun/cmd/single/logic/wire"
 	"github.com/zhixunjie/im-fun/internal/logic/conf"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"github.com/zhixunjie/im-fun/pkg/perf"
 	"github.com/zhixunjie/im-fun/pkg/prometheus/register"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 var (
@@ -19,7 +20,7 @@ var (
 
 // get params
 func init() {
-	flag.StringVar(&confPath, "conf", "cmd/logic/logic.yaml", "配置文件的路径")
+	flag.StringVar(&confPath, "conf", "cmd/single/logic/logic.yaml", "配置文件的路径")
 	flag.Parse()
 }
 

@@ -19,7 +19,7 @@ var (
 
 // get params
 func init() {
-	flag.StringVar(&confPath, "conf", "cmd/job/job.yaml", "配置文件的路径")
+	flag.StringVar(&confPath, "conf", "cmd/single/job/job.yaml", "配置文件的路径")
 	flag.Parse()
 }
 
