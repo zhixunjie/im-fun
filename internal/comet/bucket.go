@@ -14,7 +14,7 @@ import (
 type Bucket struct {
 	conf   *conf.Bucket
 	rwLock sync.RWMutex                // protect the channels for chs
-	chs    map[string]*channel.Channel // map：model.UserInfo.TcpSessionId => GetChannel
+	chs    map[string]*channel.Channel // map：pb.TcpUserInfo 的 TcpSessionId => GetChannel
 
 	// room
 	routineCounter atomic.Uint64
