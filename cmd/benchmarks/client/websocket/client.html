@@ -145,10 +145,6 @@
         appendToDialog("client", "🚪 已退出登录");
     });
 
-    document.getElementById("send-btn").addEventListener("click", () => {
-        ws.sendMessage();
-    });
-
     document.getElementById("send-to-user-btn").addEventListener("click", async () => {
         if (!globalUserId) return alert("请先登录");
         const targetId = document.getElementById("target-user-id").value.trim();
@@ -157,10 +153,19 @@
         if (!message) return alert("请输入消息内容");
 
         try {
-            const res = await fetch(`${API_BASE}/im/send/to/users/by/ids`, {
+            const res = await fetch(`${API_BASE}/message/send/with_push`, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({uni_ids: [targetId], message: message})
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${globalToken}`
+                },
+                body: JSON.stringify({
+                    receiver_uni_id: targetId,
+                    msg_body: {
+                        msg_type: 2,
+                        msg_content: {text_content: {text: message, highLights: []}}
+                    }
+                })
             });
             const result = await res.json();
             if (res.ok) {

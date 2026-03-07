@@ -32,12 +32,13 @@ func (s *Server) SetupRouter() {
 	// message
 	message := router.Group("/message")
 	{
-		message.POST("/send", s.MessageSend)           // ✅发送消息（普通消息） TODO 结合缓存机制优化
-		message.POST("/send/system", s.MessageSend)    // TODO 发送消息（系统消息）
-		message.POST("/fetch", s.MessageFetch)         // ✅拉取消息列表 TODO 结合缓存机制优化
-		message.POST("/clear", s.MessageClearHistory)  // ✅清空聊天记录
-		message.POST("/has/read", s.MessageFetch)      // TODO 消息已读
-		message.POST("/update/status", s.MessageFetch) // TODO 修改消息状态：消息删除 & 撤回消息
+		message.POST("/send", s.MessageSend)                   // ✅发送消息（普通消息） TODO 结合缓存机制优化
+		message.POST("/send/with_push", s.MessageSendWithPush) // ✅发送消息并推送长链接（带鉴权，存DB + 推送Comet）
+		message.POST("/send/system", s.MessageSend)            // TODO 发送消息（系统消息）
+		message.POST("/fetch", s.MessageFetch)                 // ✅拉取消息列表 TODO 结合缓存机制优化
+		message.POST("/clear", s.MessageClearHistory)          // ✅清空聊天记录
+		message.POST("/has/read", s.MessageFetch)              // TODO 消息已读
+		message.POST("/update/status", s.MessageFetch)         // TODO 修改消息状态：消息删除 & 撤回消息
 	}
 	groupMessage := router.Group("/group/message")
 	{

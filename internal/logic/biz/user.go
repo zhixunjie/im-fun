@@ -174,6 +174,11 @@ func (b *UserUseCase) genToken(uid uint64) (string, error) {
 	return tokenStr, nil
 }
 
+// CheckToken 检查 token 是否有效（公开方法，供 HTTP handler 调用）
+func (b *UserUseCase) CheckToken(tokenStr string) (*gmodel.AuthClaims, error) {
+	return b.checkToken(tokenStr)
+}
+
 // checkToken 检查 token 是否有效
 // TODO: use gin middleware to check token
 func (b *UserUseCase) checkToken(tokenStr string) (*gmodel.AuthClaims, error) {
