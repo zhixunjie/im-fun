@@ -20,13 +20,13 @@ const (
 
 // mark tcp connection
 const (
-	// TcpUserAllSession Hash：
-	// 格式：uniId -> [ tcpSessionId : serverId ]
+	// TcpUserAllSession
+	// Hash, 格式：uniId -> [ sessionId : serverId ]
 	TcpUserAllSession = Prefix + "tcp:user:all:session:{%v}"
-	// TcpSessionToSrv String
-	// 格式：tcpSessionId -> serverId
+	// TcpSessionToSrv
+	// String, 格式：sessionId -> serverId
 	TcpSessionToSrv = Prefix + "tcp:session:to:server:{%v}"
-	// TcpServerOnline String
-	// 格式：serverId -> online
+	// TcpServerOnline
+	// String, 格式：serverId -> online
 	TcpServerOnline = Prefix + "tcp:server:online:{%v}"
 )

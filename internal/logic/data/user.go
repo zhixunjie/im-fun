@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/generate/model"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 )

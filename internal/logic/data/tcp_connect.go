@@ -3,9 +3,10 @@ package data
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-	"time"
 )
 
 // SessionBinding KEY绑定

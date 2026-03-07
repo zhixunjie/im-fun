@@ -1,12 +1,13 @@
 package comet
 
 import (
+	"sync"
+
 	"github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/comet/channel"
 	"github.com/zhixunjie/im-fun/internal/comet/conf"
 	"github.com/zhixunjie/im-fun/pkg/logging"
 	"go.uber.org/atomic"
-	"sync"
 )
 
 // Bucket global value, use bucket to manage all the channel（all TCP connection）
