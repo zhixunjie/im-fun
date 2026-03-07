@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	pb "github.com/zhixunjie/im-fun/api/pb"
 	"github.com/zhixunjie/im-fun/internal/logic/biz"
 	"github.com/zhixunjie/im-fun/pkg/logging"
@@ -48,7 +49,7 @@ func (s *server) Connect(ctx context.Context, req *pb.ConnectReq) (resp *pb.Conn
 	// invoke svc
 	resp, err = s.bz.Connect(ctx, req)
 	if err != nil {
-		err = fmt.Errorf("cnnect failed: %w", err)
+		err = fmt.Errorf("connect failed: %w", err)
 		return
 	}
 

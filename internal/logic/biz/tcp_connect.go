@@ -3,6 +3,8 @@ package biz
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/spf13/cast"
 	"github.com/zhixunjie/im-fun/api/pb"
@@ -10,7 +12,6 @@ import (
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/request"
 	"github.com/zhixunjie/im-fun/internal/logic/data/ent/response"
 	"github.com/zhixunjie/im-fun/pkg/logging"
-	"time"
 )
 
 //type TcpUseCase struct {
@@ -86,7 +87,7 @@ func (bz *Biz) Heartbeat(ctx context.Context, req *pb.HeartbeatReq) (resp *pb.He
 	resp = new(pb.HeartbeatResp)
 	connect := req.Connect
 	logHead := fmt.Sprintf("Heartbeat,uniId=%+v|", connect.UniId)
-	logging.Info(logHead+"req=%+v", req)
+	logging.Infof(logHead+"req=%+v", req)
 
 	// 续约KEY
 	expire := time.Duration(req.BindExpire) * time.Second
