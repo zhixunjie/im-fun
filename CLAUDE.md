@@ -103,6 +103,18 @@ Each service reads a YAML config file via `-conf` flag. Config files are at:
 
 The `Makefile` currently targets `darwin/arm64`. Change the `ARCH` variable at the top for cross-compilation.
 
+## Local Debugging
+
+使用 `cmd/` 目录下的入口进行本地调试：
+
+- **服务端**
+  - `cmd/single/` — 单节点实例（comet / logic / job 各一个），适合本地开发调试
+  - `cmd/cluster/` — 多节点/集群模式（每个服务有 instance1, instance2, instance3）
+
+- **客户端**
+  - `benchmarks/client/websocket/` — WebSocket 客户端
+  - `benchmarks/client/tcp/` — TCP 客户端
+
 ## Package Highlights
 
 - `pkg/websocket/`: Custom WebSocket implementation (frame read/write, upgrade).
