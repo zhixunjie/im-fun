@@ -129,7 +129,13 @@ class WebsocketOp {
                         let op = dataView.getInt32(offset + opOffset);
                         let seq = dataView.getInt32(offset + seqOffset);
                         let msgBody = this.textDecoder.decode(data.slice(offset + headerLen, offset + packetLen));
-                        appendToDialog("server", "ver=" + ver + " op=" + op + " seq=" + seq + " message=" + msgBody);
+                        try {
+                            let msg = JSON.parse(msgBody);
+                            let text = msg.msg_body?.msg_content?.text_content?.text ?? msgBody;
+                            appendToDialog(`用户${msg.from_user_id}`, text);
+                        } catch (e) {
+                            appendToDialog("server", msgBody);
+                        }
                     }
                     break;
                 default:
